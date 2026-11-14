@@ -1,0 +1,171 @@
+<!doctype html>
+<!-- AgroTwin — AI-generated (Claude, Anthropic) under human review. -->
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgroTwin</title>
+<link rel="stylesheet" href="/static/vendor/leaflet.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-lens="farmer">
+<header class="top">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">A</div>
+    <div><h1>AgroTwin</h1><p data-i18n="brand_tag"></p></div>
+  </div>
+  <nav class="lens" role="tablist" aria-label="Judge lens">
+    <button data-lens="farmer" data-i18n="lens_farmer" role="tab"></button>
+    <button data-lens="investor" data-i18n="lens_investor" role="tab"></button>
+    <button data-lens="scientist" data-i18n="lens_scientist" role="tab"></button>
+  </nav>
+  <div class="top-right">
+    <span id="mode-badge" class="mode NONE" tabindex="0"></span>
+    <button id="btn-digits" class="ghost small hidden" data-i18n="arabic_digits"></button>
+    <button id="btn-lang" class="ghost" data-i18n="lang_switch"></button>
+    <button id="btn-card" data-i18n="field_card"></button>
+  </div>
+</header>
+
+<main class="layout">
+  <aside class="side">
+    <section class="card">
+      <h2 data-i18n="s_field"></h2>
+      <div id="map"></div>
+      <div id="site-chips" class="chips"></div>
+      <div id="site-meta" class="meta"></div>
+      <div id="site-progress" class="progress hidden"></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="s_rotation"></h2>
+      <div class="grid2">
+        <label><span data-i18n="winter"></span><select id="ex-w"></select></label>
+        <label><span data-i18n="summer"></span><select id="ex-s"></select></label>
+      </div>
+      <button id="btn-ndvi" class="link" data-i18n="ndvi_suggest"></button>
+      <div id="ndvi-sugg" class="meta"></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="s_priorities"></h2>
+      <div class="slider"><label data-i18n="w_water"></label><input type="range" id="w-water" min="0" max="5" value="3"><output></output></div>
+      <div class="slider"><label data-i18n="w_soil"></label><input type="range" id="w-soil" min="0" max="5" value="2"><output></output></div>
+      <div class="slider"><label data-i18n="w_profit"></label><input type="range" id="w-profit" min="0" max="5" value="2"><output></output></div>
+      <div class="slider"><label data-i18n="w_risk"></label><input type="range" id="w-risk" min="0" max="5" value="2"><output></output></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="s_whatif"></h2>
+      <div class="slider"><label data-i18n="x_rain"></label><input type="range" id="x-rain" min="-50" max="20" step="5" value="0"><output></output></div>
+      <div class="slider"><label data-i18n="x_warm"></label><input type="range" id="x-warm" min="0" max="3" step="0.5" value="0"><output></output></div>
+      <div class="slider"><label data-i18n="x_price"></label><input type="range" id="x-price" min="-40" max="40" step="10" value="0"><output></output></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="s_constraints"></h2>
+      <label class="check"><input type="checkbox" id="cap-on"><span data-i18n="cap_toggle"></span></label>
+      <div class="grid2" id="cap-box">
+        <label><span data-i18n="cap_w"></span><input type="number" id="cap-w" value="2500" step="250"></label>
+        <label><span data-i18n="cap_s"></span><input type="number" id="cap-s" value="5000" step="250"></label>
+      </div>
+      <div class="meta" data-i18n="candidates"></div>
+      <div id="cand" class="chips"></div>
+    </section>
+  </aside>
+
+  <section class="content">
+    <!-- Farmer hero -->
+    <section id="hero" class="card hero lens-farmer"></section>
+
+    <!-- Showdown -->
+    <section class="card">
+      <div class="head-row">
+        <div><h2 data-i18n="showdown"></h2><div id="showdown-sub" class="meta"></div></div>
+      </div>
+      <div id="tie" class="banner hidden"></div>
+      <div id="rotations" class="rots"></div>
+    </section>
+
+    <!-- Investor -->
+    <section id="investor" class="card lens-investor lens-scientist"></section>
+
+    <!-- Scout -->
+    <section class="card scout">
+      <div class="head-row">
+        <div><h2 data-i18n="scout_title"></h2><div class="meta" data-i18n="scout_sub"></div></div>
+      </div>
+      <div class="scout-grid">
+        <div>
+          <div id="scout-controls"></div>
+          <div id="fusion-stats" class="stats"></div>
+          <div id="range-viz"></div>
+        </div>
+        <div><div id="fusion-chart" class="chart small"></div></div>
+      </div>
+      <details class="robot">
+        <summary><span data-i18n="robot_title"></span> · <span data-i18n="leaf_title"></span></summary>
+        <div class="btn-row">
+          <button id="btn-robot" class="ghost" data-i18n="robot_start"></button>
+          <button id="btn-robot-reset" class="ghost" data-i18n="robot_reset"></button>
+          <span id="robot-mode" class="mode NONE"></span>
+        </div>
+        <div class="tiles">
+          <div class="tile"><span data-i18n="t_temp"></span><b id="r-temp">–</b></div>
+          <div class="tile"><span data-i18n="t_hum"></span><b id="r-hum">–</b></div>
+          <div class="tile"><span data-i18n="t_soil"></span><b id="r-soil">–</b></div>
+          <div class="tile"><span data-i18n="t_rain"></span><b id="r-rain">–</b></div>
+        </div>
+        <div class="btn-row">
+          <label class="file-btn"><input type="file" id="leaf-file" accept="image/*"><span data-i18n="leaf_upload"></span></label>
+          <select id="leaf-class"></select>
+          <button id="btn-leaf" class="ghost" data-i18n="leaf_record"></button>
+        </div>
+        <div id="leaf-status" class="meta"></div>
+        <ul id="sightings" class="sightings"></ul>
+        <div class="meta" data-i18n="sightings"></div>
+      </details>
+    </section>
+
+    <!-- Blind spots + Council -->
+    <div class="two">
+      <section class="card"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
+      <section class="card">
+        <div class="head-row"><h2 data-i18n="council_title"></h2><button id="btn-council" class="ghost small" data-i18n="council_ask"></button></div>
+        <div class="meta" data-i18n="council_sub"></div>
+        <div id="council"></div>
+      </section>
+    </div>
+
+    <!-- Diagnosis -->
+    <section class="card">
+      <h2 data-i18n="diag_title"></h2>
+      <div class="tabs" id="diag-tabs">
+        <button data-tab="danger" class="active" data-i18n="tab_danger"></button>
+        <button data-tab="heat" data-i18n="tab_heat"></button>
+        <button data-tab="ndvi" data-i18n="tab_ndvi"></button>
+        <button data-tab="sources" data-i18n="tab_sources"></button>
+      </div>
+      <div id="diag-chart" class="chart"></div>
+      <div id="diag-note" class="meta"></div>
+      <ul id="sources" class="sources hidden"></ul>
+    </section>
+
+    <!-- Scientist -->
+    <section id="science" class="card lens-scientist"></section>
+  </section>
+</main>
+
+<div id="chip-pop" class="chip-pop hidden"></div>
+<div id="card-dlg" class="dlg hidden"><div class="dlg-in">
+  <h2 data-i18n="card_title"></h2>
+  <pre id="wa-text"></pre>
+  <div class="btn-row">
+    <a id="card-open" class="btn" target="_blank" data-i18n="card_print"></a>
+    <button id="btn-wa" class="ghost" data-i18n="card_wa"></button>
+    <button id="btn-dlg-close" class="ghost">✕</button>
+  </div>
+</div></div>
+<div id="loading" class="loading hidden"><div class="spinner"></div><span id="loading-text"></span></div>
+
+<script src="/static/vendor/leaflet.js"></script>
+<script src="/static/vendor/plotly.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
