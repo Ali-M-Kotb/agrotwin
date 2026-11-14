@@ -51,6 +51,7 @@ function applyI18n() {
   if (window.MapUI && MapUI.map) MapUI.relabel();
   $("#btn-digits").classList.toggle("hidden", S.lang !== "ar");
   $("#mode-badge").title = t("mode_hint");
+  if (window.Chat) Chat.labels();
 }
 
 // ---------------------------------------------------------------------------

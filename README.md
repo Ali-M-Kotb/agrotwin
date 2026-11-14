@@ -70,7 +70,7 @@ printing a card on stage.
 | site | water | why it's there |
 |---|---|---|
 | Kafr El-Sheikh, Nile Delta | irrigated | water-saving story (current: wheat → rice) |
-| Matrouh coast | rain-fed | **Scout fusion demo**: the barcode shows real drought years in red |
+| Matrouh coast | rain-fed | **Scout fusion demo**: profit swings with the rain; the robot narrows this season's range |
 | Saïs plain, Morocco | rain-fed | works anywhere NASA POWER has data |
 | Dakahlia, Beheira, Gharbia | irrigated | more Delta fields |
 

@@ -28,6 +28,7 @@ const Chat = (() => {
 
   function labels() {
     if (!$c("#chat")) return;
+    if (t("chat_fab") === "chat_fab") { setTimeout(labels, 250); return; }   // translations still loading
     const ar = S.lang === "ar";
     $c("#chat-fab span").textContent = t("chat_fab");
     $c("#chat .ct").textContent = t("chat_title");
