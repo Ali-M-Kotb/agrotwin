@@ -1,0 +1,381 @@
+{
+ "generated_at": "2026-11-14T12:12:13",
+ "generated_by": "qa/validate.py (AI-assisted code, results computed at run time)",
+ "twin_experiment": [
+  {
+   "status": "run",
+   "site": "coast_01",
+   "rotation": "barley-fallow",
+   "windows": 32,
+   "sigma_sensor": 0.05,
+   "sigma_model": 0.08,
+   "calibration": {
+    "sigma_model": 0.08,
+    "coverage": 0.73046875,
+    "unweighted_coverage": 0.75,
+    "target": 0.7,
+    "horizons": [
+     30,
+     90,
+     135,
+     180
+    ],
+    "grid": [
+     0.05,
+     0.08,
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.45
+    ],
+    "source": "computed:leave-one-out twin-experiment calibration (in-sample choice of one scalar)"
+   },
+   "rows": [
+    {
+     "reading_days": 30,
+     "outcome": "this_season_profit",
+     "coverage": 0.738,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.968,
+     "ess_median": 23.3,
+     "in_band": true,
+     "tau_days": 25
+    },
+    {
+     "reading_days": 60,
+     "outcome": "this_season_profit",
+     "coverage": 0.662,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.883,
+     "ess_median": 10.3,
+     "in_band": false,
+     "tau_days": 25
+    },
+    {
+     "reading_days": 90,
+     "outcome": "this_season_profit",
+     "coverage": 0.631,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.777,
+     "ess_median": 5.7,
+     "in_band": false,
+     "tau_days": 25
+    },
+    {
+     "reading_days": 135,
+     "outcome": "this_season_profit",
+     "coverage": 0.75,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.563,
+     "ess_median": 5.4,
+     "in_band": true,
+     "tau_days": 25
+    },
+    {
+     "reading_days": 180,
+     "outcome": "this_season_profit",
+     "coverage": 0.794,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.509,
+     "ess_median": 5.5,
+     "in_band": true,
+     "tau_days": 25
+    }
+   ],
+   "three_year_check": {
+    "reading_days": 135,
+    "coverage": 0.573,
+    "coverage_unweighted": 0.75,
+    "decision": "3-year ranges are NOT re-weighted in the product: readings cannot know future seasons"
+   },
+   "method": "each past window hidden in turn; synthetic readings = its modelled wetness + N(0, 0.05); weighted 10\u201390% range from the other windows; 5 noise seeds; decorrelation time from the replay"
+  },
+  {
+   "status": "run",
+   "site": "intl_01",
+   "rotation": "wheat-fallow",
+   "windows": 32,
+   "sigma_sensor": 0.05,
+   "sigma_model": 0.45,
+   "calibration": {
+    "sigma_model": 0.45,
+    "coverage": 0.84375,
+    "unweighted_coverage": 0.875,
+    "target": 0.825,
+    "horizons": [
+     30,
+     90,
+     135,
+     180
+    ],
+    "grid": [
+     0.05,
+     0.08,
+     0.1,
+     0.15,
+     0.2,
+     0.3,
+     0.45
+    ],
+    "source": "computed:leave-one-out twin-experiment calibration (in-sample choice of one scalar)"
+   },
+   "rows": [
+    {
+     "reading_days": 30,
+     "outcome": "this_season_profit",
+     "coverage": 0.85,
+     "coverage_unweighted": 0.875,
+     "width_ratio": 1.059,
+     "ess_median": 27.1,
+     "in_band": true,
+     "tau_days": 17
+    },
+    {
+     "reading_days": 60,
+     "outcome": "this_season_profit",
+     "coverage": 0.844,
+     "coverage_unweighted": 0.875,
+     "width_ratio": 1.08,
+     "ess_median": 23.9,
+     "in_band": true,
+     "tau_days": 17
+    },
+    {
+     "reading_days": 90,
+     "outcome": "this_season_profit",
+     "coverage": 0.844,
+     "coverage_unweighted": 0.875,
+     "width_ratio": 1.09,
+     "ess_median": 23.6,
+     "in_band": true,
+     "tau_days": 17
+    },
+    {
+     "reading_days": 135,
+     "outcome": "this_season_profit",
+     "coverage": 0.844,
+     "coverage_unweighted": 0.875,
+     "width_ratio": 1.103,
+     "ess_median": 22.6,
+     "in_band": true,
+     "tau_days": 17
+    },
+    {
+     "reading_days": 180,
+     "outcome": "this_season_profit",
+     "coverage": 0.844,
+     "coverage_unweighted": 0.875,
+     "width_ratio": 1.047,
+     "ess_median": 18.8,
+     "in_band": true,
+     "tau_days": 17
+    }
+   ],
+   "three_year_check": {
+    "reading_days": 135,
+    "coverage": 0.719,
+    "coverage_unweighted": 0.75,
+    "decision": "3-year ranges are NOT re-weighted in the product: readings cannot know future seasons"
+   },
+   "method": "each past window hidden in turn; synthetic readings = its modelled wetness + N(0, 0.05); weighted 10\u201390% range from the other windows; 5 noise seeds; decorrelation time from the replay"
+  }
+ ],
+ "hindcast": [
+  {
+   "status": "run",
+   "site": "coast_01",
+   "crop": "barley",
+   "checks": [
+    {
+     "signal": "MODIS NDVI seasonal peak",
+     "n": 9,
+     "rho_deficit_days": -0.467,
+     "rho_eta_over_etc": 0.5,
+     "expect": "rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop",
+     "years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+     ]
+    }
+   ]
+  },
+  {
+   "status": "run",
+   "site": "intl_01",
+   "crop": "wheat",
+   "checks": [
+    {
+     "signal": "MODIS NDVI seasonal peak",
+     "n": 9,
+     "rho_deficit_days": 0.067,
+     "rho_eta_over_etc": 0.017,
+     "expect": "rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop",
+     "years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+     ]
+    },
+    {
+     "signal": "MODIS MOD16A2GF seasonal actual ET",
+     "n": 4,
+     "rho_model_eta": -0.8,
+     "model_mean_mm": 341,
+     "mod16_mean_mm": 161,
+     "expect": "rho > 0; levels differ because MOD16 is a 500 m pixel average",
+     "years": [
+      2019,
+      2020,
+      2021,
+      2022
+     ]
+    }
+   ]
+  },
+  {
+   "status": "run",
+   "site": "delta_01",
+   "crop": "wheat",
+   "checks": [
+    {
+     "signal": "MODIS NDVI seasonal peak",
+     "n": 9,
+     "applicable": false,
+     "expect": "not applicable: the irrigated crop never shows modelled water stress, so there is nothing to rank",
+     "years": [
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022
+     ]
+    },
+    {
+     "signal": "MODIS MOD16A2GF seasonal actual ET",
+     "n": 4,
+     "rho_model_eta": 0.2,
+     "model_mean_mm": 462,
+     "mod16_mean_mm": 192,
+     "expect": "rho > 0; levels differ because MOD16 is a 500 m pixel average",
+     "years": [
+      2019,
+      2020,
+      2021,
+      2022
+     ]
+    }
+   ]
+  }
+ ],
+ "robot_check": {
+  "status": "not run",
+  "why": "no LIVE or REPLAY Verdex run stored yet (data/scout/*/run_*.json)"
+ },
+ "vision": {
+  "status": "run",
+  "source": "author's held-out test set (v2_deit3_history.json), quoted verbatim",
+  "model": "deit3_small_patch16_224.fb_in22k_ft_in1k",
+  "test_accuracy": 0.9547,
+  "n_test": 1878,
+  "per_class": {
+   "Apple___Apple_scab": {
+    "correct": 373,
+    "n": 383,
+    "accuracy": 0.974
+   },
+   "Apple___Black_rot": {
+    "correct": 146,
+    "n": 149,
+    "accuracy": 0.98
+   },
+   "Apple___healthy": {
+    "correct": 525,
+    "n": 534,
+    "accuracy": 0.983
+   },
+   "Potato___Early_blight": {
+    "correct": 111,
+    "n": 125,
+    "accuracy": 0.888
+   },
+   "Potato___Late_blight": {
+    "correct": 171,
+    "n": 192,
+    "accuracy": 0.891
+   },
+   "Potato___healthy": {
+    "correct": 184,
+    "n": 192,
+    "accuracy": 0.958
+   },
+   "Strawberry___Leaf_scorch": {
+    "correct": 168,
+    "n": 183,
+    "accuracy": 0.918
+   },
+   "Strawberry___healthy": {
+    "correct": 115,
+    "n": 120,
+    "accuracy": 0.958
+   }
+  },
+  "split_sizes": {
+   "train": 13651,
+   "test": 1878,
+   "val": 562
+  },
+  "split_note": "grouped by photo scene so near-duplicates never cross train/test",
+  "caveat": "8 classes only (apple, potato, strawberry leaves); a sighting is an observation, not a diagnosis"
+ },
+ "provenance": {
+  "status": "run",
+  "numbers_checked": 1201,
+  "untagged": 0,
+  "examples": [],
+  "passed": true
+ },
+ "sanity": {
+  "rain_x0.7_changes_water_need": {
+   "base": 9465,
+   "dry": 9621,
+   "passed": true
+  },
+  "profit_falls_with_price": {
+   "base": 57419,
+   "low": 26093,
+   "passed": true
+  },
+  "fallow_has_no_transpiration": {
+   "transp_days": 0.0,
+   "bare_days_median": 1170.0,
+   "passed": 1.0
+  },
+  "water_balance_closes_mm": {
+   "max_residual": 9.9262820185686e-12,
+   "passed": true
+  },
+  "no_scout_no_change": {
+   "passed": true,
+   "note": "fusion with zero readings returns uniform weights (unit test)"
+  }
+ },
+ "elapsed_s": 3.9
+}

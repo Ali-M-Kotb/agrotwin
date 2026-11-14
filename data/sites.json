@@ -1,0 +1,17 @@
+[
+  {"id": "delta_01", "name": "Kafr El-Sheikh, Nile Delta", "name_ar": "كفر الشيخ، الدلتا", "lat": 31.25, "lon": 30.95,
+   "irrigated": true, "existing": ["wheat", "rice"], "default": true, "country": "EG",
+   "role": "Irrigated Delta plot: the water-saving story", "generated_by": "Claude (AI) under human review"},
+  {"id": "coast_01", "name": "Matrouh coast, rain-fed", "name_ar": "ساحل مطروح، زراعة مطرية", "lat": 31.28, "lon": 27.35,
+   "irrigated": false, "existing": ["barley", "fallow"], "country": "EG",
+   "role": "Rain-fed plot: the Scout fusion demo (no irrigation log needed)", "generated_by": "Claude (AI) under human review"},
+  {"id": "intl_01", "name": "Saïs plain, Morocco", "name_ar": "سهل سايس، المغرب", "lat": 33.90, "lon": -5.45,
+   "irrigated": false, "existing": ["wheat", "fallow"], "country": "MA",
+   "role": "Outside Egypt: the same pipeline anywhere NASA POWER has data", "generated_by": "Claude (AI) under human review"},
+  {"id": "delta_02", "name": "Dakahlia, Nile Delta", "name_ar": "الدقهلية، الدلتا", "lat": 31.20, "lon": 31.50,
+   "irrigated": true, "existing": ["wheat", "rice"], "country": "EG", "generated_by": "Claude (AI) under human review"},
+  {"id": "delta_03", "name": "Beheira, Nile Delta", "name_ar": "البحيرة، الدلتا", "lat": 30.98, "lon": 30.40,
+   "irrigated": true, "existing": ["wheat", "maize"], "country": "EG", "generated_by": "Claude (AI) under human review"},
+  {"id": "delta_04", "name": "Gharbia, Nile Delta", "name_ar": "الغربية، الدلتا", "lat": 30.85, "lon": 30.85,
+   "irrigated": true, "existing": ["berseem", "cotton"], "country": "EG", "generated_by": "Claude (AI) under human review"}
+]

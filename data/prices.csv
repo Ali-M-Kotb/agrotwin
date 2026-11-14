@@ -1,0 +1,41 @@
+crop,item,value,unit,year,tag,source_url,source_note
+wheat,farmgate_price,16667,EGP/t,2026,quoted,https://arabfinance.com/en/news/newdetails/egypt-sets-egp-2500-per-ardeb-as-wheat-procurement-season-targets-5-million-tons,"Govt procurement EGP 2,500/ardeb (grade 23.5, 2026 season); 1 ardeb=150 kg per USDA GAIN EG2026-0002 -> 2500/0.15"
+wheat,yield,2.905,t/feddan,2025,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Grain%20and%20Feed%20Annual_Cairo_Egypt_EG2026-0002,USDA FAS GAIN EG2026-0002 MY2025/26 yield 6.9173 t/ha x 0.42 ha/feddan
+wheat,seed_cost,2000,EGP/feddan,2026,quoted,https://www.masrawy.com/news/news_egypt/details/2026/5/14/2987824,"Masrawy 14 May 2026 (ARC researcher via N. Nour El-Din): seed 2 sacks EGP 2,000/feddan, 2025/26 season"
+wheat,fertilizer_cost,10180,EGP/feddan,2026,quoted,https://www.masrawy.com/news/news_egypt/details/2026/5/14/2987824,"Same article: nitrate 2,880 + superphosphate 4,800 + potassium 2,500 EGP/feddan summed"
+wheat,labour_cost,2500,EGP/feddan,2026,quoted,https://www.masrawy.com/news/news_egypt/details/2026/5/14/2987824,"Same article: irrigation + weed control + labour ~EGP 2,500/feddan (one combined figure)"
+wheat,other_cost,10320,EGP/feddan,2026,quoted,https://www.masrawy.com/news/news_egypt/details/2026/5/14/2987824,"Total ~EGP 25,000/feddan minus items above; incl ploughing 1,200, harvest/threshing >3,000, unitemized rest; excl rent"
+barley,farmgate_price,13300,EGP/t,2026,assumption,,"No Egyptian barley farmgate quote found; assumed ~80% of 2026 wheat procurement price (16,667 EGP/t)"
+barley,yield,1.1,t/feddan,2025,assumption,,"Assumed national mix; irrigated Delta barley higher, rain-fed NW coast often far lower (~0.3-0.6 t/feddan); not sourced"
+barley,other_cost,15000,EGP/feddan,2026,assumption,,"Total cost assumed ~60% of wheat's EGP 25,000 (lower N, no harvest-heavy inputs); excl rent; not sourced"
+berseem,farmgate_price,900,EGP/t fresh,2026,assumption,,No verified berseem price found; assumed EGP 900/t fresh matter (berseem usually sold standing per qirat)
+berseem,yield,30,t fresh/feddan,2025,assumption,,Assumed multi-cut (4-5 cuts) season total fresh matter; not sourced
+berseem,other_cost,12000,EGP/feddan,2026,assumption,,"Total cost assumed (seed, P fertilizer, irrigation, little N); excl rent; not sourced"
+faba,farmgate_price,37097,EGP/t,2026,quoted,https://www.masrawy.com/news/news_egypt/details/2026/11/4/3073322,"ARC legume head (Masrawy 4 Nov 2026): farmer sells ardeb (155 kg) at EGP 5,500-6,000; midpoint 5,750/0.155"
+faba,yield,1.5,t/feddan,2025,assumption,,Assumed ~10 ardeb (155 kg)/feddan; national yield not found in opened sources
+faba,other_cost,18000,EGP/feddan,2026,assumption,,"Total cost assumed ~70% of wheat's EGP 25,000 (no N fertilizer); excl rent; not sourced"
+sugarbeet,farmgate_price,2000,EGP/t,2026,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Sugar%20Annual_Cairo_Egypt_EG2026-0007,"USDA GAIN Sugar Annual EG2026-0007: 2026 guaranteed beet price EGP 2,000/MT (down from 2,400 in 2025)"
+sugarbeet,yield,22.36,t/feddan,2025,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Sugar%20Annual_Cairo_Egypt_EG2026-0007,"Same report MY2025/26: 17,300 TMT / 325 kha = 53.2 t/ha x 0.42"
+sugarbeet,other_cost,30000,EGP/feddan,2026,assumption,,"Total cost assumed ~1.2x wheat's EGP 25,000 (contract seed, more N, long season); excl rent; not sourced"
+potato,farmgate_price,8000,EGP/t,2026,assumption,,"No verified Egyptian farmgate potato price opened; rough assumption, highly seasonal"
+potato,yield,13.25,t/feddan,2023,quoted,https://amwalalghad.com/q1s5,"CAPMAS via Amwal Al Ghad: 2022/23 potato 649k feddan, 8.6 Mt -> 8.6e6/649e3"
+potato,other_cost,85000,EGP/feddan,2026,assumption,,"Total cost assumed below tomato's ~EGP 120,000 (CAPMAS-era press); imported seed dominates; excl rent; not sourced"
+maize,farmgate_price,18250,EGP/t,2025,quoted,https://www.dostor.org/5250920,"Gharbia WHOLESALE yellow corn EGP 18,000-18,500/t on 6 Oct 2025 (midpoint); not farmgate, likely overstates"
+maize,yield,3.311,t/feddan,2025,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Grain%20and%20Feed%20Annual_Cairo_Egypt_EG2026-0002,USDA GAIN EG2026-0002 corn MY2025/26 yield 7.8824 t/ha x 0.42
+maize,other_cost,22000,EGP/feddan,2026,assumption,,"Total cost assumed ~0.9x wheat's EGP 25,000; excl rent; not sourced"
+rice,farmgate_price,16500,EGP/t,2026,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Grain%20and%20Feed%20Annual_Cairo_Egypt_EG2026-0002,"USDA GAIN EG2026-0002: paddy prices 'hovering around 16,000-17,000 EGP' (per t implied, unit not stated); midpoint"
+rice,yield,3.551,t/feddan,2025,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Grain%20and%20Feed%20Annual_Cairo_Egypt_EG2026-0002,USDA GAIN EG2026-0002 rough rice MY2025/26 yield 8.4542 t/ha x 0.42
+rice,other_cost,22000,EGP/feddan,2026,assumption,,"Total cost assumed ~0.9x wheat's EGP 25,000; excl rent; not sourced"
+cotton,farmgate_price,67238,EGP/t seed cotton,2026,quoted,https://almalnews.com/2143481/3-شركات-تنفرد-بمزاد-قطن-الغربية-لصنف/,"Gharbia Giza 94 auction 26 Oct 2026: EGP 10,580-10,600/kantar; midpoint / 157.5 kg seed-cotton kantar"
+cotton,yield,0.788,t seed cotton/feddan,2025,assumption,https://icac.org/wp-content/uploads/2026/01/Egypt-Report-ICAC-PM-2026.pdf,ICAC Egypt report: 2024/25 lint 693.8 kg/ha -> 291 kg/feddan; / assumed 37% ginning outturn
+cotton,other_cost,35000,EGP/feddan,2026,assumption,,"Total cost assumed ~1.4x wheat's EGP 25,000 (hand picking labour); excl rent; not sourced"
+tomato,farmgate_price,7000,EGP/t,2026,assumption,https://www.masrawy.com/news/news_egypt/details/2025/8/16/2837501,Very volatile: field price 2 EGP/kg in Aug 2025 glut (cited page) vs retail ~35 EGP/kg Nov 2026; 7 EGP/kg assumed
+tomato,yield,18.83,t/feddan,2025,quoted,https://almalnews.com/2144660/,"CAPMAS via Al Mal 1 Nov 2026: 2024/25 tomato 411k feddan, 7.74 Mt -> 7.74e6/411e3"
+tomato,other_cost,120000,EGP/feddan,2026,quoted,https://almalnews.com/2144660/,"Farmers' syndicate head (Al Mal 1 Nov 2026): ~EGP 120,000/feddan excl rent; 150-200k for staked systems"
+soybean,farmgate_price,25000,EGP/t,2026,assumption,https://enterpriseam.com/egypt/?p=581776,"Only found Feb 2023 GASC floor EGP 18,000/t (cited page); scaled ~1.4x for EGP devaluation, assumption"
+soybean,yield,1.19,t/feddan,2025,quoted,https://apps.fas.usda.gov/newgainapi/api/Report/DownloadReportByFileName?fileName=Oilseeds%20and%20Products%20Annual_Cairo_Egypt_EG2026-0004,USDA GAIN Oilseeds Annual EG2026-0004 soybean MY2025/26 yield 2.8333 t/ha x 0.42
+soybean,other_cost,18000,EGP/feddan,2026,assumption,,"Total cost assumed ~0.7x wheat's EGP 25,000 (legume, low N); excl rent; not sourced"
+sorghum,farmgate_price,14000,EGP/t,2026,assumption,,"No Egyptian sorghum price found; assumed ~75% of Oct 2025 Gharbia wholesale yellow corn (18,250 EGP/t)"
+sorghum,yield,2.3,t/feddan,2025,assumption,,"Assumed (~5.5 t/ha), Upper Egypt grain sorghum; not sourced"
+sorghum,other_cost,16000,EGP/feddan,2026,assumption,,"Total cost assumed ~0.65x wheat's EGP 25,000; excl rent; not sourced"
+nitrogen,n_price,51.42,EGP/kg N,2026,quoted,https://gate.ahram.org.eg/News/5544363.aspx,"Ahram Gate 8 Mar 2026 free-market urea EGP 23,653/t; /1000/0.46 N. Subsidized nitrate 7,800/t (33.5% N) = 23.3/kg N"
