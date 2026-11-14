@@ -47,6 +47,8 @@ function applyI18n() {
   document.documentElement.lang = S.lang;
   document.documentElement.dir = S.lang === "ar" ? "rtl" : "ltr";
   $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  $$("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
+  if (window.MapUI && MapUI.map) MapUI.relabel();
   $("#btn-digits").classList.toggle("hidden", S.lang !== "ar");
   $("#mode-badge").title = t("mode_hint");
 }
@@ -112,18 +114,110 @@ function body(extra = {}) {
 // ---------------------------------------------------------------------------
 // map + site
 // ---------------------------------------------------------------------------
-function initMap() {
-  S.map = L.map("map").setView([30.9, 30.0], 6);
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { maxZoom: 18, attribution: "Imagery © Esri" }).addTo(S.map);
-  S.map.on("click", (e) => selectSite({ lat: +e.latlng.lat.toFixed(3), lon: +e.latlng.lng.toFixed(3) }));
+async function initMap() {
+  await MapUI.init({ lang: () => S.lang, onPick: (p) => selectSite(p), onFarmOpen: openFarm });
+  S.map = MapUI.map;
+}
+
+// ---------------------------------------------------------------------------
+// modes: Simple (guided, farmer) / Advanced (map tools, every panel)
+// ---------------------------------------------------------------------------
+function setMode(m) {
+  S.mode = m;
+  document.body.dataset.mode = m;
+  $$(".modes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
+  if (m === "simple") setLens("farmer");
+  try { localStorage.setItem("agrotwin.mode", m); } catch {}
+  setTimeout(() => { if (S.map) S.map.invalidateSize(); window.dispatchEvent(new Event("resize")); }, 60);
+  if (S.result) renderHero();
+}
+
+const PRESETS = { water: "w-water", soil: "w-soil", profit: "w-profit", risk: "w-risk" };
+function syncPris() {
+  $$("#pris button").forEach((b) => b.classList.toggle("on", +$("#" + PRESETS[b.dataset.p]).value >= 3));
+}
+function wizardBind() {
+  const mirror = (a, b) => { $(a).onchange = () => { $(b).value = $(a).value; schedule(); }; };
+  $("#sw-w").innerHTML = $("#ex-w").innerHTML; $("#sw-s").innerHTML = $("#ex-s").innerHTML;
+  $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value;
+  mirror("#sw-w", "#ex-w"); mirror("#sw-s", "#ex-s");
+  $$("#pris button").forEach((b) => (b.onclick = () => {
+    const inp = $("#" + PRESETS[b.dataset.p]);
+    inp.value = +inp.value >= 3 ? 1 : 4;
+    inp.dispatchEvent(new Event("input"));
+    syncPris();
+  }));
+  syncPris();
+}
+function toast(msg) {
+  const el = $("#toast"); el.textContent = msg; el.classList.remove("hidden");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add("hidden"), 2600);
+}
+
+// ---------------------------------------------------------------------------
+// My farms (saved on this machine via the API)
+// ---------------------------------------------------------------------------
+async function loadFarms() {
+  try { S.farms = await api("/api/farms"); } catch { S.farms = []; }
+  MapUI.showFarms(S.farms);
+  renderFarms();
+}
+function renderFarms() {
+  const ar = S.lang === "ar";
+  $("#farms").innerHTML = (S.farms || []).map((f) => `<li data-id="${f.id}" class="${S.farm && S.farm.id === f.id ? "on" : ""}">
+      <span><b>${esc(f.name)}</b><br><small>${f.area_ha ? fmt(f.area_ha / 0.42, 2) + (ar ? " فدان" : " feddan") + " · " : ""}${esc(cname(f.existing[0]))} / ${esc(cname(f.existing[1]))} · ${(f.plans || []).length} ${ar ? "خطة" : "plans"}</small></span>
+      <button class="ghost small" data-del="${f.id}">✕</button></li>`).join("") || `<li class="meta">${t("farms_empty")}</li>`;
+  $$("#farms li[data-id]").forEach((li) => (li.onclick = (e) => {
+    if (e.target.dataset.del) return;
+    openFarm(S.farms.find((f) => f.id === li.dataset.id));
+  }));
+  $$("#farms button[data-del]").forEach((b) => (b.onclick = async () => {
+    await fetch(`/api/farms/${b.dataset.del}`, { method: "DELETE" });
+    if (S.farm && S.farm.id === b.dataset.del) S.farm = null;
+    loadFarms();
+  }));
+  const f = S.farm && (S.farms || []).find((x) => x.id === S.farm.id);
+  $("#farm-plans").innerHTML = f && f.plans && f.plans.length ? `<h3>${t("farm_plans")}: ${esc(f.name)}</h3><ul class="plans">${f.plans.map((p) =>
+    `<li><b>${esc(p.label)}</b> · ${esc(p.saved)}<br>${fmt(p.profit.p10)}–${fmt(p.profit.p90)} ${t("per_fed_yr")} · ${fmt(p.water_m3.median)} m³ · ${esc(p.mode)}</li>`).join("")}</ul>` : "";
+  $("#farm-name").value = S.farm ? S.farm.name : "";
+}
+function openFarm(f) {
+  S.farm = f;
+  $("#ex-w").value = f.existing[0]; $("#ex-s").value = f.existing[1];
+  selectSite({ lat: f.lat, lon: f.lon, polygon: f.polygon, area_ha: f.area_ha, farmName: f.name });
+  renderFarms();
+}
+async function saveFarm() {
+  if (!S.site) return;
+  const name = $("#farm-name").value.trim() || (S.lang === "ar" ? "حقلي" : "My field");
+  const fld = MapUI.getField();
+  const meta = (S.siteData && S.siteData.meta) || {};
+  const body = { id: S.farm && S.farm.name === name ? S.farm.id : null, name, lat: S.site.lat, lon: S.site.lon,
+    polygon: fld ? fld.polygon : null, area_ha: fld ? fld.area_ha : null,
+    existing: [$("#ex-w").value, $("#ex-s").value], irrigated: meta.irrigated !== false };
+  S.farm = await api("/api/farms", { method: "POST", body: JSON.stringify(body) });
+  await loadFarms();
+  toast(t("farm_saved"));
+}
+async function savePlan() {
+  if (!S.result) return;
+  if (!S.farm) await saveFarm();
+  const top = topRot();
+  await api(`/api/farms/${S.farm.id}/plans`, { method: "POST", body: JSON.stringify({
+    label: top.label[S.lang], rotation_id: top.rotation_id, seq: top.seq, profit: top.profit, water_m3: top.water_m3,
+    loss_year_share: top.loss_year_share.value, scenario: S.result.scenario, weights: S.result.weights, mode: S.result.mode }) });
+  await loadFarms();
+  toast(t("plan_saved"));
 }
 
 async function selectSite(s) {
   const mine = ++S.selSeq;
   S.site = s;
+  if (s.polygon) MapUI.setField(s.polygon);
+  else if (s.id) MapUI.setField(null);
+  if (S.farm && (Math.abs(S.farm.lat - s.lat) > 1e-3 || Math.abs(S.farm.lon - s.lon) > 1e-3)) { S.farm = null; renderFarms(); }
   if (S.pin) S.pin.setLatLng([s.lat, s.lon]); else S.pin = L.marker([s.lat, s.lon]).addTo(S.map);
-  S.map.setView([s.lat, s.lon], Math.max(S.map.getZoom(), 11));
+  S.map.flyTo([s.lat, s.lon], Math.max(S.map.getZoom(), s.polygon ? 15 : 11), { duration: 0.8 });
   renderSiteChips();
   busy(true);
   try {
@@ -131,7 +225,11 @@ async function selectSite(s) {
     if (mine !== S.selSeq) return;
     S.siteData = d;
     const meta = d.meta || {};
-    if (meta.existing) { $("#ex-w").value = meta.existing[0]; $("#ex-s").value = meta.existing[1]; }
+    if (meta.existing && !s.farmName) { $("#ex-w").value = meta.existing[0]; $("#ex-s").value = meta.existing[1]; }
+    $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value;
+    const fld = MapUI.getField();
+    $("#wiz-field").textContent = (s.farmName || (S.lang === "ar" ? (meta.name_ar || meta.name) : meta.name)) +
+      (fld ? ` · ${(fld.area_ha / 0.42).toFixed(2)} ${S.lang === "ar" ? "فدان" : "feddan"}` : "");
     siteMeta();
     renderDiag();
     S.prevResult = null;
@@ -236,9 +334,18 @@ function renderHero() {
       <div><div class="k">${t("loss_years")}</div><div class="val">${num(Math.round(top.loss_year_share.value * top.years.length), top.loss_year_share.source)} / ${digits(top.years.length)}</div></div>
     </div>
     <div class="why">${esc(why)}</div>
+    ${fieldTotals(top)}
     ${warn ? `<div class="warnline">⚠ ${t("hero_warn")}: ${esc(warn)}</div>` : ""}
     <div class="btn-row"><button id="btn-speak">🔊 ${t("hero_read")}</button></div>`;
   $("#btn-speak").onclick = () => speak(`${keep ? t("hero_keep") : t("hero_title")}: ${top.label[L]}. ${t("hero_money")}: ${Math.round(top.profit.p10)} - ${Math.round(top.profit.p90)} ${t("per_fed_yr")}. ${why} ${warn}`);
+}
+
+function fieldTotals(top) {
+  const f = MapUI.getField && MapUI.getField();
+  if (!f) return `<div class="totals">✏️ ${t(S.mode === "advanced" ? "draw_tip_adv" : "draw_tip")}</div>`;
+  const fed = f.area_ha / 0.42;
+  return `<div class="totals">${t("totals", { fed: fmt(fed, 2) })}: <b>${num(top.profit.p10 * fed, "computed: per-feddan range × drawn area")} – ${num(top.profit.p90 * fed, "computed: per-feddan range × drawn area")}</b> EGP/yr ·
+    <b>${num(top.water_m3.median * fed, "computed: median m³/feddan × drawn area")}</b> m³/yr</div>`;
 }
 
 function speak(text) {
@@ -290,6 +397,7 @@ function rotCard(r) {
     </div>
     <div class="scorebar adv-only">${["water", "soil", "profit", "risk"].map((x) =>
       `<div><i style="width:${r.scores[x]}%"></i><span>${t("sc_" + x)}</span><b>${num(r.scores[x], "computed: min-max across " + R.pool_size + " replayed rotations")}</b></div>`).join("")}</div>
+    <div class="simple-why">${esc(((r.text.benefits[0] || r.text.why[0]) || {})[L] || "")}</div>
     <div class="ttabs">${tabs}</div>
     <ul class="tlist">${items}</ul>
   </article>`;
@@ -444,6 +552,7 @@ async function fieldCard() {
     const c = await api("/api/fieldcard", { method: "POST", body: JSON.stringify(body({ lang: S.lang })) });
     $("#wa-text").textContent = c.whatsapp;
     $("#card-open").href = c.print_url;
+    $("#card-wa").href = "https://wa.me/?text=" + encodeURIComponent(c.whatsapp);
     $("#card-dlg").classList.remove("hidden");
   } catch (e) { alert(e.message); } finally { busy(false); }
 }
@@ -568,16 +677,26 @@ async function init() {
   if (["farmer", "investor", "scientist"].includes(q.get("lens"))) S.lens = q.get("lens");
   applyI18n();
   buildInputs();
-  initMap();
+  await initMap();
+  let saved = null;
+  try { saved = localStorage.getItem("agrotwin.mode"); } catch {}
+  S.mode = q.get("mode") || saved || "simple";
+  $$(".modes button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
+  wizardBind();
+  $("#btn-farm-save").onclick = saveFarm;
+  $("#btn-plan-save").onclick = savePlan;
+  loadFarms();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
   $$(".lens button").forEach((b) => (b.onclick = () => setLens(b.dataset.lens)));
   setLens(S.lens);
+  setMode(S.mode);
   $$(".slider input").forEach((i) => {
     const o = i.parentElement.querySelector("output");
     if (o) o.textContent = sliderOut(i.id);
     i.addEventListener("input", () => { if (o) o.textContent = sliderOut(i.id); if (i.id.startsWith("w-") || i.id.startsWith("x-")) schedule(); });
   });
-  ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = schedule));
-  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); siteMeta(); renderDiag(); if (S.result) render(); };
+  ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = () => { $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value; schedule(); }));
+  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); };
   $("#btn-digits").onclick = () => { S.arDigits = !S.arDigits; if (S.result) render(); siteMeta(); };
   $("#btn-card").onclick = fieldCard;
   $("#btn-dlg-close").onclick = () => $("#card-dlg").classList.add("hidden");

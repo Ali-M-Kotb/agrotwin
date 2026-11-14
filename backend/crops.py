@@ -4,7 +4,8 @@ AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
 
 Sources (each field below is tagged with one of these):
   FAO56_T11  stage lengths      FAO-56 Table 11, adapted to the Delta / Maghreb calendar
-  FAO56_T12  Kc ini / mid / end FAO-56 Table 12
+  FAO56_T12  Kc ini / mid / end FAO-56 Table 12 (wheat: non-frozen-soil row 0.70; berseem: averaged
+             cutting effects 0.40/0.90/0.85, both per the FAO-56 check in Yaseen Abdelal's AgroTwin crops.yaml)
   FAO56_T22  max root depth and depletion fraction p (range midpoints)
   FAO33      seasonal yield response factor Ky, FAO Irrigation & Drainage Paper 33
   heat       Tmax limits in the sensitive window: commonly cited agronomic thresholds,
@@ -36,7 +37,7 @@ SRC = {
 # money: price EGP/t, yield t/feddan (potential, Ym), cost EGP/feddan
 CROPS = {
     "wheat": dict(name="Wheat", name_ar="القمح", season="winter", family="Poaceae",
-                  sow=(11, 15), stages=(25, 50, 65, 30), kc=(0.40, 1.15, 0.30), root_m=1.5, p=0.55,
+                  sow=(11, 15), stages=(25, 50, 65, 30), kc=(0.70, 1.15, 0.30), root_m=1.5, p=0.55,
                   ky=1.05, heat_tmax=32, critical=(95, 140), n_credit=(0, 0), residue=5, rainfed_ok=True,
                   price=14700, yield_t=2.7, cost=20000),
     "barley": dict(name="Barley", name_ar="الشعير", season="winter", family="Poaceae",
@@ -44,7 +45,7 @@ CROPS = {
                    ky=1.00, heat_tmax=33, critical=(75, 115), n_credit=(0, 0), residue=4, rainfed_ok=True,
                    price=10000, yield_t=1.2, cost=6000),
     "berseem": dict(name="Berseem clover", name_ar="البرسيم", season="winter", family="Fabaceae",
-                    sow=(10, 20), stages=(20, 30, 115, 10), kc=(0.40, 0.95, 0.90), root_m=0.8, p=0.50,
+                    sow=(10, 20), stages=(20, 30, 115, 10), kc=(0.40, 0.90, 0.85), root_m=0.8, p=0.50,
                     ky=1.10, heat_tmax=38, critical=(120, 170), n_credit=(25, 60), residue=6, rainfed_ok=False,
                     price=1000, yield_t=30.0, cost=9000),
     "faba": dict(name="Faba bean", name_ar="الفول البلدي", season="winter", family="Fabaceae",

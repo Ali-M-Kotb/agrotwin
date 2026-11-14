@@ -2,6 +2,9 @@
 
 NASA Space Apps 2026 · *Field Shift: Adapting Farms with NASA Data*
 Team: Ali Kotb, Mostafa Dawood, Yaseen Abdelal. The Verdex Scout robot is prior work by Ali Kotb and Mostafa Dawood (disclosed).
+This repository merges two builds: this engine and product, and Yaseen Abdelal's AgroTwin scaffold
+([github.com/Yaseen-Saad/AgroTwin](https://github.com/Yaseen-Saad/AgroTwin)): its v1 data contracts, curve-number runoff
+and FAO-56-verified crop coefficients are now part of this engine. See [CHANGELOG.md](CHANGELOG.md).
 
 For one field, AgroTwin replays **every year of NASA weather since 1991** through a daily
 FAO-56 water balance for the farmer's current rotation and two alternatives. It shows water,
@@ -13,13 +16,27 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
 > AI disclosure: the code and documents were written with Claude (Anthropic) under human review;
 > see [docs/AI_USE.md](docs/AI_USE.md). The leaf classifier was trained by its author (Verdex).
 
+## The product in one minute
+
+- **Simple mode** (default, for farmers): tap your field on the map, pick what you grow, tap what
+  matters (water, soil, profit, safety) and get one suggestion in plain Arabic or English, read aloud.
+- **Advanced mode** (agronomists, judges):
+  - **Live NASA layers on the map** via GIBS, with a date picker and a ▶ time-lapse:
+    MODIS NDVI (16-day since 2000, 8-day rolling), **SMAP L4 root-zone soil moisture**,
+    **GPM IMERG rain**, MODIS land-surface temperature, and MODIS true colour by date.
+  - **Draw your real field boundary**: area in feddans and hectares, and totals for the whole farm.
+  - **Click-anywhere inspector**: 10-year rain, reference ET, aridity, heat trend, soil and elevation.
+  - **My farms**: saved fields with boundaries and a history of saved plans.
+  - Every panel: lenses, Scout fusion, validation wall, Council, diagnosis.
+- **Installable** on a phone (web-app manifest and service worker); works with a weak signal.
+
 ## Run
 
 ```bash
 cd agrotwin
 ./run.sh            # first run builds ~/.venvs/verdex; then http://127.0.0.1:8000
 ./run.sh offline    # stage mode: cache only, never touches the network
-make test           # 20 tests (golden case, mass balance, auditor, fusion, contracts)
+make test           # 22 tests (golden case, mass balance, runoff, auditor, fusion, v1 contract)
 make validate       # the validation wall → qa/REPORT.md (computed, never pre-written)
 ```
 

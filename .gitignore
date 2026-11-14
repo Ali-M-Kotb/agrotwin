@@ -11,3 +11,5 @@ data/scout/
 # Secrets
 .env
 .netrc
+data/farms/
+data/cache/fusion_sigma_*

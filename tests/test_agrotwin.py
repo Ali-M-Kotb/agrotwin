@@ -30,15 +30,15 @@ def flat_weather(et0=5.0, rain=0.0, tmax=25.0, years=range(1990, 2001)):
 # --- water balance -----------------------------------------------------------
 
 def test_golden_case_irrigated_wheat_etc():
-    """Hand arithmetic: wheat stages (25, 50, 65, 30), Kc (0.40, 1.15, 0.30), ET0 = 5 mm/day.
-    Σ Kc = 25×0.40 + [50×0.40 + 0.75×(0+…+49)/50] + 65×1.15 + 30×(1.15+0.30)/2
-         = 10 + 38.375 + 74.75 + 21.75 = 144.875  →  ETc = 724.375 mm.
+    """Hand arithmetic: wheat stages (25, 50, 65, 30), Kc (0.70, 1.15, 0.30), ET0 = 5 mm/day.
+    Σ Kc = 25×0.70 + [50×0.70 + 0.45×(0+…+49)/50] + 65×1.15 + 30×(1.15+0.30)/2
+         = 17.5 + 46.025 + 74.75 + 21.75 = 160.025  →  ETc = 800.125 mm.
     Irrigated, no cap → no stress → ETa = ETc."""
     w = flat_weather()
     wx = wb.weather_matrices(w, wb.windows(w)[:2])
     sim = wb.simulate([("wheat",) + ("fallow",) * 5], wx, "clay_loam", irrigated=True)
-    assert sim["etc"][0, :, 0] == pytest.approx(724.375, abs=1e-6)
-    assert sim["eta"][0, :, 0] == pytest.approx(724.375, abs=1e-6)
+    assert sim["etc"][0, :, 0] == pytest.approx(800.125, abs=1e-6)
+    assert sim["eta"][0, :, 0] == pytest.approx(800.125, abs=1e-6)
     assert sim["deficit_days"][0, :, 0].sum() == 0
 
 
@@ -233,3 +233,29 @@ def test_auditor_blocks_all_bad():
     for c in BAD:
         ok, _ = council.audit_claim(c, RESULT)
         assert not ok, c["text"]
+
+
+# --- v1 contract (shared with Yaseen Abdelal's AgroTwin repo) ---------------
+
+def test_v1_contract_valid_for_irrigated_and_rainfed():
+    from fastapi.testclient import TestClient
+    import app as api
+    c = TestClient(api.app)
+    for lat, lon, ex in ((31.25, 30.95, ["wheat", "rice"]), (31.28, 27.35, ["barley", "fallow"])):
+        r = c.post("/api/v1/result", json=dict(lat=lat, lon=lon, existing=ex))
+        assert r.status_code == 200, r.text
+        doc = r.json()
+        assert doc["schema_version"] == "1.0.0" and len(doc["rotations"]) == 3
+        for rot in doc["rotations"]:
+            m = rot["metrics"]["profit_per_ha"]
+            assert m["p10"] <= m["median"] <= m["p90"]
+
+
+def test_runoff_curve_number_behaviour():
+    import waterbalance as wb
+    w = flat_weather(rain=0.0)
+    w.loc[w.index.day == 5, "PRECTOTCORR"] = 60.0
+    wx = wb.weather_matrices(w, wb.windows(w)[:3])
+    sand = wb.simulate([("fallow",) * 6], wx, "sand", False)
+    clay = wb.simulate([("fallow",) * 6], wx, "clay", False)
+    assert clay["_ro"].sum() > sand["_ro"].sum() > 0          # clay sheds more of a 60 mm storm

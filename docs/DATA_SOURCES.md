@@ -14,4 +14,5 @@ _AI-generated (Claude, Anthropic) under human review._
 | FAO-33 | seasonal Ky | – | publication | yield response | cited in crops.py |
 | Prices & costs | see data/prices.csv (source_url per row) | – | Arab Finance, USDA GAIN EG2026-0002/0004/0007, Masrawy, Al Mal, Dostor, Ahram Gate, Amwal Al Ghad | profit | 19 quoted rows, 21 assumption rows |
 | Verdex Scout | ESP32 + soil probe, DHT, rain-drop sensor, PTZ camera; leaf model v2_deit3 | field point | MQTT / serial bridge, POST /api/scout/run | fusion, sightings | model real; soil runs SIMULATED until the robot posts |
-| Map tiles | Esri World Imagery | – | online only | background map | the rest of the app works offline |
+| NASA GIBS map layers | MODIS_Terra_L3_NDVI_16Day, MODIS_Terra_NDVI_8Day, SMAP_L4_Analyzed_Root_Zone_Soil_Moisture, IMERG_Precipitation_Rate, MODIS_Terra_Land_Surface_Temp_Day, MODIS_Terra_CorrectedReflectance_TrueColor | 250 m – 9 km | gibs.earthdata.nasa.gov WMTS, no login | interactive map with date and time-lapse; official legends bundled | display only, not used in calculations |
+| Map tiles | Esri World Imagery, OpenStreetMap | – | online only | background map | the rest of the app works offline |

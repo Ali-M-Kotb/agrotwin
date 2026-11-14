@@ -3,18 +3,27 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2418">
+<meta name="description" content="AgroTwin: replay decades of NASA weather against your crop rotation before you plant.">
 <title>AgroTwin</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icon.svg">
 <link rel="stylesheet" href="/static/vendor/leaflet.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
-<body data-lens="farmer">
+<body data-lens="farmer" data-mode="simple">
 <header class="top">
   <div class="brand">
-    <div class="logo" aria-hidden="true">A</div>
+    <img class="logo" src="/static/icon.svg" alt="">
     <div><h1>AgroTwin</h1><p data-i18n="brand_tag"></p></div>
   </div>
-  <nav class="lens" role="tablist" aria-label="Judge lens">
+  <nav class="seg modes" aria-label="Interface mode">
+    <button data-mode="simple" data-i18n="mode_simple"></button>
+    <button data-mode="advanced" data-i18n="mode_advanced"></button>
+  </nav>
+  <nav class="seg lens adv" role="tablist" aria-label="Judge lens">
     <button data-lens="farmer" data-i18n="lens_farmer" role="tab"></button>
     <button data-lens="investor" data-i18n="lens_investor" role="tab"></button>
     <button data-lens="scientist" data-i18n="lens_scientist" role="tab"></button>
@@ -27,14 +36,73 @@
   </div>
 </header>
 
+<!-- ================= MAP ================= -->
+<section class="map-wrap">
+  <div id="map"></div>
+  <div class="map-ui tl">
+    <div class="searchbox">
+      <input id="map-search" type="search" autocomplete="off" data-i18n-ph="map_search">
+      <button id="btn-locate" class="icon" title="Locate me" aria-label="Locate me">◎</button>
+      <div id="map-results" class="results hidden"></div>
+    </div>
+    <div id="site-chips" class="chips map-chips"></div>
+  </div>
+  <div class="map-ui tr adv">
+    <div class="panel">
+      <label><span data-i18n="map_base"></span><select id="map-base"></select></label>
+      <label><span data-i18n="map_layer"></span><select id="map-overlay"></select></label>
+      <label><span data-i18n="map_opacity"></span><input id="map-opacity" type="range" min="0.2" max="1" step="0.05" value="0.75"></label>
+      <div class="daterow">
+        <button id="map-prev" class="icon" aria-label="previous">‹</button>
+        <input id="map-date" type="date">
+        <button id="map-next" class="icon" aria-label="next">›</button>
+        <button id="map-play" class="icon play" title="Time-lapse">▶</button>
+      </div>
+      <div id="map-legend" class="legend"></div>
+      <div class="src">NASA GIBS · MODIS · SMAP · GPM IMERG</div>
+    </div>
+  </div>
+  <div class="map-ui bl adv">
+    <div class="panel row">
+      <button id="btn-draw" data-i18n="draw"></button>
+      <button id="btn-draw-finish" class="ghost" data-i18n="draw_finish" disabled></button>
+      <button id="btn-draw-clear" class="ghost" data-i18n="draw_clear"></button>
+      <b id="draw-area"></b>
+    </div>
+    <div id="draw-hint" class="hint hidden" data-i18n="draw_hint"></div>
+  </div>
+  <div class="map-ui bc simple-only"><div class="hint big" data-i18n="tap_hint"></div></div>
+  <div id="site-progress" class="map-ui br progress hidden"></div>
+</section>
+
+<!-- ================= SIMPLE WIZARD ================= -->
+<section class="wizard simple-only">
+  <div class="wstep"><span class="num">1</span><div><div class="wk" data-i18n="wiz1"></div><div id="wiz-field" class="wv">—</div></div></div>
+  <div class="wstep"><span class="num">2</span><div><div class="wk" data-i18n="wiz2"></div>
+    <div class="grid2"><select id="sw-w" aria-label="winter crop"></select><select id="sw-s" aria-label="summer crop"></select></div></div></div>
+  <div class="wstep"><span class="num">3</span><div><div class="wk" data-i18n="wiz3"></div>
+    <div class="pris" id="pris">
+      <button data-p="water">💧 <span data-i18n="w_water"></span></button>
+      <button data-p="soil">🌱 <span data-i18n="w_soil"></span></button>
+      <button data-p="profit">💰 <span data-i18n="w_profit"></span></button>
+      <button data-p="risk">🛡 <span data-i18n="w_risk"></span></button>
+    </div></div></div>
+</section>
+
 <main class="layout">
-  <aside class="side">
+  <aside class="side adv">
     <section class="card">
       <h2 data-i18n="s_field"></h2>
-      <div id="map"></div>
-      <div id="site-chips" class="chips"></div>
       <div id="site-meta" class="meta"></div>
-      <div id="site-progress" class="progress hidden"></div>
+    </section>
+    <section class="card">
+      <h2 data-i18n="farms_title"></h2>
+      <div class="farm-save">
+        <input id="farm-name" data-i18n-ph="farm_name">
+        <button id="btn-farm-save" data-i18n="farm_save"></button>
+      </div>
+      <ul id="farms" class="farms"></ul>
+      <div id="farm-plans"></div>
     </section>
     <section class="card">
       <h2 data-i18n="s_rotation"></h2>
@@ -71,23 +139,20 @@
   </aside>
 
   <section class="content">
-    <!-- Farmer hero -->
-    <section id="hero" class="card hero lens-farmer"></section>
+    <section id="hero" class="card hero"></section>
 
-    <!-- Showdown -->
     <section class="card">
       <div class="head-row">
         <div><h2 data-i18n="showdown"></h2><div id="showdown-sub" class="meta"></div></div>
+        <button id="btn-plan-save" class="ghost small adv" data-i18n="plan_save"></button>
       </div>
       <div id="tie" class="banner hidden"></div>
       <div id="rotations" class="rots"></div>
     </section>
 
-    <!-- Investor -->
-    <section id="investor" class="card lens-investor lens-scientist"></section>
+    <section id="investor" class="card adv lens-investor lens-scientist"></section>
 
-    <!-- Scout -->
-    <section class="card scout">
+    <section class="card scout adv">
       <div class="head-row">
         <div><h2 data-i18n="scout_title"></h2><div class="meta" data-i18n="scout_sub"></div></div>
       </div>
@@ -123,7 +188,6 @@
       </details>
     </section>
 
-    <!-- Blind spots + Council -->
     <div class="two">
       <section class="card"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
       <section class="card">
@@ -133,8 +197,7 @@
       </section>
     </div>
 
-    <!-- Diagnosis -->
-    <section class="card">
+    <section class="card adv">
       <h2 data-i18n="diag_title"></h2>
       <div class="tabs" id="diag-tabs">
         <button data-tab="danger" class="active" data-i18n="tab_danger"></button>
@@ -147,8 +210,10 @@
       <ul id="sources" class="sources hidden"></ul>
     </section>
 
-    <!-- Scientist -->
-    <section id="science" class="card lens-scientist"></section>
+    <section id="science" class="card adv lens-scientist"></section>
+    <footer class="foot">
+      <span data-i18n="foot"></span> · <a href="/docs" target="_blank">API</a> · <a href="https://github.com/Ali-M-Kotb/agrotwin" target="_blank">GitHub</a>
+    </footer>
   </section>
 </main>
 
@@ -158,14 +223,17 @@
   <pre id="wa-text"></pre>
   <div class="btn-row">
     <a id="card-open" class="btn" target="_blank" data-i18n="card_print"></a>
+    <a id="card-wa" class="btn ghost" target="_blank" rel="noopener">WhatsApp</a>
     <button id="btn-wa" class="ghost" data-i18n="card_wa"></button>
     <button id="btn-dlg-close" class="ghost">✕</button>
   </div>
 </div></div>
 <div id="loading" class="loading hidden"><div class="spinner"></div><span id="loading-text"></span></div>
+<div id="toast" class="toast hidden"></div>
 
 <script src="/static/vendor/leaflet.js"></script>
 <script src="/static/vendor/plotly.min.js"></script>
+<script src="/static/map.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

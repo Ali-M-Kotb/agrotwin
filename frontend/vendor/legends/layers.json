@@ -1,0 +1,62 @@
+{
+ "MODIS_Terra_CorrectedReflectance_TrueColor": {
+  "title": "Corrected Reflectance (True Color, MODIS, Terra)",
+  "tms": "GoogleMapsCompatible_Level9",
+  "ext": "jpg",
+  "maxzoom": 9,
+  "latest": "2026-11-14",
+  "first": "2000-02-24",
+  "legend": null,
+  "legend_src": null
+ },
+ "MODIS_Terra_Land_Surface_Temp_Day": {
+  "title": "Land Surface Temperature (Day, MODIS, Terra)",
+  "tms": "GoogleMapsCompatible_Level7",
+  "ext": "png",
+  "maxzoom": 7,
+  "latest": "2026-11-14",
+  "first": "2000-02-24",
+  "legend": "MODIS_Terra_Land_Surface_Temp_Day.svg",
+  "legend_src": "https://gibs.earthdata.nasa.gov/legends/MODIS_Land_Surface_Temp_H.svg"
+ },
+ "IMERG_Precipitation_Rate": {
+  "title": "Precipitation Rate (IMERG)",
+  "tms": "GoogleMapsCompatible_Level6",
+  "ext": "png",
+  "maxzoom": 6,
+  "latest": "2026-11-13",
+  "first": "2000-06-01",
+  "legend": "IMERG_Precipitation_Rate.svg",
+  "legend_src": "https://gibs.earthdata.nasa.gov/legends/GPM_Precipitation_Rate_H.svg"
+ },
+ "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture": {
+  "title": "Root Zone Soil Moisture (L4, 12z Instantaneous, Model Value-Added, SMAP)",
+  "tms": "GoogleMapsCompatible_Level6",
+  "ext": "png",
+  "maxzoom": 6,
+  "latest": "2026-11-10",
+  "first": "2015-03-31",
+  "legend": "SMAP_L4_Analyzed_Root_Zone_Soil_Moisture.svg",
+  "legend_src": "https://gibs.earthdata.nasa.gov/legends/SMAP_Analyzed_Soil_Moisture_H.svg"
+ },
+ "MODIS_Terra_NDVI_8Day": {
+  "title": "Vegetation Index (rolling 8-Day, MODIS, Terra)",
+  "tms": "GoogleMapsCompatible_Level9",
+  "ext": "png",
+  "maxzoom": 9,
+  "latest": "2026-11-13",
+  "first": "2025-02-12",
+  "legend": "MODIS_Terra_NDVI_8Day.svg",
+  "legend_src": "https://gibs.earthdata.nasa.gov/legends/MODIS_NDVI_H.svg"
+ },
+ "MODIS_Terra_L3_NDVI_16Day": {
+  "title": "Vegetation Index (16-Day, MODIS, Terra)",
+  "tms": "GoogleMapsCompatible_Level9",
+  "ext": "png",
+  "maxzoom": 9,
+  "latest": "2026-10-16",
+  "first": "2000-03-05",
+  "legend": "MODIS_Terra_L3_NDVI_16Day.svg",
+  "legend_src": "https://gibs.earthdata.nasa.gov/legends/MODIS_L3_NDVI_H.svg"
+ }
+}

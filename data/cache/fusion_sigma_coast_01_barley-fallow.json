@@ -1,1 +1,0 @@
-{"sigma_model": 0.08, "coverage": 0.73046875, "unweighted_coverage": 0.75, "target": 0.7, "horizons": [30, 90, 135, 180], "grid": [0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.45], "source": "computed:leave-one-out twin-experiment calibration (in-sample choice of one scalar)"}

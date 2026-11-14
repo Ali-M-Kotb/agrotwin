@@ -238,9 +238,10 @@ def calibrate_sigma_model(wet: np.ndarray, outcome: np.ndarray, horizons=(30, 90
     tau = decorrelation_days(wet)
 
     def cov(sig, subset):
-        hits, base = [], []
+        per_h, base = [], []
         for H in horizons:
             days = list(range(min(H, wet.shape[1])))
+            hits = []
             for seed in range(2):
                 rng = np.random.default_rng(seed)
                 for k in subset:
@@ -251,15 +252,17 @@ def calibrate_sigma_model(wet: np.ndarray, outcome: np.ndarray, horizons=(30, 90
                     ulo, uhi = np.quantile(outcome[o], [0.1, 0.9])
                     hits.append(lo <= outcome[k] <= hi)
                     base.append(ulo <= outcome[k] <= uhi)
-        return float(np.mean(hits)), float(np.mean(base))
-    chosen, fit, target = grid[-1], None, None
+            per_h.append(float(np.mean(hits)))
+        return per_h, float(np.mean(base))
+    chosen, fit, target, worst = grid[-1], None, None, None
     base = None
     for sig in grid:
-        c, b = cov(sig, allk)
+        per_h, b = cov(sig, allk)
         base, target = b, max(0.70, b - slack)
-        if c >= target:
-            chosen, fit = sig, c
+        # every reading horizon must stay within 12 points of plain history, and the mean within `slack`
+        if np.mean(per_h) >= target and min(per_h) >= b - 0.12:
+            chosen, fit, worst = sig, float(np.mean(per_h)), float(min(per_h))
             break
-    return dict(sigma_model=chosen, coverage=fit, unweighted_coverage=base, target=target,
+    return dict(sigma_model=chosen, coverage=fit, worst_horizon_coverage=worst, unweighted_coverage=base, target=target,
                 horizons=list(horizons), grid=list(grid),
                 source="computed:leave-one-out twin-experiment calibration (in-sample choice of one scalar)")

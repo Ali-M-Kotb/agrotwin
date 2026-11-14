@@ -25,6 +25,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import config
+import contract
 import council
 import data_sources as ds
 import fieldcard
@@ -406,6 +407,140 @@ def simulate(req: SimRequest):
 
 
 # ---------------------------------------------------------------------------
+# v1 contract (shared with the AgroTwin repo by Yaseen Abdelal)
+# ---------------------------------------------------------------------------
+
+class V1Request(SimRequest):
+    lang: str = "en"
+
+
+@app.post("/api/v1/result")
+def v1_result(req: V1Request):
+    res = simulate(SimRequest(**req.model_dump(exclude={"lang"})))
+    doc = contract.to_v1(res, req.lang)
+    errs = contract.validate(doc)
+    if errs:
+        raise HTTPException(500, f"contract violation: {errs[:3]}")
+    return doc
+
+
+# ---------------------------------------------------------------------------
+# Map inspector: quick facts for any point (cache-first)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/point")
+def point(lat: float, lon: float):
+    s = site(lat, lon)
+    w = s["weather"]
+    recent = w[w.index.year >= w.index[-1].year - 10]
+    yrs = recent.groupby(recent.index.year)
+    rain = float(yrs["PRECTOTCORR"].sum().iloc[:-1].mean())
+    et0 = float(yrs["ET0"].sum().iloc[:-1].mean())
+    clim = history.climate_summary(w)
+    near = min(SITES.values(), key=lambda m: (m["lat"] - s["lat"]) ** 2 + (m["lon"] - s["lon"]) ** 2)
+    return _clean(dict(
+        lat=s["lat"], lon=s["lon"], elev=dict(value=s["elev"], unit="m", source="nasa:POWER"),
+        soil_class=soilmod.classify(s["soil"]), clay=dict(value=s["soil"].get("clay"), source=s["soil"]["source"]),
+        rain=dict(value=rain, unit="mm/yr (10-yr mean)", source="nasa:POWER PRECTOTCORR"),
+        et0=dict(value=et0, unit="mm/yr (10-yr mean)", source="computed:FAO-56 from nasa:POWER"),
+        aridity=dict(value=rain / et0 if et0 else None, source="computed:rain / ET0"),
+        tmax_trend=dict(value=clim["trend_per_decade"]["tmax"], unit="°C/decade", source="computed:nasa:POWER"),
+        hot_days_trend=dict(value=clim["trend_per_decade"]["hot_days"], unit="days/decade", source="computed:nasa:POWER"),
+        likely_irrigated=rain < 250,
+        nearest_demo=dict(id=near["id"], name=near["name"]),
+        meta=site_meta(s["lat"], s["lon"]),
+    ))
+
+
+# ---------------------------------------------------------------------------
+# My farms: saved fields, boundaries and plan history (stays on this machine)
+# ---------------------------------------------------------------------------
+
+FARMS = ROOT / "data" / "farms" / "farms.json"
+
+
+def _farms() -> list:
+    return json.loads(FARMS.read_text()) if FARMS.exists() else []
+
+
+def _save_farms(fs):
+    FARMS.parent.mkdir(parents=True, exist_ok=True)
+    tmp = FARMS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(fs, ensure_ascii=False, indent=1))
+    tmp.replace(FARMS)
+
+
+class Farm(BaseModel):
+    id: str | None = None
+    name: str
+    lat: float
+    lon: float
+    polygon: list[list[float]] | None = None      # [[lat, lon], ...]
+    area_ha: float | None = None
+    existing: list[str] = Field(default_factory=lambda: ["wheat", "rice"])
+    irrigated: bool = True
+    notes: str = ""
+
+
+@app.get("/api/farms")
+def farms_list():
+    return _farms()
+
+
+@app.post("/api/farms")
+def farms_save(f: Farm):
+    fs = _farms()
+    d = f.model_dump()
+    if not d["id"]:
+        d["id"] = "farm_" + hashlib.sha1(f"{f.name}{time.time()}".encode()).hexdigest()[:8]
+        d["created"] = time.strftime("%Y-%m-%d %H:%M")
+        d["plans"] = []
+        fs.append(d)
+    else:
+        old = next((x for x in fs if x["id"] == d["id"]), None)
+        if not old:
+            raise HTTPException(404, "farm not found")
+        d["plans"] = old.get("plans", [])
+        d["created"] = old.get("created")
+        fs = [d if x["id"] == d["id"] else x for x in fs]
+    d["updated"] = time.strftime("%Y-%m-%d %H:%M")
+    _save_farms(fs)
+    return d
+
+
+@app.delete("/api/farms/{fid}")
+def farms_delete(fid: str):
+    _save_farms([x for x in _farms() if x["id"] != fid])
+    return dict(ok=True)
+
+
+class PlanSnap(BaseModel):
+    label: str
+    rotation_id: str
+    seq: list[str]
+    profit: dict
+    water_m3: dict
+    loss_year_share: float
+    scenario: dict
+    weights: dict
+    mode: str
+
+
+@app.post("/api/farms/{fid}/plans")
+def farms_plan(fid: str, p: PlanSnap):
+    fs = _farms()
+    farm = next((x for x in fs if x["id"] == fid), None)
+    if not farm:
+        raise HTTPException(404, "farm not found")
+    snap = p.model_dump()
+    snap["saved"] = time.strftime("%Y-%m-%d %H:%M")
+    farm.setdefault("plans", []).insert(0, snap)
+    farm["plans"] = farm["plans"][:20]
+    _save_farms(fs)
+    return farm
+
+
+# ---------------------------------------------------------------------------
 # Council + Field Card
 # ---------------------------------------------------------------------------
 
@@ -624,6 +759,17 @@ FRONT = ROOT / "frontend"
 @app.get("/")
 def index():
     return FileResponse(FRONT / "index.html")
+
+
+@app.get("/sw.js")
+def service_worker():
+    # served from the root so it may control the whole app (installable, works offline)
+    return FileResponse(FRONT / "sw.js", media_type="text/javascript", headers={"Service-Worker-Allowed": "/"})
+
+
+@app.get("/manifest.webmanifest")
+def manifest():
+    return FileResponse(FRONT / "manifest.webmanifest", media_type="application/manifest+json")
 
 
 app.mount("/static", StaticFiles(directory=FRONT), name="static")

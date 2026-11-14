@@ -1,40 +1,40 @@
-# Validation wall — 2026-11-14T12:12:13
+# Validation wall — 2026-11-14T14:05:08
 
 _Computed by qa/validate.py at run time. Not pre-written._
 
 ## Twin experiment (does the Scout-narrowed range stay honest?)
 
-**coast_01** (barley-fallow, 32 windows, σ sensor 0.05, σ model 0.08)
+**coast_01** (barley-fallow, 32 windows, σ sensor 0.05, σ model 0.05)
 
 | reading days | outcome | coverage (target 0.7–0.9) | unweighted coverage | width vs unweighted | ESS median |
 |---|---|---|---|---|---|
-| 30 | this_season_profit | 0.738 | 0.75 | 0.968 | 23.3 |
-| 60 | this_season_profit | 0.662 | 0.75 | 0.883 | 10.3 |
-| 90 | this_season_profit | 0.631 | 0.75 | 0.777 | 5.7 |
-| 135 | this_season_profit | 0.75 | 0.75 | 0.563 | 5.4 |
-| 180 | this_season_profit | 0.794 | 0.75 | 0.509 | 5.5 |
+| 30 | this_season_profit | 0.694 | 0.75 | 0.946 | 20.8 |
+| 60 | this_season_profit | 0.644 | 0.75 | 0.888 | 6.5 |
+| 90 | this_season_profit | 0.637 | 0.75 | 0.773 | 5.4 |
+| 135 | this_season_profit | 0.725 | 0.75 | 0.565 | 5.4 |
+| 180 | this_season_profit | 0.762 | 0.75 | 0.489 | 5.5 |
 
-3-year profit with the same weights (135 days): coverage 0.573 vs unweighted 0.75 → 3-year ranges are NOT re-weighted in the product: readings cannot know future seasons.
+3-year profit with the same weights (135 days): coverage 0.583 vs unweighted 0.75 → 3-year ranges are NOT re-weighted in the product: readings cannot know future seasons.
 
-**intl_01** (wheat-fallow, 32 windows, σ sensor 0.05, σ model 0.45)
+**intl_01** (wheat-fallow, 32 windows, σ sensor 0.05, σ model 0.2)
 
 | reading days | outcome | coverage (target 0.7–0.9) | unweighted coverage | width vs unweighted | ESS median |
 |---|---|---|---|---|---|
-| 30 | this_season_profit | 0.85 | 0.875 | 1.059 | 27.1 |
-| 60 | this_season_profit | 0.844 | 0.875 | 1.08 | 23.9 |
-| 90 | this_season_profit | 0.844 | 0.875 | 1.09 | 23.6 |
-| 135 | this_season_profit | 0.844 | 0.875 | 1.103 | 22.6 |
-| 180 | this_season_profit | 0.844 | 0.875 | 1.047 | 18.8 |
+| 30 | this_season_profit | 0.844 | 0.75 | 1.018 | 14.4 |
+| 60 | this_season_profit | 0.744 | 0.75 | 0.98 | 7.8 |
+| 90 | this_season_profit | 0.688 | 0.75 | 0.996 | 6.4 |
+| 135 | this_season_profit | 0.706 | 0.75 | 0.967 | 6.1 |
+| 180 | this_season_profit | 0.656 | 0.75 | 0.712 | 5.7 |
 
-3-year profit with the same weights (135 days): coverage 0.719 vs unweighted 0.75 → 3-year ranges are NOT re-weighted in the product: readings cannot know future seasons.
+3-year profit with the same weights (135 days): coverage 0.625 vs unweighted 0.781 → 3-year ranges are NOT re-weighted in the product: readings cannot know future seasons.
 
 ## Hindcast (model vs independent satellite signal)
 
 - **coast_01** (barley) vs MODIS NDVI seasonal peak: n = 9, rho_deficit_days = -0.467, rho_eta_over_etc = 0.5. Expectation: rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop.
-- **intl_01** (wheat) vs MODIS NDVI seasonal peak: n = 9, rho_deficit_days = 0.067, rho_eta_over_etc = 0.017. Expectation: rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop.
-- **intl_01** (wheat) vs MODIS MOD16A2GF seasonal actual ET: n = 4, rho_model_eta = -0.8, model_mean_mm = 341, mod16_mean_mm = 161. Expectation: rho > 0; levels differ because MOD16 is a 500 m pixel average.
+- **intl_01** (wheat) vs MODIS NDVI seasonal peak: n = 9, rho_deficit_days = -0.35, rho_eta_over_etc = 0.233. Expectation: rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop.
+- **intl_01** (wheat) vs MODIS MOD16A2GF seasonal actual ET: n = 4, rho_model_eta = -0.8, model_mean_mm = 357, mod16_mean_mm = 161. Expectation: rho > 0; levels differ because MOD16 is a 500 m pixel average.
 - **delta_01** (wheat) vs MODIS NDVI seasonal peak: n = 9, . Expectation: not applicable: the irrigated crop never shows modelled water stress, so there is nothing to rank.
-- **delta_01** (wheat) vs MODIS MOD16A2GF seasonal actual ET: n = 4, rho_model_eta = 0.2, model_mean_mm = 462, mod16_mean_mm = 192. Expectation: rho > 0; levels differ because MOD16 is a 500 m pixel average.
+- **delta_01** (wheat) vs MODIS MOD16A2GF seasonal actual ET: n = 4, rho_model_eta = 0.2, model_mean_mm = 503, mod16_mean_mm = 192. Expectation: rho > 0; levels differ because MOD16 is a 500 m pixel average.
 
 ## Real-robot check
 
@@ -62,8 +62,8 @@ _Computed by qa/validate.py at run time. Not pre-written._
 
 ## Sanity suite
 
-- rain_x0.7_changes_water_need: PASS {base=9465, dry=9621}
+- rain_x0.7_changes_water_need: PASS {base=9750, dry=9838}
 - profit_falls_with_price: PASS {base=57419, low=26093}
 - fallow_has_no_transpiration: PASS {transp_days=0.0, bare_days_median=1170.0}
-- water_balance_closes_mm: PASS {max_residual=9.9262820185686e-12}
+- water_balance_closes_mm: PASS {max_residual=1.2105871860512707e-11}
 - no_scout_no_change: PASS {note=fusion with zero readings returns uniform weights (unit test)}

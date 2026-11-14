@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T12:12:13",
+ "generated_at": "2026-11-14T14:05:08",
  "generated_by": "qa/validate.py (AI-assisted code, results computed at run time)",
  "twin_experiment": [
   {
@@ -8,10 +8,11 @@
    "rotation": "barley-fallow",
    "windows": 32,
    "sigma_sensor": 0.05,
-   "sigma_model": 0.08,
+   "sigma_model": 0.05,
    "calibration": {
-    "sigma_model": 0.08,
-    "coverage": 0.73046875,
+    "sigma_model": 0.05,
+    "coverage": 0.70703125,
+    "worst_horizon_coverage": 0.640625,
     "unweighted_coverage": 0.75,
     "target": 0.7,
     "horizons": [
@@ -35,39 +36,39 @@
     {
      "reading_days": 30,
      "outcome": "this_season_profit",
-     "coverage": 0.738,
+     "coverage": 0.694,
      "coverage_unweighted": 0.75,
-     "width_ratio": 0.968,
-     "ess_median": 23.3,
-     "in_band": true,
+     "width_ratio": 0.946,
+     "ess_median": 20.8,
+     "in_band": false,
      "tau_days": 25
     },
     {
      "reading_days": 60,
      "outcome": "this_season_profit",
-     "coverage": 0.662,
+     "coverage": 0.644,
      "coverage_unweighted": 0.75,
-     "width_ratio": 0.883,
-     "ess_median": 10.3,
+     "width_ratio": 0.888,
+     "ess_median": 6.5,
      "in_band": false,
      "tau_days": 25
     },
     {
      "reading_days": 90,
      "outcome": "this_season_profit",
-     "coverage": 0.631,
+     "coverage": 0.637,
      "coverage_unweighted": 0.75,
-     "width_ratio": 0.777,
-     "ess_median": 5.7,
+     "width_ratio": 0.773,
+     "ess_median": 5.4,
      "in_band": false,
      "tau_days": 25
     },
     {
      "reading_days": 135,
      "outcome": "this_season_profit",
-     "coverage": 0.75,
+     "coverage": 0.725,
      "coverage_unweighted": 0.75,
-     "width_ratio": 0.563,
+     "width_ratio": 0.565,
      "ess_median": 5.4,
      "in_band": true,
      "tau_days": 25
@@ -75,9 +76,9 @@
     {
      "reading_days": 180,
      "outcome": "this_season_profit",
-     "coverage": 0.794,
+     "coverage": 0.762,
      "coverage_unweighted": 0.75,
-     "width_ratio": 0.509,
+     "width_ratio": 0.489,
      "ess_median": 5.5,
      "in_band": true,
      "tau_days": 25
@@ -85,7 +86,7 @@
    ],
    "three_year_check": {
     "reading_days": 135,
-    "coverage": 0.573,
+    "coverage": 0.583,
     "coverage_unweighted": 0.75,
     "decision": "3-year ranges are NOT re-weighted in the product: readings cannot know future seasons"
    },
@@ -97,12 +98,13 @@
    "rotation": "wheat-fallow",
    "windows": 32,
    "sigma_sensor": 0.05,
-   "sigma_model": 0.45,
+   "sigma_model": 0.2,
    "calibration": {
-    "sigma_model": 0.45,
-    "coverage": 0.84375,
-    "unweighted_coverage": 0.875,
-    "target": 0.825,
+    "sigma_model": 0.2,
+    "coverage": 0.71875,
+    "worst_horizon_coverage": 0.65625,
+    "unweighted_coverage": 0.75,
+    "target": 0.7,
     "horizons": [
      30,
      90,
@@ -124,58 +126,58 @@
     {
      "reading_days": 30,
      "outcome": "this_season_profit",
-     "coverage": 0.85,
-     "coverage_unweighted": 0.875,
-     "width_ratio": 1.059,
-     "ess_median": 27.1,
+     "coverage": 0.844,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 1.018,
+     "ess_median": 14.4,
      "in_band": true,
-     "tau_days": 17
+     "tau_days": 19
     },
     {
      "reading_days": 60,
      "outcome": "this_season_profit",
-     "coverage": 0.844,
-     "coverage_unweighted": 0.875,
-     "width_ratio": 1.08,
-     "ess_median": 23.9,
+     "coverage": 0.744,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.98,
+     "ess_median": 7.8,
      "in_band": true,
-     "tau_days": 17
+     "tau_days": 19
     },
     {
      "reading_days": 90,
      "outcome": "this_season_profit",
-     "coverage": 0.844,
-     "coverage_unweighted": 0.875,
-     "width_ratio": 1.09,
-     "ess_median": 23.6,
-     "in_band": true,
-     "tau_days": 17
+     "coverage": 0.688,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.996,
+     "ess_median": 6.4,
+     "in_band": false,
+     "tau_days": 19
     },
     {
      "reading_days": 135,
      "outcome": "this_season_profit",
-     "coverage": 0.844,
-     "coverage_unweighted": 0.875,
-     "width_ratio": 1.103,
-     "ess_median": 22.6,
+     "coverage": 0.706,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.967,
+     "ess_median": 6.1,
      "in_band": true,
-     "tau_days": 17
+     "tau_days": 19
     },
     {
      "reading_days": 180,
      "outcome": "this_season_profit",
-     "coverage": 0.844,
-     "coverage_unweighted": 0.875,
-     "width_ratio": 1.047,
-     "ess_median": 18.8,
-     "in_band": true,
-     "tau_days": 17
+     "coverage": 0.656,
+     "coverage_unweighted": 0.75,
+     "width_ratio": 0.712,
+     "ess_median": 5.7,
+     "in_band": false,
+     "tau_days": 19
     }
    ],
    "three_year_check": {
     "reading_days": 135,
-    "coverage": 0.719,
-    "coverage_unweighted": 0.75,
+    "coverage": 0.625,
+    "coverage_unweighted": 0.781,
     "decision": "3-year ranges are NOT re-weighted in the product: readings cannot know future seasons"
    },
    "method": "each past window hidden in turn; synthetic readings = its modelled wetness + N(0, 0.05); weighted 10\u201390% range from the other windows; 5 noise seeds; decorrelation time from the replay"
@@ -215,8 +217,8 @@
     {
      "signal": "MODIS NDVI seasonal peak",
      "n": 9,
-     "rho_deficit_days": 0.067,
-     "rho_eta_over_etc": 0.017,
+     "rho_deficit_days": -0.35,
+     "rho_eta_over_etc": 0.233,
      "expect": "rho(deficit, NDVI) < 0 and rho(ETa/ETc, NDVI) > 0 where water limits the crop",
      "years": [
       2014,
@@ -234,7 +236,7 @@
      "signal": "MODIS MOD16A2GF seasonal actual ET",
      "n": 4,
      "rho_model_eta": -0.8,
-     "model_mean_mm": 341,
+     "model_mean_mm": 357,
      "mod16_mean_mm": 161,
      "expect": "rho > 0; levels differ because MOD16 is a 500 m pixel average",
      "years": [
@@ -272,7 +274,7 @@
      "signal": "MODIS MOD16A2GF seasonal actual ET",
      "n": 4,
      "rho_model_eta": 0.2,
-     "model_mean_mm": 462,
+     "model_mean_mm": 503,
      "mod16_mean_mm": 192,
      "expect": "rho > 0; levels differ because MOD16 is a 500 m pixel average",
      "years": [
@@ -354,8 +356,8 @@
  },
  "sanity": {
   "rain_x0.7_changes_water_need": {
-   "base": 9465,
-   "dry": 9621,
+   "base": 9750,
+   "dry": 9838,
    "passed": true
   },
   "profit_falls_with_price": {
@@ -369,7 +371,7 @@
    "passed": 1.0
   },
   "water_balance_closes_mm": {
-   "max_residual": 9.9262820185686e-12,
+   "max_residual": 1.2105871860512707e-11,
    "passed": true
   },
   "no_scout_no_change": {
@@ -377,5 +379,5 @@
    "note": "fusion with zero readings returns uniform weights (unit test)"
   }
  },
- "elapsed_s": 3.9
+ "elapsed_s": 3.8
 }

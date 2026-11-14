@@ -9,6 +9,10 @@ FAO-56 chapter 8 (single crop coefficient):
     ETa = Ks · Kc · ET0
     Dr,i = Dr,i−1 − (P − RO) − I + ETa + DP      (clamped to 0 … TAW; excess = deep percolation)
 
+Runoff: NRCS curve number, S = 25400/CN − 254, Ia = 0.2·S, RO = (P − Ia)² / (P − Ia + S) for P > Ia,
+with CN by soil class and by whether the day is cropped or bare (USDA TR-55). Adopted from the
+AgroTwin engine by Yaseen Abdelal (single CN there; per-soil, per-cover here).
+
 A rotation is 6 slots over 3 agricultural years (Oct 1 → Sep 30): winter, summer,
 winter, summer, winter, summer; a slot holds a crop or 'fallow'. Every rotation is
 simulated on every replay window (start year y uses the real weather of y, y+1, y+2)
@@ -129,7 +133,14 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
     arrs = [_calendar_arrays(c, A["zr_min_m"], bare_zr) for c in cals]
     KC, ZR, PT, SL, CR, TH, FL, SW = (np.stack([a[i] for a in arrs]) for i in range(8))
 
-    heavy, ro_frac = A["heavy_rain_mm"], A["runoff_frac"]
+    heavy = A["heavy_rain_mm"]
+    def _cn_s(cn):
+        return 25400.0 / cn - 254.0
+    S_crop, S_bare = _cn_s(A["runoff_cn_crop"][soil_class]), _cn_s(A["runoff_cn_bare"][soil_class])
+
+    def runoff(P, S):
+        ia = 0.2 * S
+        return np.where(P > ia, (P - ia) ** 2 / (P - ia + S), 0.0)
     kbare = A["bare_evap_coef"]
     perc, puddle = A["rice_percolation_mm_day"], A["rice_puddling_mm"]
 
@@ -139,7 +150,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
             cap[:, :, j] = cap_net_mm[SEASON_OF_SLOT[j]]
 
     acc = {k: np.zeros((R, W, SLOTS)) for k in
-           ("etc", "eta", "irr", "irr_gross", "deficit_days", "heat_days", "rain", "transp_days")}
+           ("etc", "eta", "irr", "irr_gross", "deficit_days", "severe_days", "heat_days", "rain", "transp_days")}
     bare_days = np.zeros((R, W))
     erosion = np.zeros((R, W))
     dp_sum = np.zeros((R, W))
@@ -161,7 +172,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
             taw = taw_m * bare_zr
             Dr = np.minimum(Dr, taw)
             E = kbare * (1 - Dr / taw) * et0[None, :]
-            ro = np.where(P > heavy, ro_frac * P, 0.0)[None, :]
+            ro = runoff(P, S_bare)[None, :]
             Dr = Dr - (P[None, :] - ro) + E
             Dr = np.clip(Dr, 0, taw)
             continue
@@ -199,7 +210,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
         E = kbare * np.clip(1 - Dr / taw, 0, 1) * et0[None, :]
         ET = np.where(crop, eta, E)
 
-        ro = np.where(P > heavy, ro_frac * P, 0.0)[None, :]
+        ro = np.where(crop, runoff(P, S_crop)[None, :], runoff(P, S_bare)[None, :])
         inf = P[None, :] - ro
         # Flooded rice loses water below the root zone every day (and the puddling water
         # at transplanting): forced deep percolation, so it cannot feed ET.
@@ -228,6 +239,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
             # application-efficiency factor is not applied on top of them.
             acc["irr_gross"][ii] += np.where(FL[:, c][:, None], I, I / A["irrigation_efficiency"]) * m
             acc["deficit_days"][ii] += (ks < 1) * m
+            acc["severe_days"][ii] += (ks <= 0.0) * m          # root zone at wilting point
             acc["transp_days"][ii] += m
             acc["rain"][ii] += P[None, :] * m
             acc["heat_days"][ii] += (CR[:, c][:, None] & (tmax[None, :] > TH[:, c][:, None])) * m
@@ -238,7 +250,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
     return dict(
         rotations=rotations, years=wx["years"], calendars=cals,
         etc=acc["etc"], eta=acc["eta"], irr_net=acc["irr"], irr_gross=acc["irr_gross"],
-        transp_days=acc["transp_days"], deficit_days=acc["deficit_days"], heat_days=acc["heat_days"], rain_in_season=acc["rain"],
+        transp_days=acc["transp_days"], deficit_days=acc["deficit_days"], severe_days=acc["severe_days"], heat_days=acc["heat_days"], rain_in_season=acc["rain"],
         bare_days=bare_days, erosion=erosion,
         # mass balance terms (tests): inputs − ET − DP − RO − clamp = Δstorage
         _in=in_sum, _et=et_sum, _dp=dp_sum, _ro=ro_sum, _clamp=clamp_loss, _Dr0=Dr0, _Dr1=Dr,

@@ -1,0 +1,12 @@
+{
+  "name": "AgroTwin — from the sky to the land",
+  "short_name": "AgroTwin",
+  "description": "Replay decades of NASA weather against your crop rotation before you plant.",
+  "start_url": "/?mode=simple",
+  "display": "standalone",
+  "background_color": "#0f2418",
+  "theme_color": "#0f2418",
+  "lang": "ar",
+  "dir": "auto",
+  "icons": [{ "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
