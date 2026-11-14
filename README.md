@@ -29,6 +29,10 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
   - **My farms**: saved fields with boundaries and a history of saved plans.
   - Every panel: lenses, Scout fusion, validation wall, Council, diagnosis.
 - **Next 16 days**: the same water balance continued on the 16-day forecast → "irrigate around Sunday, about 220 m³/feddan".
+- **Field Pulse, our own model**: trained on 11 years of MODIS + NASA POWER; forecasts field greenness 16/32 days ahead
+  and flags images the weather doesn't explain, which tells the robot where to look (`qa/PULSE.md`).
+- **Voice assistant**: tap the mic and ask in Egyptian Arabic («أروي امتى؟»). It calls AgroTwin's own engines and
+  answers out loud. Speech recognition runs on the laptop; it works offline.
 - **Time machine**: your field's last ten seasons read from MODIS (green or bare), replayed on real weather for your
   crops and for the suggestion: "since 2015 the suggestion would have saved N m³ and earned N EGP more per feddan".
 - **Canal mode**: neighbours on one canal coordinate rotations and stagger summer sowing; the canal's worst week
@@ -44,6 +48,7 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
 - `python qa/backtest.py` → qa/BACKTEST.md: the last three seasons (2023/24–2025/26) at three sites, forecast
   from earlier years only. The replay beats "same as last year" by about 50 % (CRPS) for profit, irrigation and
   yield, and climate-adjusting past years improves it further (irrigation error −29 %, profit coverage 70 → 78 %).
+- `python qa/pulse_train.py` → qa/PULSE.md: Field Pulse tested on held-out seasons and held-out fields against three baselines.
 - `python scripts/sample_cases.py` → docs/SAMPLE_CASES.md: nine worked farmer scenarios for rehearsal.
 
 ## Run
@@ -107,11 +112,12 @@ backend/   app.py (API) · waterbalance.py (FAO-56, vectorised) · replay.py (se
            scout.py (contract, calibration, simulator, farmer export) · council.py (advisors + Number Auditor)
            fieldcard.py (A4, WhatsApp, local QR) · report.py (evidence/gaps/review, AR+EN)
            history.py (trend, NDVI seasons, danger windows) · data_sources.py · crops.py · soil.py · config.py
-frontend/  index.html · app.js · style.css · i18n/{en,ar}.json · vendor/ (Leaflet, Plotly, offline)
+backend/   pulse.py (Field Pulse model) · chat.py (voice assistant) · unique.py (time machine, canal) · outlook.py
+frontend/  index.html · app.js · chat.js · methods.html · style.css · i18n/{en,ar}.json · vendor/ (Leaflet, Plotly, offline)
 contracts/ scout_run.schema.json
 content/   glossary.json · blindspots.json (AR+EN, flagged for native review)
 data/      sites.json · prices.csv · cache/ (NASA downloads) · scout/ (farm data, exportable)
-qa/        validate.py → REPORT.md / REPORT.json
+qa/        validate.py → REPORT.md · backtest.py → BACKTEST.md · pulse_train.py → PULSE.md
 docs/      METHODS.md · DATA_SOURCES.md · AI_USE.md · PROJECT_PAGE.md
 scripts/   precache.py · fetch_earthdata.py · robot_bridge.py
 ```

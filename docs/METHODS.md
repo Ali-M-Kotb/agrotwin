@@ -72,6 +72,20 @@ satellite sees green, not the crop name.
 −14/0/+14 days (inside the planting window). Each option's average daily irrigation over the replay years is scaled by
 farm area; a greedy search picks the combination with the lowest peak 7-day canal demand.
 
+**Field Pulse (our model).** One sample per MODIS composite (16 days, 250 m) per field. Inputs: the last four NDVI
+values and slopes; the field's seasonal NDVI normal for now and for the target date (leave-one-year-out in training);
+NASA POWER rain, ET0, Tmax and its anomaly, heat days and GWETROOT over 16–60 days; and physics inputs from an FAO-56
+single bucket (TAW 100 mm, p = 0.5) driven by Kc = 1.25·NDVI − 0.10: crop demand ETc and the stress factor Ks.
+Target: NDVI change 16 and 32 days ahead. Model: scikit-learn HistGradientBoosting with quantile loss (10/50/90%), then
+split-conformal widening (CQR) on the last 20% of training dates. Tests (qa/PULSE.md): train before Jul 2023 and test on
+Oct 2023 onward; leave one field out. Baselines: persistence, seasonal normal, normal + damped anomaly. An image below
+the 10th percentile is flagged as "not explained by the weather".
+
+**Voice assistant.** Speech → text with faster-whisper "small" on the laptop (or the browser recogniser). A keyword
+router for Egyptian colloquial Arabic and English (or Claude with tool use, when a key exists) calls seven tools that
+wrap existing endpoints. Every number in a Claude reply must match a tool result (±3%, or the same value in thousands)
+or the rules engine answers instead. Text → speech with ar-EG neural voices (edge-tts).
+
 **Known limits.** History is not a forecast. Prices are partly assumptions. Planting dates are typical, not
 local. The probe reads one spot. SMAP and IMERG are wired but not yet fetched (login). Costs exclude land rent.
 The leaf model knows 8 classes.

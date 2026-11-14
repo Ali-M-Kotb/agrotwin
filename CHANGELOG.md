@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0 — 14 Nov 2026: our own model, voice assistant, agent board
+- **Field Pulse** (`backend/pulse.py`, `qa/pulse_train.py`, `/api/pulse`): a hybrid physics + machine-learning model
+  trained on MODIS NDVI and NASA POWER. Gradient-boosted quantile trees; inputs include an FAO-56 bucket driven by an NDVI
+  crop coefficient. It forecasts greenness 16 and 32 days ahead and flags images the weather does not explain (where to send
+  the Scout). Tested on held-out seasons and held-out fields: 45% better than persistence, 81% of outcomes in the 80% range
+  after split-conformal calibration. The physics inputs cut error by 10%.
+- **Voice assistant** (`backend/chat.py`, `frontend/chat.js`, `/api/chat`, `/api/stt`): speak in Egyptian Arabic or English.
+  Local Whisper (or the browser) turns speech into text; the assistant calls the replay, 16-day planner, Field Pulse, time
+  machine, prices and robot state, and answers with an Egyptian neural voice. Works offline with a rules engine; with an API
+  key, Claude chooses the tools and a number auditor rejects any figure no tool produced.
+- `scripts/fetch_training.py`: 45 cropland points across Egypt for more training data
+- `AGENTS.md`, `CLAUDE.md`, `CONTINUE.md`, `agents/` board (structure adapted from Yaseen Abdelal's repo); `tests/test_agents.py`
+- `/methods`: new sections on Field Pulse and the voice assistant, with live numbers
+
 ## 0.4.0 — 14 Nov 2026: time machine, canal mode, Egyptian voice, methods page
 - **Time machine** (`/api/timemachine`): MODIS NDVI says, season by season since 2015, whether this field was green or bare;
   each season is replayed on that year's real NASA POWER weather for the farmer's crops and for the suggestion; running

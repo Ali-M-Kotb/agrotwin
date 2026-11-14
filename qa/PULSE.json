@@ -1,0 +1,144 @@
+{
+ "fields": [
+  {
+   "lat": 30.48,
+   "lon": 31.02
+  },
+  {
+   "lat": 30.62,
+   "lon": 30.88
+  },
+  {
+   "lat": 30.702,
+   "lon": 31.204
+  },
+  {
+   "lat": 30.85,
+   "lon": 30.85
+  },
+  {
+   "lat": 30.95,
+   "lon": 31.05
+  },
+  {
+   "lat": 30.98,
+   "lon": 30.4
+  },
+  {
+   "lat": 31.05,
+   "lon": 30.7
+  },
+  {
+   "lat": 31.2,
+   "lon": 31.5
+  },
+  {
+   "lat": 31.221,
+   "lon": 31.014
+  },
+  {
+   "lat": 31.25,
+   "lon": 30.95
+  },
+  {
+   "lat": 31.28,
+   "lon": 27.35
+  },
+  {
+   "lat": 33.9,
+   "lon": -5.45
+  }
+ ],
+ "samples": 6420,
+ "horizons_days": [
+  16,
+  32
+ ],
+ "time_split": {
+  "16d": {
+   "n": 840,
+   "mae_model": 0.042624359416053165,
+   "coverage_80": 0.805952380952381,
+   "below_p10": 0.08214285714285714,
+   "mae_baselines": {
+    "persistence": 0.07680511904761905,
+    "seasonal_normal": 0.0524229329004329,
+    "normal_plus_anomaly": 0.04613321117483245
+   },
+   "skill_vs_best_baseline": 0.07605912680740301,
+   "skill_vs_persistence": 0.4450323110673635,
+   "big_moves": {
+    "n": 239,
+    "mae_model": 0.05781542600537017,
+    "mae_persistence": 0.17243682008368202
+   }
+  },
+  "32d": {
+   "n": 840,
+   "mae_model": 0.05050301882020008,
+   "coverage_80": 0.7892857142857143,
+   "below_p10": 0.09642857142857143,
+   "mae_baselines": {
+    "persistence": 0.1261622619047619,
+    "seasonal_normal": 0.0524229329004329,
+    "normal_plus_anomaly": 0.05125703160648617
+   },
+   "skill_vs_best_baseline": 0.014710426309405666,
+   "skill_vs_persistence": 0.599697896520561,
+   "big_moves": {
+    "n": 416,
+    "mae_model": 0.06213498280957753,
+    "mae_persistence": 0.21059567307692306
+   }
+  },
+  "train_rows": 4596,
+  "test_rows": 1680
+ },
+ "ablation_16d": {
+  "full model": {
+   "mae": 0.042624359416053165,
+   "big_moves_mae": 0.05781542600537017
+  },
+  "without the water-balance inputs": {
+   "mae": 0.04698685566151063,
+   "big_moves_mae": 0.06443680911009447
+  },
+  "without any weather (satellite history only)": {
+   "mae": 0.04532713595255424,
+   "big_moves_mae": 0.06269201471115507
+  }
+ },
+ "field_split": {
+  "16d": {
+   "n": 3216,
+   "mae_model": 0.04043392967737122,
+   "coverage_80": 0.8519900497512438,
+   "mae_baselines": {
+    "persistence": 0.07247129975124378,
+    "seasonal_normal": 0.04952332259158752,
+    "normal_plus_anomaly": 0.044362972802903196
+   },
+   "skill_vs_best_baseline": 0.08856582138866154,
+   "skill_vs_persistence": 0.4420697598061599
+  },
+  "32d": {
+   "n": 3204,
+   "mae_model": 0.047886984381209655,
+   "coverage_80": 0.8289637952559301,
+   "mae_baselines": {
+    "persistence": 0.1185151061173533,
+    "seasonal_normal": 0.04962285098172739,
+    "normal_plus_anomaly": 0.048698182806069315
+   },
+   "skill_vs_best_baseline": 0.016657673410321983,
+   "skill_vs_persistence": 0.5959419355892732
+  }
+ },
+ "summary": {
+  "mae_16d": 0.043,
+  "coverage_80_16d": 0.81,
+  "skill_vs_persistence_16d": 0.45,
+  "skill_vs_best_baseline_16d": 0.08,
+  "test": "last three seasons (Oct 2023 \u2192), never seen in training"
+ }
+}

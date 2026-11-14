@@ -13,3 +13,7 @@ pytest>=8.0
 jsonschema>=4.20
 qrcode[pil]>=7.4
 anthropic>=2.0   # optional: Council written by Claude; templates without a key
+scikit-learn>=1.5   # Field Pulse model (backend/pulse.py, qa/pulse_train.py)
+edge-tts>=7.0       # Egyptian Arabic voice (ar-EG-Salma / ar-EG-Shakir); browser voice without it
+# Optional — speech recognition on the laptop for the voice assistant (no audio leaves the machine):
+#   pip install faster-whisper      (downloads the ~480 MB "small" model on first use)

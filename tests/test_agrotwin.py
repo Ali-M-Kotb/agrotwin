@@ -283,3 +283,42 @@ def test_canal_mode_never_raises_peak_and_respects_tolerance():
     assert pk["coordinated"] <= pk["each_alone"] + 1e-6
     assert all(f["coordinated"]["gives_up"] <= 10 + 1e-6 for f in d["farms"])
     assert len(d["weekly_m3"]["coordinated"]) == len(d["weekly_m3"]["current"])
+
+
+# --- Field Pulse model and voice assistant ----------------------------------------
+
+def test_pulse_model_beats_persistence_and_is_calibrated():
+    import json
+    rep = json.loads((Path(__file__).resolve().parent.parent / "qa" / "PULSE.json").read_text())
+    ts = rep["time_split"]["16d"]
+    assert ts["skill_vs_persistence"] > 0.2
+    assert 0.7 <= ts["coverage_80"] <= 0.9
+
+
+def test_pulse_endpoint_returns_forecast_range():
+    from fastapi.testclient import TestClient
+    import app as api
+    d = TestClient(api.app).get("/api/pulse", params=dict(lat=31.25, lon=30.95)).json()
+    assert d["available"]
+    for f in d["forecast"]:
+        assert f["low"] <= f["mid"] <= f["high"]
+
+
+def test_chat_intents_egyptian_arabic_and_english():
+    import chat
+    assert chat.intents_in("أروي امتى؟") == ["irrigation"]
+    assert chat.intents_in("أرضي عاملة إيه؟") == ["pulse"]
+    assert chat.intents_in("price of wheat") == ["price"]
+    assert chat.crops_in("price of wheat") == ["wheat"]          # 'price' must not match 'rice'
+    assert chat.crops_in("بزرع قمح ورز") == ["wheat", "rice"]
+
+
+def test_chat_numbers_come_from_tools():
+    from fastapi.testclient import TestClient
+    import app as api
+    import chat
+    r = TestClient(api.app).post("/api/chat", json=dict(text="When should I irrigate?", lat=31.25, lon=30.95)).json()
+    assert r["lang"] == "en" and r["tools"] and r["tools"][0]["tool"] == "irrigation_plan"
+    # the auditor rejects a number no tool produced
+    assert chat.audit("about 99999 EGP", [{"profit": 77485}], "") == [99999.0]
+    assert chat.audit("about 77 thousand EGP", [{"profit": 77485}], "") == []

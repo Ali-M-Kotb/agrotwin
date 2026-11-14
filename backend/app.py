@@ -30,6 +30,8 @@ import council
 import data_sources as ds
 import fieldcard
 import outlook
+import pulse
+import chat
 import unique
 import disease
 import econ
@@ -474,6 +476,82 @@ def timemachine(lat: float, lon: float, winter: str = "wheat", summer: str = "ri
     out["suggested_label"] = top["label"]
     out["existing_label"] = res["rotations"][0]["label"]
     return _clean(out)
+
+
+# ---------------------------------------------------------------------------
+# Field Pulse — our trained model (backend/pulse.py, qa/PULSE.md)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/pulse")
+def pulse_ep(lat: float, lon: float):
+    s = site(lat, lon)
+    try:
+        ndvi = ds.modis_ndvi(s["lat"], s["lon"], offline=True)
+    except Exception:
+        ndvi = None
+    return _clean(pulse.field_pulse(ndvi, s["weather"], s["lat"]))
+
+
+@app.get("/api/pulse/report")
+def pulse_report():
+    p = ROOT / "qa" / "PULSE.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+# ---------------------------------------------------------------------------
+# Voice assistant: speech in → AgroTwin tools → speech out (backend/chat.py)
+# ---------------------------------------------------------------------------
+
+class ChatReq(BaseModel):
+    text: str
+    lang: str = "ar"
+    lat: float
+    lon: float
+    winter: str | None = "wheat"
+    summer: str | None = "rice"
+    history: list[dict] = []
+
+
+def _chat_api() -> dict:
+    def _fc(lat, lon):
+        s = site(lat, lon)
+        return outlook.forecast16(s["lat"], s["lon"], OFFLINE)
+    return dict(
+        simulate=lambda lat, lon, ex: simulate(SimRequest(lat=lat, lon=lon, existing=ex, use_scout=False)),
+        ahead=ahead, forecast=_fc, pulse=pulse_ep, prices=econ.load_prices(), timemachine=timemachine, robot=robot_state)
+
+
+@app.post("/api/chat")
+def chat_ep(req: ChatReq):
+    ctx = dict(lat=req.lat, lon=req.lon, winter=req.winter or "wheat", summer=req.summer or "rice")
+    return _clean(chat.answer(req.text.strip()[:500], req.lang, ctx, req.history, _chat_api()))
+
+
+_whisper = {}
+
+
+@app.post("/api/stt")
+async def stt(file: UploadFile = File(...), lang: str = "ar"):
+    """Local speech-to-text (faster-whisper, runs on this laptop; no audio leaves the machine).
+    The browser's own recogniser is tried first; this is the fallback."""
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        raise HTTPException(501, "local speech recognition not installed (pip install faster-whisper)")
+    size = os.environ.get("AGROTWIN_WHISPER", "small")
+    if size not in _whisper:
+        _whisper[size] = WhisperModel(size, device="cpu", compute_type="int8")
+    import tempfile
+    data = await file.read()
+    with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
+        tmp.write(data)
+        path = tmp.name
+    try:
+        segs, info = _whisper[size].transcribe(path, language="ar" if lang == "ar" else "en", beam_size=1, vad_filter=True)
+        text = " ".join(s.text.strip() for s in segs).strip()
+    finally:
+        os.unlink(path)
+    return dict(text=text, engine=f"faster-whisper {size} (local)")
 
 
 # ---------------------------------------------------------------------------

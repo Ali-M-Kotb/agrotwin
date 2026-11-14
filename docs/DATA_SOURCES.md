@@ -18,4 +18,6 @@ _AI-generated (Claude, Anthropic) under human review._
 | Open-Meteo forecast (non-NASA) | ECMWF/GFS blend: daily FAO ET0, rain, Tmax/Tmin, 16 days | ~10 km | api.open-meteo.com, no key | 16-day irrigation planner | cached 6 h |
 | Open-Meteo seasonal (non-NASA) | ECMWF SEAS5 ensemble, daily rain and Tmax, ~6 months | ~36 km | seasonal-api.open-meteo.com, no key | outlook shown as context | not used in scores |
 | Text to speech (non-NASA) | Microsoft Edge neural voices ar-EG-SalmaNeural / ar-EG-ShakirNeural via the edge-tts package | – | online, no key | reading the advice aloud in Egyptian Arabic | MP3 cached in data/audio; browser speech as fallback |
+| Speech recognition (non-NASA) | OpenAI Whisper "small" weights via faster-whisper (MIT licence), run locally | – | downloaded once from Hugging Face, then offline | voice assistant input | no audio leaves the laptop; the browser recogniser is tried first |
+| Field Pulse training set | MOD13Q1 NDVI + POWER daily at 12 cached fields (45 more listed in scripts/fetch_training.py) | 250 m / 0.5° | as above | training and testing our model | 6,420 samples, 2015 → 2026 |
 | Map tiles | Esri World Imagery, OpenStreetMap | – | online only | background map | the rest of the app works offline |

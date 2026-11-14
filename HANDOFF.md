@@ -1,5 +1,7 @@
 # HANDOFF — status at 14 Nov 2026 (AI-generated summary, Claude)
 
+> Superseded for day-to-day use by `CONTINUE.md` and the board in `agents/`. Kept for history.
+
 | P0 / P1 item | status |
 |---|---|
 | Pin → 3 rotations replayed since 1991 as ranges | done |

@@ -283,7 +283,7 @@ async function simulate(reason) {
     S.council = null;
     render(reason);
     loadAhead();
-    loadTM();
+    loadTM(); loadPulse();
     loadInvest();
     if (S.canal) runCanal.stale = true;
   } catch (e) {
@@ -341,6 +341,53 @@ function plot(id, traces, layout = {}) {
     xaxis: { gridcolor: "#ece8de", linecolor: RULE, zeroline: false }, yaxis: { gridcolor: "#ece8de", linecolor: RULE, zeroline: false },
     legend: { orientation: "h", y: -0.22, font: { size: 11 } }, showlegend: true,
   }, layout), { displayModeBar: false, responsive: true });
+}
+
+// ---------------------------------------------------------------------------
+// Field Pulse: our trained model (backend/pulse.py, qa/PULSE.md)
+// ---------------------------------------------------------------------------
+async function loadPulse() {
+  const key = `${S.site.lat},${S.site.lon}`;
+  if (S.pulseKey === key && S.pulse) return renderPulse();
+  S.pulseKey = key; S.pulse = null;
+  $("#pulse").innerHTML = `<div class="meta">…</div>`;
+  try { S.pulse = await api(`/api/pulse?lat=${S.site.lat}&lon=${S.site.lon}`); }
+  catch (e) { $("#pulse").innerHTML = `<div class="meta">${esc(e.message)}</div>`; return; }
+  renderPulse();
+}
+function dateStr(d) {
+  return new Date(d + "T00:00:00").toLocaleDateString(S.lang === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "long" });
+}
+function pulseWord(v) {
+  if (v == null) return "–";
+  const k = v >= 0.6 ? "pl_v_full" : v >= 0.4 ? "pl_v_green" : v >= 0.25 ? "pl_v_thin" : "pl_v_bare";
+  return t(k);
+}
+function renderPulse() {
+  const P = S.pulse, L = S.lang;
+  if (!P) return;
+  if (!P.available) { $("#pulse").innerHTML = `<div class="meta">${esc(P.reason)}</div>`; Plotly.purge("pulse-chart"); return; }
+  const c = P.latest_check, f = P.forecast[0], f2 = P.forecast[1];
+  const status = c ? t("pl_st_" + c.status) : "";
+  const trend = f ? (f.mid > P.latest_ndvi + 0.03 ? t("pl_up") : f.mid < P.latest_ndvi - 0.03 ? t("pl_down") : t("pl_flat")) : "";
+  const sk = P.skill || {};
+  $("#pulse").innerHTML = `
+    <div class="bigline">${t("pl_line", { date: dateStr(P.latest_image), word: pulseWord(P.latest_ndvi), v: digits(P.latest_ndvi.toFixed(2)), status })}</div>
+    ${f ? `<div class="meta">${t("pl_next", { trend, lo: digits(f.low.toFixed(2)), hi: digits(f.high.toFixed(2)), normal: digits(f.normal.toFixed(2)) })}</div>` : ""}
+    ${P.send_scout ? `<div class="flag">${t("pl_scout")}</div>` : ""}
+    <div class="meta">${t("pl_skill", { pct: digits(Math.round(100 * (sk.skill_vs_persistence_16d || 0))), cov: digits(Math.round(100 * (sk.coverage_80_16d || 0))), n: fmt(P.trained_on ? P.trained_on.samples : 0) })}
+      · <a href="/methods#pulse">${t("how_link")}</a> · <span class="chip-num" data-src="${esc(P.source + ". " + P.caveat)}">${t("source")}</span></div>`;
+  const ch = P.checks;
+  const fx = [ch.length ? ch[ch.length - 1].date : P.latest_image].concat(P.forecast.map((x) => x.date));
+  const flo = [P.latest_ndvi].concat(P.forecast.map((x) => x.low)), fhi = [P.latest_ndvi].concat(P.forecast.map((x) => x.high));
+  const below = ch.filter((x) => x.status === "below");
+  plot("pulse-chart", [
+    { x: ch.map((x) => x.date).concat(ch.map((x) => x.date).reverse()), y: ch.map((x) => x.high).concat(ch.map((x) => x.low).reverse()), fill: "toself", fillcolor: "rgba(46,94,58,0.12)", line: { width: 0 }, name: L === "ar" ? "المتوقّع من الطقس" : "expected from the weather", hoverinfo: "skip" },
+    { x: ch.map((x) => x.date), y: ch.map((x) => x.observed), mode: "lines+markers", line: { color: FIELD, width: 2 }, marker: { size: 4 }, name: L === "ar" ? "اللي القمر الصناعي شافه" : "seen by MODIS" },
+    { x: fx.concat([...fx].reverse()), y: fhi.concat([...flo].reverse()), fill: "toself", fillcolor: "rgba(201,151,43,0.22)", line: { width: 0 }, name: L === "ar" ? "توقّع ١٦ و٣٢ يوم" : "16- and 32-day forecast", hoverinfo: "skip" },
+    { x: fx, y: [P.latest_ndvi].concat(P.forecast.map((x) => x.mid)), mode: "lines", line: { color: WHEAT, width: 2, dash: "dot" }, showlegend: false },
+    { x: below.map((x) => x.date), y: below.map((x) => x.observed), mode: "markers", marker: { color: CLAY, size: 9, symbol: "x" }, name: L === "ar" ? "أقل من المتوقّع" : "below expected" },
+  ], { yaxis: { title: { text: "NDVI", font: { size: 10 } }, gridcolor: "#ece8de", range: [0, 1] } });
 }
 
 // ---------------------------------------------------------------------------
@@ -913,7 +960,7 @@ async function init() {
     i.addEventListener("input", () => { if (o) o.textContent = sliderOut(i.id); if (i.id.startsWith("w-") || i.id.startsWith("x-")) schedule(); });
   });
   ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = () => { $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value; schedule(); }));
-  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); renderTM(); renderCanal(); renderInvest(); renderBacktest(); };
+  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); renderPulse(); if (window.Chat) Chat.labels(); renderTM(); renderCanal(); renderInvest(); renderBacktest(); };
   $("#btn-digits").onclick = () => { S.arDigits = !S.arDigits; if (S.result) render(); siteMeta(); };
   $("#btn-card").onclick = fieldCard;
   $("#btn-dlg-close").onclick = () => $("#card-dlg").classList.add("hidden");
