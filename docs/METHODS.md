@@ -63,6 +63,15 @@ the 3-year outcome was overconfident (coverage 0.57 vs 0.75), so 3-year ranges s
 forecast (FAO ET0, rain). The 3-month ECMWF SEAS5 outlook is shown as context only, not bias-corrected and never
 used in scores.
 
+**Time machine.** For each agricultural year since MODIS began, the field counts as cropped in a season if the
+NDVI peak is ≥ 0.45 and rises ≥ 0.12 above the season's low (winter Dec–Apr, summer Jun–Oct). Cropped seasons are
+replayed with the farmer's stated crop, bare ones as fallow; the suggestion is replayed on the same weather. The
+satellite sees green, not the crop name.
+
+**Canal mode.** Each farm's options are its rotations within 10 points of its own best, times summer sowing moved
+−14/0/+14 days (inside the planting window). Each option's average daily irrigation over the replay years is scaled by
+farm area; a greedy search picks the combination with the lowest peak 7-day canal demand.
+
 **Known limits.** History is not a forecast. Prices are partly assumptions. Planting dates are typical, not
 local. The probe reads one spot. SMAP and IMERG are wired but not yet fetched (login). Costs exclude land rent.
 The leaf model knows 8 classes.

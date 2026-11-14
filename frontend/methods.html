@@ -1,0 +1,153 @@
+<!doctype html>
+<!-- AgroTwin methodology — AI-generated (Claude, Anthropic) under human review. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How AgroTwin works</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  body { display: block; overflow: auto; background: var(--paper); }
+  .doc { max-width: 760px; margin: 0 auto; padding: 32px 22px 80px; }
+  .doc h1 { font-size: 38px; line-height: 1.1; margin: 8px 0 10px; }
+  .doc .lede { font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink-2); }
+  .doc h2 { font-size: 24px; margin: 46px 0 10px; display: flex; gap: 12px; align-items: baseline; }
+  .doc h2 .n { font-family: var(--sans); font-size: 12px; color: var(--clay); letter-spacing: .1em; }
+  .doc p, .doc li { font-size: 15.5px; line-height: 1.65; }
+  .doc .aside { border-inline-start: 3px solid var(--wheat); padding: 6px 14px; background: #fbf6e8; font-size: 14.5px; margin: 14px 0; }
+  .doc .fig { margin: 18px 0; background: var(--sheet); border: 1px solid var(--rule); padding: 14px; }
+  .doc .fig svg { width: 100%; height: auto; display: block; }
+  .doc .cap { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; }
+  .doc .nums { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); margin: 16px 0; }
+  .doc .nums div { padding: 10px 0; } .doc .nums div + div { padding-inline-start: 12px; border-inline-start: 1px solid var(--rule); }
+  .doc .nums b { display: block; font-family: var(--serif); font-size: 28px; color: var(--field); }
+  .doc .nums span { font-size: 12.5px; color: var(--ink-3); }
+  .doc code { font-family: var(--mono); font-size: 13px; background: #efebe1; padding: 1px 4px; }
+  .doc .ar { direction: rtl; font-family: var(--serif); font-size: 17px; line-height: 1.8; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 12px 0; margin: 18px 0; }
+  .top { position: sticky; top: 0; z-index: 10; }
+  @media (max-width: 640px) { .doc h1 { font-size: 30px; } .doc .nums { grid-template-columns: 1fr; } .doc .nums div + div { border: 0; padding: 0; } }
+</style>
+</head>
+<body>
+<header class="bar top">
+  <a class="brand" href="/"><img src="/static/icon.svg" alt=""><span>AgroTwin</span></a>
+  <span style="color:#cfe0d2;font-size:13px">How it works</span>
+  <div class="bar-right"><a class="solid btn" href="/" style="background:var(--wheat);border-color:var(--wheat);color:#1b1408">Open the map</a></div>
+</header>
+
+<article class="doc">
+  <div class="kicker">Methodology</div>
+  <h1>How AgroTwin decides what to suggest, and how we know it is honest</h1>
+  <p class="lede">A farmer choosing next season's crops is betting a year of water, soil and income. AgroTwin
+  doesn't guess the future. It replays the past thirty-odd years of real NASA weather over your field, for your
+  current rotation and for the alternatives, and shows how each would have done, good years and bad.</p>
+
+  <p class="ar">باختصار: بنعيد تشغيل طقس أرضك الحقيقي من ناسا لكل سنة من ١٩٩١، على دورتك الحالية وعلى البدائل، ونوريك كل دورة كانت هتعمل إيه في السنين الحلوة والوحشة. والروبوت بيقيس تربتك عشان يضيّق التوقع. كل رقم ليه مصدر، وكل حاجة اتختبرت على آخر تلات مواسم.</p>
+
+  <h2><span class="n">01</span>What goes in</h2>
+  <p><b>NASA POWER</b> gives daily temperature, rain, humidity, wind and sunshine for any point on Earth since 1981.
+  From those we compute how much water a well-watered crop would use each day (the FAO-56 reference
+  evapotranspiration, the method irrigation engineers use worldwide). <b>MODIS</b> satellites add the field's
+  greenness every 16 days since 2000, and its actual water use. <b>SoilGrids</b> gives the soil texture.
+  On the map you can also see <b>SMAP</b> soil moisture and <b>GPM IMERG</b> rainfall straight from NASA.</p>
+
+  <h2><span class="n">02</span>The field as a water tank</h2>
+  <div class="fig">
+    <svg viewBox="0 0 640 210" role="img" aria-label="Root zone as a tank: rain and irrigation fill it, the crop and runoff drain it">
+      <rect x="230" y="40" width="180" height="140" fill="#f4f1ea" stroke="#1b1f1a"/>
+      <rect x="231" y="105" width="178" height="74" fill="#8aa7c2"/>
+      <line x1="230" y1="78" x2="410" y2="78" stroke="#b5562a" stroke-dasharray="5 4"/>
+      <text x="418" y="82" font-size="12" fill="#b5562a">stress line (RAW)</text>
+      <text x="418" y="46" font-size="12" fill="#4a5148">full: field capacity</text>
+      <text x="418" y="178" font-size="12" fill="#4a5148">empty: wilting point</text>
+      <path d="M120 60 L220 90" stroke="#2d5f8b" stroke-width="2" marker-end="url(#a)"/><text x="40" y="58" font-size="13">rain − runoff</text>
+      <path d="M120 140 L220 130" stroke="#2d5f8b" stroke-width="2" marker-end="url(#a)"/><text x="40" y="146" font-size="13">irrigation</text>
+      <path d="M320 40 L320 10" stroke="#2e5e3a" stroke-width="2" marker-end="url(#a)"/><text x="330" y="20" font-size="13">crop water use</text>
+      <path d="M320 182 L320 205" stroke="#7c8278" stroke-width="2" marker-end="url(#a)"/><text x="330" y="204" font-size="12" fill="#7c8278">drainage</text>
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#1b1f1a"/></marker></defs>
+    </svg>
+    <div class="cap">Every day: the tank gains rain (minus what runs off) and irrigation, and loses what the crop uses and what drains away. When it falls below the stress line, the crop uses less water than it wants, and its yield drops.</div>
+  </div>
+  <p>We run that bookkeeping <b>day by day</b> for the crop's actual growth stages. The crop drinks little after sowing,
+  most at flowering, less near harvest (FAO-56 crop coefficients). An irrigated field is refilled whenever it drops to the
+  stress line; a rain-fed field never is. The model keeps exact books: water in minus water out equals the change in the
+  tank, to within a millionth of a millimetre, and a test checks it.</p>
+  <p>Yield follows the FAO-33 rule: the share of yield lost is proportional to the share of water the crop was short of,
+  plus a penalty for very hot days at flowering. Profit is yield × price − costs, using 19 published Egyptian prices and
+  costs and 21 clearly marked estimates you can edit.</p>
+
+  <h2><span class="n">03</span>Replaying every year since 1991</h2>
+  <p>Instead of one "average year", we run each rotation through <b>every three-year stretch of real weather</b> since 1991:
+  32 stretches. Each one becomes one stripe in the <b>Harvest Barcode</b>: green when it paid, amber when the margin was thin,
+  red when it lost money. You see at a glance how often a rotation would have worked, and when it would have failed.</p>
+  <p>Before replaying, each past year is <b>warmed to today's climate</b> by the warming trend measured at that very field
+  (about +0.3 °C per decade in the Delta). Old years then behave like this year would, not like 1991 did.</p>
+  <p>About forty candidate rotations are searched; your current one and the two best different ones are shown, ranked by
+  the priorities you choose: water, soil, profit, or avoiding bad years.</p>
+
+  <h2><span class="n">04</span>The robot narrows the range</h2>
+  <p>A satellite pixel is kilometres wide; the Verdex robot stands in your field. As it measures soil moisture through the
+  season, AgroTwin asks which past years left the soil looking like this, and trusts those more. The range of possible
+  outcomes for <i>this season</i> gets narrower.</p>
+  <div class="aside">How do we know the narrower range is honest? The <b>twin experiment</b>: we hide one past year, pretend
+  the robot measured it, and check whether the narrowed range still contains what really happened. Repeated for every year.
+  Without a correction it didn't hold up (soil moisture is slow to change, so daily readings are not independent), so we
+  measure the soil's "memory" from the data and calibrate for it. Readings never change the forecast for <i>future</i>
+  seasons; we tested that too, and it made things worse.</div>
+  <div class="nums" id="twin-nums"><div><b>—</b><span>narrower range, rain-fed coast, 180 days of readings</span></div><div><b>—</b><span>of hidden years still inside the range</span></div><div><b>—</b><span>coverage of plain history, for comparison</span></div></div>
+
+  <h2><span class="n">05</span>Tested on the last three seasons</h2>
+  <p>We wound the clock back to before each of the last three seasons, let AgroTwin forecast using only earlier years,
+  and compared with what that season's real NASA weather produced, at three sites (an irrigated Delta field, a rain-fed
+  coastal farm and a wheat farm in Morocco).</p>
+  <div class="nums" id="bt-nums"><div><b>—</b><span>better than "same as last year", profit</span></div><div><b>—</b><span>better, irrigation water</span></div><div><b>—</b><span>of outcomes inside the forecast range (profit)</span></div></div>
+  <p class="cap">"Better" compares the forecast's error (CRPS, the standard score for range forecasts) with the error of simply
+  repeating last season. The comparison is against modelled outcomes on real weather, not measured harvests, which don't exist for these fields.</p>
+
+  <h2><span class="n">06</span>Things a farm twin usually can't do</h2>
+  <p><b>Your field's past, read from orbit.</b> MODIS shows which seasons your field was green. AgroTwin replays each of
+  them on that year's weather and tells you what the suggested rotation would have saved and earned since 2015, without
+  asking you a single question about your history.</p>
+  <p><b>Canal mode.</b> Delta farms share canal water, and the hardest week is mid-summer. AgroTwin plans the farms on one
+  canal together: each stays within ten points of its own best plan, and the summer sowing dates are spread over a month so
+  the canal's worst week is much lighter. In the demo canal the peak week drops by more than half.</p>
+  <p><b>Next 16 days.</b> The same water bookkeeping continues on the weather forecast, so the advice ends with a date:
+  "irrigate around Sunday, about 220 m³ per feddan".</p>
+
+  <h2><span class="n">07</span>Honesty rules</h2>
+  <ul>
+    <li>Every number on screen can be tapped to see where it came from: NASA, computed, the robot, a quoted source, or a named assumption.</li>
+    <li>A badge always says whether robot data is live, a replay, or simulated.</li>
+    <li>The AI advisers may only use numbers the engine computed; a checker blocks anything else.</li>
+    <li>A list of what satellites cannot see (salinity, nematodes, water rights) comes with every plan, for a local agronomist to check.</li>
+    <li>History is not a forecast. AgroTwin shows ranges, not promises, and the decision stays with the farmer.</li>
+  </ul>
+  <p class="cap">Source code, tests, the validation report and the backtest: <a href="https://github.com/Ali-M-Kotb/agrotwin">github.com/Ali-M-Kotb/agrotwin</a>.
+  Full technical notes: <code>docs/METHODS.md</code>.</p>
+</article>
+<script>
+(async () => {
+  const pct = (x) => Math.round(x * 100) + "%";
+  try {
+    const v = await (await fetch("/api/validation")).json();
+    const tw = (v.twin_experiment || []).find((x) => x.site === "coast_01" && x.status === "run");
+    const r = tw && tw.rows.find((x) => x.reading_days === 180);
+    if (r) {
+      const n = document.querySelectorAll("#twin-nums b");
+      n[0].textContent = pct(1 - r.width_ratio); n[1].textContent = pct(r.coverage); n[2].textContent = pct(r.coverage_unweighted);
+    }
+  } catch {}
+  try {
+    const b = await (await fetch("/api/backtest")).json();
+    if (b.summary) {
+      const n = document.querySelectorAll("#bt-nums b");
+      n[0].textContent = pct(b.summary.profit.skill_vs_last_year_adjusted);
+      n[1].textContent = pct(b.summary.water.skill_vs_last_year_adjusted);
+      n[2].textContent = pct(b.summary.profit.coverage_adjusted);
+    }
+  } catch {}
+})();
+</script>
+</body>
+</html>

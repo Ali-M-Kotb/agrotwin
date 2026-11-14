@@ -29,6 +29,13 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
   - **My farms**: saved fields with boundaries and a history of saved plans.
   - Every panel: lenses, Scout fusion, validation wall, Council, diagnosis.
 - **Next 16 days**: the same water balance continued on the 16-day forecast → "irrigate around Sunday, about 220 m³/feddan".
+- **Time machine**: your field's last ten seasons read from MODIS (green or bare), replayed on real weather for your
+  crops and for the suggestion: "since 2015 the suggestion would have saved N m³ and earned N EGP more per feddan".
+- **Canal mode**: neighbours on one canal coordinate rotations and stagger summer sowing; the canal's worst week
+  drops by about half while nobody gives up more than 10 points of their own score.
+- **Egyptian Arabic voice**: advice read in Egyptian colloquial Arabic by the ar-EG neural voices (free, cached).
+- **Three lenses that actually differ**: farmer, investor (stress test, profit spread), scientist (backtest, equations).
+- **How it works** page at `/methods`: the method in plain language, with live validation numbers.
 - **Installable** on a phone (web-app manifest and service worker); works with a weak signal.
 
 ## Proof for the judges
@@ -45,7 +52,7 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
 cd agrotwin
 ./run.sh            # first run builds ~/.venvs/verdex; then http://127.0.0.1:8000
 ./run.sh offline    # stage mode: cache only, never touches the network
-make test           # 22 tests (golden case, mass balance, runoff, auditor, fusion, v1 contract)
+make test           # tests (golden case, mass balance, runoff, auditor, fusion, v1 contract)
 make validate       # the validation wall → qa/REPORT.md (computed, never pre-written)
 ```
 

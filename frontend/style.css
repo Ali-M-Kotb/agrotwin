@@ -297,3 +297,28 @@ table.t th { color: var(--ink-3); font-weight: 600; }
   .s-hero .figs { grid-template-columns: 1fr 1fr; }
 }
 @media print { .bar, .stage { display: none; } .sheet { overflow: visible; } }
+
+/* lenses (Advanced mode): each section says which readers it is for */
+body[data-mode="advanced"][data-lens="farmer"] [data-for]:not([data-for~="farmer"]),
+body[data-mode="advanced"][data-lens="investor"] [data-for]:not([data-for~="investor"]),
+body[data-mode="advanced"][data-lens="scientist"] [data-for]:not([data-for~="scientist"]) { display: none !important; }
+body[data-mode="simple"] [data-for]:not([data-for~="farmer"]) { display: none !important; }
+body[data-lens="investor"] .rot .timeline, body[data-lens="investor"] .rot .ttabs, body[data-lens="investor"] .rot .tlist { display: none; }
+body[data-lens="farmer"][data-mode="advanced"] .rot .scorebar { display: none; }
+.howlink { color: #cfe0d2; font-size: 13px; text-decoration: none; border-bottom: 1px solid #4b6352; padding-bottom: 1px; }
+.howlink:hover { color: #fff; }
+/* time machine + canal + investor tables */
+.bigline { font-family: var(--serif); font-size: 18px; line-height: 1.3; margin: 8px 0 4px; }
+.bigline b { color: var(--field); }
+.seasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(26px, 1fr)); gap: 2px; margin: 10px 0 2px; direction: ltr; }
+.seasons div { height: 22px; font-size: 9px; color: #fff; display: grid; place-items: center; }
+.seasons .g { background: var(--green); } .seasons .b { background: #c9c2ae; color: var(--ink-2); } .seasons .u { background: var(--rule-2); color: var(--ink-3); }
+table.plain { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
+table.plain th { text-align: start; font-weight: 600; color: var(--ink-3); border-bottom: 1px solid var(--ink); padding: 4px 4px; font-size: 11.5px; }
+table.plain td { border-bottom: 1px solid var(--rule-2); padding: 5px 4px; vertical-align: top; }
+table.plain td.n { text-align: end; white-space: nowrap; }
+table.plain tr.tot td { border-top: 1px solid var(--ink); font-weight: 600; }
+.delta-up { color: var(--field); } .delta-down { color: var(--clay); }
+.voice { display: inline-flex; gap: 0; margin-inline-start: 8px; }
+.voice button { border: 1px solid var(--rule); background: transparent; padding: 6px 9px; font-size: 12px; color: var(--ink-3); border-radius: 0; }
+.voice button.on { color: var(--ink); border-color: var(--ink); }

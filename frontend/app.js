@@ -283,6 +283,9 @@ async function simulate(reason) {
     S.council = null;
     render(reason);
     loadAhead();
+    loadTM();
+    loadInvest();
+    if (S.canal) runCanal.stale = true;
   } catch (e) {
     $("#showdown-sub").textContent = e.message;
   }
@@ -324,6 +327,172 @@ function renderAhead() {
       <span class="chip-num" data-src="${esc(se.caveat)}">${t("out_caveat")}</span></div>`;
   }
   $("#ahead").innerHTML = out;
+}
+
+
+// ---------------------------------------------------------------------------
+// shared chart look (no default Plotly styling)
+// ---------------------------------------------------------------------------
+const INK = "#1b1f1a", RULE = "#d9d4c7", FIELD = "#2e5e3a", NILE = "#2d5f8b", CLAY = "#b5562a", WHEAT = "#c9972b";
+function plot(id, traces, layout = {}) {
+  Plotly.react(id, traces, Object.assign({
+    margin: { t: 8, b: 34, l: 52, r: 10 }, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+    font: { family: getComputedStyle(document.body).fontFamily, size: 11, color: "#4a5148" },
+    xaxis: { gridcolor: "#ece8de", linecolor: RULE, zeroline: false }, yaxis: { gridcolor: "#ece8de", linecolor: RULE, zeroline: false },
+    legend: { orientation: "h", y: -0.22, font: { size: 11 } }, showlegend: true,
+  }, layout), { displayModeBar: false, responsive: true });
+}
+
+// ---------------------------------------------------------------------------
+// Time machine: the field's past seasons, read from MODIS and replayed
+// ---------------------------------------------------------------------------
+async function loadTM() {
+  const key = `${S.site.lat},${S.site.lon},${$("#ex-w").value},${$("#ex-s").value}`;
+  if (S.tmKey === key && S.tm) return renderTM();
+  S.tmKey = key; S.tm = null;
+  $("#tm").innerHTML = `<div class="meta">…</div>`;
+  try { S.tm = await api(`/api/timemachine?lat=${S.site.lat}&lon=${S.site.lon}&winter=${$("#ex-w").value}&summer=${$("#ex-s").value}`); }
+  catch (e) { $("#tm").innerHTML = `<div class="meta">${esc(e.message)}</div>`; return; }
+  renderTM();
+}
+function renderTM() {
+  const T = S.tm, L = S.lang;
+  if (!T || !T.available) { $("#tm").innerHTML = `<div class="meta">${t("tm_none")}</div>`; Plotly.purge("tm-chart"); return; }
+  const last = T.years[T.years.length - 1];
+  const fld = MapUI.getField && MapUI.getField();
+  const fed = fld ? fld.area_ha / 0.42 : null;
+  const strip = T.years.flatMap((y) => y.seasons.map((s) => {
+    const c = s.satellite.cropped, cls = c === true ? "g" : c === false ? "b" : "u";
+    return `<div class="${cls}" title="${y.year} ${t(s.season)}: NDVI ${s.satellite.peak ?? "–"}">${s.season === "winter" ? "W" : "S"}</div>`;
+  })).join("");
+  const rows = T.years.map((y) => `<tr><td>${esc(y.year)}</td>
+      <td class="n">${fmt(y.actual.profit)} · ${fmt(y.actual.water_m3)} m³</td>
+      <td class="n">${fmt(y.suggested.profit)} · ${fmt(y.suggested.water_m3)} m³</td>
+      <td class="n ${y.cum_extra_profit >= 0 ? "delta-up" : "delta-down"}">${y.cum_extra_profit >= 0 ? "+" : ""}${fmt(y.cum_extra_profit)}</td></tr>`).join("");
+  $("#tm").innerHTML = `
+    <div class="bigline">${t("tm_line", { first: esc(T.first), water: fmt(last.cum_water_saved_m3), profit: fmt(last.cum_extra_profit) })}</div>
+    ${fed ? `<div class="meta">${t("tm_line_field", { fed: fmt(fed, 2), water: fmt(last.cum_water_saved_m3 * fed), profit: fmt(last.cum_extra_profit * fed) })}</div>` : ""}
+    <div class="seasons">${strip}</div>
+    <div class="meta">${t("tm_seen", { green: digits(T.seasons_green), seen: digits(T.seasons_seen) })} · <span class="chip-num" data-src="${esc(T.source + ". " + T.caveat)}">${t("source")}</span></div>
+    <table class="plain"><tr><th>${t("tm_year")}</th><th>${t("tm_actual")}<br><small>${esc(T.existing_label[L])}</small></th><th>${t("tm_alt")}<br><small>${esc(T.suggested_label[L])}</small></th><th>${t("tm_cum")}</th></tr>${rows}</table>`;
+  plot("tm-chart", [
+    { x: T.years.map((y) => y.year), y: T.years.map((y) => y.cum_water_saved_m3), name: L === "ar" ? "مية اتوفرت (م³/فدان)" : "water saved (m³/feddan)", line: { color: NILE, width: 2 }, yaxis: "y" },
+    { x: T.years.map((y) => y.year), y: T.years.map((y) => y.cum_extra_profit), name: L === "ar" ? "مكسب زيادة (جنيه/فدان)" : "extra profit (EGP/feddan)", line: { color: FIELD, width: 2, dash: "dot" }, yaxis: "y2" },
+  ], { yaxis2: { overlaying: "y", side: "right", showgrid: false }, margin: { t: 8, b: 34, l: 52, r: 52 } });
+}
+
+// ---------------------------------------------------------------------------
+// Canal mode: neighbours on one canal, planned together
+// ---------------------------------------------------------------------------
+async function runCanal() {
+  const ids = (S.farms || []).map((f) => f.id);
+  busy(true);
+  try { S.canal = await api("/api/canal", { method: "POST", body: JSON.stringify({ farm_ids: ids.length >= 2 ? ids : null }) }); renderCanal(); }
+  catch (e) { $("#canal").innerHTML = `<div class="meta">${esc(e.message)}</div>`; }
+  finally { busy(false); }
+}
+function renderCanal() {
+  const C = S.canal, L = S.lang;
+  if (!C) return;
+  const pk = C.peak_week_m3;
+  const pct = Math.round(100 * (1 - pk.coordinated / pk.current));
+  const extra = Math.round(100 * (1 - pk.coordinated / pk.each_alone));
+  const gu = Math.max(...C.farms.map((f) => f.coordinated.gives_up));
+  $("#canal-src").textContent = C.demo ? t("canal_demo") : t("canal_saved");
+  const loc = L === "ar" ? "ar-EG" : "en-GB";
+  const rows = C.farms.map((f) => `<tr><td><b>${esc(f.name)}</b><br><small>${esc(f.current.label[L])}</small></td><td class="n">${fmt(f.area_feddan, 1)}</td>
+      <td>${esc(f.coordinated.label[L])}</td>
+      <td class="n">${f.coordinated.summer_sowing ? new Date(f.coordinated.summer_sowing.date + "T00:00:00").toLocaleDateString(loc, { day: "numeric", month: "short" }) + (f.coordinated.summer_sowing.shift_days ? ` (${f.coordinated.summer_sowing.shift_days > 0 ? "+" : ""}${f.coordinated.summer_sowing.shift_days})` : "") : "–"}</td></tr>`).join("");
+  let line = t("canal_line", { now: fmt(pk.current), coord: fmt(pk.coordinated), pct: digits(pct), extra: digits(extra), gu: digits(gu) });
+  if (gu <= 0) line = line.replace(/,? (and no one gives up|ومحدش بيتنازل).*$/, S.lang === "ar" ? "، " + t("canal_nogu") : ", " + t("canal_nogu"));
+  $("#canal").innerHTML = `<div class="bigline">${line}</div>
+    <table class="plain"><tr><th>${t("canal_farm")}</th><th class="n">${t("canal_area")}</th><th>${t("canal_plan")}</th><th class="n">${t("canal_sow")}</th></tr>${rows}</table>
+    <div class="meta"><span class="chip-num" data-src="${esc(C.method + ". " + C.source)}">${t("source")}</span></div>`;
+  const start = new Date(C.week_start + "T00:00:00");
+  const xs = C.weekly_m3.current.map((_, i) => new Date(start.getTime() + i * 7 * 864e5));
+  plot("canal-chart", [
+    { x: xs, y: C.weekly_m3.current, name: t("canal_now"), line: { color: "#9a9a8e", width: 1.5 } },
+    { x: xs, y: C.weekly_m3.each_alone, name: t("canal_alone"), line: { color: NILE, width: 1.5, dash: "dot" } },
+    { x: xs, y: C.weekly_m3.coordinated, name: t("canal_coord"), line: { color: FIELD, width: 2.5 } },
+  ], { yaxis: { title: { text: "m³ / week", font: { size: 10 } }, gridcolor: "#ece8de" } });
+}
+
+// ---------------------------------------------------------------------------
+// Investor lens: risk and return under shocks, and the spread of past outcomes
+// ---------------------------------------------------------------------------
+async function loadInvest() {
+  if (S.mode !== "advanced" || S.lens !== "investor" || !S.result) return;
+  const key = JSON.stringify(body());
+  if (S.invKey === key && S.inv) return renderInvest();
+  S.invKey = key;
+  try { S.inv = await api("/api/sensitivity", { method: "POST", body: JSON.stringify(body()) }); renderInvest(); } catch {}
+}
+function renderInvest() {
+  const V = S.inv, L = S.lang;
+  if (!V) return;
+  const cases = Object.keys(V.cases);
+  const head = V.rotations.map((r) => `<th class="n">${esc(r.label[L])}</th>`).join("");
+  const rows = cases.map((c) => `<tr><td>${t("inv_case_" + c)}</td>${V.cases[c].map((x) =>
+    `<td class="n">${fmt(x.median)}<br><small>(${fmt(x.p10)})</small></td>`).join("")}</tr>`).join("");
+  $("#invest").innerHTML = `<table class="plain"><tr><th></th>${head}</tr>${rows}</table>
+    <div class="meta">EGP / feddan / yr · <span class="chip-num" data-src="${esc(V.source)}">${t("source")}</span></div>`;
+  const R = S.result;
+  plot("dist-chart", R.rotations.map((r, i) => ({
+    type: "box", name: r.label[L].length > 28 ? r.label[L].slice(0, 26) + "…" : r.label[L], y: r.barcode.map((b) => b.profit),
+    boxpoints: "all", jitter: 0.4, pointpos: 0, marker: { size: 4, color: [INK, FIELD, NILE][i] }, line: { color: [INK, FIELD, NILE][i], width: 1 },
+    fillcolor: "rgba(0,0,0,0)" })), { showlegend: false, yaxis: { title: { text: "EGP / feddan / yr, each past year", font: { size: 10 } }, gridcolor: "#ece8de" } });
+}
+
+// ---------------------------------------------------------------------------
+// Scientist lens: the backtest table
+// ---------------------------------------------------------------------------
+async function loadBacktest() {
+  if (S.bt) return renderBacktest();
+  try { S.bt = await api("/api/backtest"); renderBacktest(); } catch {}
+}
+function renderBacktest() {
+  const B = S.bt;
+  if (!B || !B.summary) { $("#bt").innerHTML = `<div class="meta">${t("val_not_run")}</div>`; return; }
+  const name = { profit: S.lang === "ar" ? "الربح" : "Profit", water: S.lang === "ar" ? "مياه الري" : "Irrigation", yield_frac: S.lang === "ar" ? "الإنتاجية" : "Yield" };
+  const rows = Object.entries(B.summary).map(([k, v]) => `<tr><td>${name[k]}</td><td class="n">${digits(v.cases)}</td>
+      <td class="n">${Math.round(v.coverage_adjusted * 100)}%</td><td class="n">${fmt(v.crps_adjusted, k === "yield_frac" ? 3 : 0)}</td>
+      <td class="n">${fmt(v.mae_same_as_last_year, k === "yield_frac" ? 3 : 0)}</td><td class="n delta-up">${v.skill_vs_last_year_adjusted > 0 ? "+" : ""}${Math.round(v.skill_vs_last_year_adjusted * 100)}%</td></tr>`).join("");
+  $("#bt").innerHTML = `<table class="plain"><tr><th></th><th class="n">cases</th><th class="n">in 80% range</th><th class="n">CRPS</th><th class="n">'same as last year' error</th><th class="n">skill</th></tr>${rows}</table>
+    <div class="meta">${esc(B.sites.map((x) => x.name).join(" · "))} · ${esc(B.sites[0].test_seasons.join(", "))} · <a href="https://github.com/Ali-M-Kotb/agrotwin/blob/main/qa/BACKTEST.md" target="_blank">qa/BACKTEST.md</a></div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Voice: Egyptian Arabic neural voice (server, cached) with the browser voice as fallback
+// ---------------------------------------------------------------------------
+function egyptianScript() {
+  const R = S.result, top = topRot(), keep = top.rotation_id === "existing";
+  const k = (x) => Math.round(x / 1000);
+  const dw = Math.round((R.rotations[0].water_m3.median - top.water_m3.median) / 100) * 100;
+  const plan = S.ahead && S.ahead.plan;
+  let s = keep ? `يا حاج، بعد ما شُفنا طقس أرضك من سنة ألف وتسعمية واحد وتسعين، دورتك الحالية ${top.label.ar} لسه هي الأنسب.`
+    : `يا حاج، بعد ما شُفنا طقس أرضك من سنة ألف وتسعمية واحد وتسعين، بننصحك تجرّب ${top.label.ar.replace(/\(×3\)/, "")}.`;
+  s += ` في تمن سنين من كل عشرة، مكسبها كان بين ${k(top.profit.p10)} و ${k(top.profit.p90)} ألف جنيه للفدان في السنة.`;
+  if (!keep && dw > 200) s += ` وبتوفّر حوالي ${dw} متر مكعب مية للفدان كل سنة.`;
+  if (plan && plan.irrigate_on && plan.irrigate_on.length) {
+    const d = new Date(plan.irrigate_on[0].date + "T00:00:00").toLocaleDateString("ar-EG", { weekday: "long", day: "numeric", month: "long" });
+    s += ` وأول رية المفروض تكون حوالي يوم ${d}.`;
+  }
+  s += " وقبل ما تغيّر، اسأل المهندس الزراعي يحلّل ملوحة الأرض. القرار في الآخر قرارك.";
+  return s;
+}
+async function speakAdvice() {
+  const btn = $("#btn-speak");
+  if (S.audio && !S.audio.paused) { S.audio.pause(); return; }
+  const ar = S.lang === "ar";
+  const text = ar ? egyptianScript() : S.speakEn;
+  btn.disabled = true;
+  try {
+    const r = await fetch("/api/speak", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, lang: ar ? "ar" : "en", voice: ar ? (S.voice === "m" ? "ar-EG-ShakirNeural" : "ar-EG-SalmaNeural") : "en-GB-SoniaNeural" }) });
+    if (!r.ok) throw new Error("voice");
+    S.audio = new Audio(URL.createObjectURL(await r.blob()));
+    await S.audio.play();
+  } catch { speak(text); } finally { btn.disabled = false; }
 }
 
 function topRot() { const r = S.result; return r.rotations.find((x) => x.rotation_id === r.order[0]); }
@@ -379,8 +548,10 @@ function renderHero() {
     ${fieldTotals(top)}
     ${warn ? `<div class="warnline"><svg><use href="#i-warn"/></svg><span><b>${t("hero_warn")}.</b> ${esc(warn)}</span></div>` : ""}
     ${clim}
-    <button id="btn-speak" class="txt speak"><svg><use href="#i-speak"/></svg>${t("hero_read")}</button>`;
-  $("#btn-speak").onclick = () => speak(`${keep ? t("hero_keep") : t("hero_title")}: ${top.label[L]}. ${t("hero_money")}: ${Math.round(top.profit.p10)} - ${Math.round(top.profit.p90)} ${t("per_fed_yr")}. ${why} ${warn}`);
+    <button id="btn-speak" class="txt speak"><svg><use href="#i-speak"/></svg>${t("hero_read")}</button>${L === "ar" ? `<span class="voice"><button data-v="f" class="${S.voice !== "m" ? "on" : ""}">${t("voice_f")}</button><button data-v="m" class="${S.voice === "m" ? "on" : ""}">${t("voice_m")}</button></span>` : ""}`;
+  S.speakEn = `${keep ? t("hero_keep") : t("hero_title")}: ${top.label.en.replace("(×3)", "")}. ${t("hero_money")}: ${Math.round(top.profit.p10).toLocaleString("en")} to ${Math.round(top.profit.p90).toLocaleString("en")} pounds per feddan a year. ${why} ${warn}`;
+  $("#btn-speak").onclick = speakAdvice;
+  $$(".voice button").forEach((b) => (b.onclick = () => { S.voice = b.dataset.v; renderHero(); }));
 }
 
 function fieldTotals(top) {
@@ -727,6 +898,7 @@ async function init() {
   $$(".modes button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
   wizardBind();
   $("#btn-farm-save").onclick = saveFarm;
+  $("#btn-canal").onclick = runCanal;
   $("#btn-layers").onclick = () => { $("#layer-panel").classList.toggle("hidden"); $("#btn-layers").classList.toggle("on"); };
   $$("[data-close]").forEach((b) => (b.onclick = () => { $("#" + b.dataset.close).classList.add("hidden"); $("#btn-layers").classList.remove("on"); }));
   $("#btn-plan-save").onclick = savePlan;
@@ -741,7 +913,7 @@ async function init() {
     i.addEventListener("input", () => { if (o) o.textContent = sliderOut(i.id); if (i.id.startsWith("w-") || i.id.startsWith("x-")) schedule(); });
   });
   ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = () => { $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value; schedule(); }));
-  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); };
+  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); renderTM(); renderCanal(); renderInvest(); renderBacktest(); };
   $("#btn-digits").onclick = () => { S.arDigits = !S.arDigits; if (S.result) render(); siteMeta(); };
   $("#btn-card").onclick = fieldCard;
   $("#btn-dlg-close").onclick = () => $("#card-dlg").classList.add("hidden");
@@ -771,6 +943,8 @@ async function init() {
 
 function setLens(l) {
   S.lens = l;
+  if (l === "investor") setTimeout(loadInvest, 0);
+  if (l === "scientist") setTimeout(loadBacktest, 0);
   document.body.dataset.lens = l;
   $$(".lens button").forEach((b) => b.classList.toggle("on", b.dataset.lens === l));
   setTimeout(() => window.dispatchEvent(new Event("resize")), 50);

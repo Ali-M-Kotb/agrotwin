@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0 — 14 Nov 2026: time machine, canal mode, Egyptian voice, methods page
+- **Time machine** (`/api/timemachine`): MODIS NDVI says, season by season since 2015, whether this field was green or bare;
+  each season is replayed on that year's real NASA POWER weather for the farmer's crops and for the suggestion; running
+  totals of water saved and extra profit
+- **Canal mode** (`/api/canal`): neighbours on one canal pick among rotations within 10 points of their own best and
+  stagger summer sowing by ±14 days to cut the canal's peak weekly demand (demo canal: 17,374 → 7,822 m³, −55 %)
+- **Egyptian Arabic voice** (`/api/speak`): Microsoft Edge neural voices ar-EG-Salma / ar-EG-Shakir via edge-tts, free,
+  no key, MP3 cached; the advice is written in Egyptian colloquial Arabic; browser speech is the fallback
+- **Lenses now differ**: farmer (next irrigation, scout, time machine, canal), investor (stress-tested profit, profit
+  distribution, prices, canal), scientist (backtest, equations, validation)
+- **Stress test** (`/api/sensitivity`): the same three rotations re-run under price ±20 %, dry, hot, and hot+dry+cheap
+- **Methods page** (`/methods`): how it works in plain language, with live numbers from the validation and backtest
+- Field-notebook visual style throughout; wording fixes
+
 ## 0.3.0 — 14 Nov 2026: backtest, look-ahead, map-first design
 - qa/backtest.py: last three seasons, forecast from earlier years only, CRPS vs 'same as last year' and long-term mean
 - Climate-adjusted replay (site Tmax trend), adopted because it wins the backtest

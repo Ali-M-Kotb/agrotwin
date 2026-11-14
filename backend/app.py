@@ -30,6 +30,7 @@ import council
 import data_sources as ds
 import fieldcard
 import outlook
+import unique
 import disease
 import econ
 import fusion as fu
@@ -453,6 +454,130 @@ def ahead(lat: float, lon: float, winter: str = "wheat", summer: str = "rice"):
 
 
 # ---------------------------------------------------------------------------
+# Unique 1: time machine — the field's past seasons read from MODIS, replayed
+# ---------------------------------------------------------------------------
+
+@app.get("/api/timemachine")
+def timemachine(lat: float, lon: float, winter: str = "wheat", summer: str = "rice"):
+    res = simulate(SimRequest(lat=lat, lon=lon, existing=[winter, summer], use_scout=False))
+    s = site(lat, lon)
+    top = next(r for r in res["rotations"] if r["rotation_id"] == res["order"][0])
+    if top["rotation_id"] == "existing":
+        top = next(r for r in res["rotations"] if r["rotation_id"] != "existing")
+    try:
+        ndvi = ds.modis_ndvi(s["lat"], s["lon"], offline=True)
+    except Exception:
+        ndvi = None
+    plan = rp.Plan(existing=(winter, summer), irrigated=res["site"]["irrigated"], soil_class=res["site"]["soil_class"])
+    out = unique.time_machine(s["weather"], ndvi, rp.existing_rotation(plan), tuple(top["seq"]),
+                              res["site"]["soil_class"], res["site"]["irrigated"], econ.load_prices(), rp.effective_overrides(plan))
+    out["suggested_label"] = top["label"]
+    out["existing_label"] = res["rotations"][0]["label"]
+    return _clean(out)
+
+
+# ---------------------------------------------------------------------------
+# Unique 2: canal mode — neighbours on one canal coordinate their rotations
+# ---------------------------------------------------------------------------
+
+class CanalReq(BaseModel):
+    farm_ids: list[str] | None = None      # saved farms; empty → the demo canal
+    tolerance: float = 10.0
+
+
+@app.post("/api/canal")
+def canal_ep(req: CanalReq):
+    if req.farm_ids:
+        src = [f for f in _farms() if f["id"] in req.farm_ids]
+        farms = [dict(id=f["id"], name=f["name"], lat=f["lat"], lon=f["lon"], existing=f["existing"],
+                      area_feddan=(f.get("area_ha") or 0.42) / 0.42) for f in src]
+        demo = False
+    else:
+        farms, demo = [dict(f) for f in unique.DEMO_CANAL], True
+    if len(farms) < 2:
+        raise HTTPException(422, "canal mode needs at least two farms")
+    runs = {}
+    for f in farms:
+        s = site(f["lat"], f["lon"])
+        meta = site_meta(s["lat"], s["lon"])
+        sc = soilmod.classify(s["soil"])
+        irrigated = meta.get("irrigated", True)
+        plan = rp.Plan(existing=tuple(f["existing"]), irrigated=irrigated, soil_class=sc)
+        wx = _wx(s, 1.0, 0.0)
+        runs[f["id"]] = rp.run(wx, plan, econ.load_prices(), s["soil"].get("clay", 35) or 35)
+        f.update(wx=wx, soil_class=sc, irrigated=irrigated)
+    out = unique.canal(farms, runs, req.tolerance)
+    for fo in out["farms"]:
+        for k in ("current", "own_best", "coordinated"):
+            fo[k]["label"] = dict(en=report.label(fo[k]["seq"], "en"), ar=report.label(fo[k]["seq"], "ar"))
+    out["demo"] = demo
+    return _clean(out)
+
+
+# ---------------------------------------------------------------------------
+# Egyptian Arabic voice (Microsoft neural voices via edge-tts; cached; browser voice as fallback)
+# ---------------------------------------------------------------------------
+
+class SpeakReq(BaseModel):
+    text: str
+    lang: str = "ar"
+    voice: str | None = None
+
+
+@app.post("/api/speak")
+async def speak(req: SpeakReq):
+    voice = req.voice or ("ar-EG-SalmaNeural" if req.lang == "ar" else "en-US-AriaNeural")
+    if voice not in ("ar-EG-SalmaNeural", "ar-EG-ShakirNeural", "en-US-AriaNeural", "en-GB-SoniaNeural"):
+        raise HTTPException(400, "unknown voice")
+    text = req.text.strip()[:900]
+    h = hashlib.sha1(f"{voice}|{text}".encode()).hexdigest()[:16]
+    path = ROOT / "data" / "audio" / f"{h}.mp3"
+    if not path.exists():
+        if OFFLINE:
+            raise HTTPException(503, "offline and not cached")
+        try:
+            import edge_tts
+            path.parent.mkdir(parents=True, exist_ok=True)
+            await edge_tts.Communicate(text, voice, rate="-8%").save(str(path))
+        except Exception as exc:
+            raise HTTPException(503, f"voice service unavailable: {exc}")
+    return FileResponse(path, media_type="audio/mpeg")
+
+
+# ---------------------------------------------------------------------------
+# Investor view: how the money moves when prices or weather move
+# ---------------------------------------------------------------------------
+
+@app.post("/api/sensitivity")
+def sensitivity(req: SimRequest):
+    """The same three rotations re-run under price and weather shocks (median and worst-10% profit)."""
+    base = simulate(req)
+    s = site(req.lat, req.lon)
+    seqs = [tuple(r["seq"]) for r in base["rotations"]]
+    sc, irrigated = base["site"]["soil_class"], base["site"]["irrigated"]
+    plan = rp.Plan(existing=tuple(req.existing[:2]), irrigated=irrigated, soil_class=sc, price_overrides=req.price_overrides)
+    prices = econ.load_prices()
+
+    def run(rain, temp, price):
+        wx = _wx(s, rain, temp)
+        sim = wb.simulate(list(seqs), wx, sc, irrigated)
+        eco = econ.slot_economics(sim, prices, price, rp.effective_overrides(plan))
+        yr = eco["profit"].sum(2) / wb.YEARS
+        water = sim["irr_gross"].sum(2) * 4.2 / wb.YEARS
+        return [dict(median=float(np.median(yr[i])), p10=float(np.percentile(yr[i], 10)),
+                     loss=float((yr[i] < 0).mean()), water=float(np.median(water[i]))) for i in range(len(seqs))]
+    cases = [("base", req.rain_mult, req.temp_offset, req.price_mult),
+             ("price_down", req.rain_mult, req.temp_offset, req.price_mult * 0.8),
+             ("price_up", req.rain_mult, req.temp_offset, req.price_mult * 1.2),
+             ("dry", req.rain_mult * 0.7, req.temp_offset, req.price_mult),
+             ("hot", req.rain_mult, req.temp_offset + 1.5, req.price_mult),
+             ("hot_dry_cheap", req.rain_mult * 0.7, req.temp_offset + 1.5, req.price_mult * 0.8)]
+    out = {name: run(r, t, p) for name, r, t, p in cases}
+    return _clean(dict(rotations=[dict(rotation_id=b["rotation_id"], label=b["label"]) for b in base["rotations"]],
+                       cases=out, source="computed: same rotations re-run on shifted nasa:POWER weather / prices"))
+
+
+# ---------------------------------------------------------------------------
 # Map inspector: quick facts for any point (cache-first)
 # ---------------------------------------------------------------------------
 
@@ -766,6 +891,19 @@ def validation():
     if not p.exists():
         return dict(status="not run", how="make validate")
     return _clean(json.loads(p.read_text()))
+
+
+@app.get("/api/backtest")
+def backtest_report():
+    p = ROOT / "qa" / "BACKTEST.json"
+    if not p.exists():
+        return dict(status="not run", how="python qa/backtest.py")
+    return _clean(json.loads(p.read_text()))
+
+
+@app.get("/methods")
+def methods_page():
+    return FileResponse(FRONT / "methods.html")
 
 
 @app.get("/demo/{site_id}")

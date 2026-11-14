@@ -259,3 +259,27 @@ def test_runoff_curve_number_behaviour():
     sand = wb.simulate([("fallow",) * 6], wx, "sand", False)
     clay = wb.simulate([("fallow",) * 6], wx, "clay", False)
     assert clay["_ro"].sum() > sand["_ro"].sum() > 0          # clay sheds more of a 60 mm storm
+
+
+# --- unique features ---------------------------------------------------------
+
+def test_time_machine_ndvi_season_flags():
+    import unique
+    idx = pd.date_range("2015-10-01", "2016-09-30", freq="16D")
+    # green winter (peak 0.7), bare summer (flat 0.2)
+    vals = [0.7 if pd.Timestamp(2015, 12, 15) <= d <= pd.Timestamp(2016, 3, 15) else 0.2 for d in idx]
+    fl = unique._season_flags(pd.Series(vals, index=idx), 2015)
+    assert fl["winter"]["cropped"] is True
+    assert fl["summer"]["cropped"] is False
+
+
+def test_canal_mode_never_raises_peak_and_respects_tolerance():
+    from fastapi.testclient import TestClient
+    import app as api
+    r = TestClient(api.app).post("/api/canal", json={"farm_ids": [], "tolerance": 10})
+    assert r.status_code == 200
+    d = r.json()
+    pk = d["peak_week_m3"]
+    assert pk["coordinated"] <= pk["each_alone"] + 1e-6
+    assert all(f["coordinated"]["gives_up"] <= 10 + 1e-6 for f in d["farms"])
+    assert len(d["weekly_m3"]["coordinated"]) == len(d["weekly_m3"]["current"])

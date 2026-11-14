@@ -23,6 +23,7 @@
 
 <header class="bar">
   <a class="brand" href="/" aria-label="AgroTwin home"><img src="/static/icon.svg" alt=""><span>AgroTwin</span></a>
+  <a class="howlink" href="/methods" data-i18n="how_link"></a>
   <div class="searchbox">
     <input id="map-search" type="search" autocomplete="off" data-i18n-ph="map_search">
     <div id="map-results" class="results hidden"></div>
@@ -125,14 +126,44 @@
       <div id="rotations" class="rots"></div>
     </section>
 
-    <section class="s-block" id="ahead-block">
+    <section class="s-block" id="ahead-block" data-for="farmer scientist">
       <h2 data-i18n="ahead_title"></h2>
       <div id="ahead"></div>
     </section>
 
-    <section id="investor" class="s-block adv lens-investor lens-scientist"></section>
+    <section class="s-block" id="tm-block" data-for="farmer investor scientist">
+      <div class="kicker" data-i18n="tm_kicker"></div>
+      <h2 data-i18n="tm_title"></h2>
+      <div class="meta" data-i18n="tm_sub"></div>
+      <div id="tm"></div>
+      <div id="tm-chart" class="chart small"></div>
+    </section>
 
-    <section class="s-block scout adv">
+    <section class="s-block adv" id="canal-block" data-for="farmer investor">
+      <div class="kicker" data-i18n="canal_kicker"></div>
+      <h2 data-i18n="canal_title"></h2>
+      <div class="meta" data-i18n="canal_sub"></div>
+      <div class="row"><button id="btn-canal" class="solid" data-i18n="canal_run"></button><span id="canal-src" class="meta"></span></div>
+      <div id="canal"></div>
+      <div id="canal-chart" class="chart small"></div>
+    </section>
+
+    <section class="s-block adv" id="invest-block" data-for="investor">
+      <h2 data-i18n="inv_title2"></h2>
+      <div class="meta" data-i18n="inv_sub2"></div>
+      <div id="invest"></div>
+      <div id="dist-chart" class="chart small"></div>
+    </section>
+
+    <section id="investor" class="s-block adv" data-for="investor"></section>
+
+    <section class="s-block adv" id="bt-block" data-for="scientist">
+      <h2 data-i18n="bt_title"></h2>
+      <div class="meta" data-i18n="bt_sub"></div>
+      <div id="bt"></div>
+    </section>
+
+    <section class="s-block scout adv" data-for="farmer scientist">
       <h2 data-i18n="scout_title"></h2>
       <div class="meta" data-i18n="scout_sub"></div>
       <div id="scout-controls"></div>
@@ -163,15 +194,15 @@
       </details>
     </section>
 
-    <section class="s-block"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
+    <section class="s-block" data-for="farmer scientist"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
 
-    <section class="s-block">
+    <section class="s-block" data-for="farmer investor">
       <div class="h-row"><h2 data-i18n="council_title"></h2><button id="btn-council" class="txt" data-i18n="council_ask"></button></div>
       <div class="meta" data-i18n="council_sub"></div>
       <div id="council"></div>
     </section>
 
-    <section class="s-block adv">
+    <section class="s-block adv" data-for="farmer investor">
       <h2 data-i18n="farms_title"></h2>
       <div class="farm-save"><input id="farm-name" data-i18n-ph="farm_name"><button id="btn-farm-save" class="solid" data-i18n="farm_save"></button></div>
       <ul id="farms" class="farms"></ul>
@@ -203,7 +234,7 @@
       <div id="cand" class="chips"></div>
     </section>
 
-    <section class="s-block adv">
+    <section class="s-block adv" data-for="farmer scientist">
       <h2 data-i18n="diag_title"></h2>
       <div class="tabs" id="diag-tabs">
         <button data-tab="danger" class="active" data-i18n="tab_danger"></button>
@@ -216,7 +247,7 @@
       <ul id="sources" class="sources hidden"></ul>
     </section>
 
-    <section id="science" class="s-block adv lens-scientist"></section>
+    <section id="science" class="s-block adv" data-for="scientist"></section>
     <footer class="foot"><span data-i18n="foot"></span> · <a href="/docs" target="_blank">API</a> · <a href="https://github.com/Ali-M-Kotb/agrotwin" target="_blank">GitHub</a></footer>
   </aside>
 </div>
