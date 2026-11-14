@@ -13,3 +13,4 @@ data/scout/
 .netrc
 data/farms/
 data/cache/fusion_sigma_*
+data/cache/openmeteo_*

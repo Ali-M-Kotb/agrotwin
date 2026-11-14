@@ -15,4 +15,6 @@ _AI-generated (Claude, Anthropic) under human review._
 | Prices & costs | see data/prices.csv (source_url per row) | – | Arab Finance, USDA GAIN EG2026-0002/0004/0007, Masrawy, Al Mal, Dostor, Ahram Gate, Amwal Al Ghad | profit | 19 quoted rows, 21 assumption rows |
 | Verdex Scout | ESP32 + soil probe, DHT, rain-drop sensor, PTZ camera; leaf model v2_deit3 | field point | MQTT / serial bridge, POST /api/scout/run | fusion, sightings | model real; soil runs SIMULATED until the robot posts |
 | NASA GIBS map layers | MODIS_Terra_L3_NDVI_16Day, MODIS_Terra_NDVI_8Day, SMAP_L4_Analyzed_Root_Zone_Soil_Moisture, IMERG_Precipitation_Rate, MODIS_Terra_Land_Surface_Temp_Day, MODIS_Terra_CorrectedReflectance_TrueColor | 250 m – 9 km | gibs.earthdata.nasa.gov WMTS, no login | interactive map with date and time-lapse; official legends bundled | display only, not used in calculations |
+| Open-Meteo forecast (non-NASA) | ECMWF/GFS blend: daily FAO ET0, rain, Tmax/Tmin, 16 days | ~10 km | api.open-meteo.com, no key | 16-day irrigation planner | cached 6 h |
+| Open-Meteo seasonal (non-NASA) | ECMWF SEAS5 ensemble, daily rain and Tmax, ~6 months | ~36 km | seasonal-api.open-meteo.com, no key | outlook shown as context | not used in scores |
 | Map tiles | Esri World Imagery, OpenStreetMap | – | online only | background map | the rest of the app works offline |

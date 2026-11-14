@@ -29,6 +29,7 @@ import contract
 import council
 import data_sources as ds
 import fieldcard
+import outlook
 import disease
 import econ
 import fusion as fu
@@ -240,12 +241,20 @@ class SimRequest(BaseModel):
 
 
 def _wx(s, rain_mult, temp_offset):
-    k = (s["lat"], s["lon"], round(rain_mult, 3), round(temp_offset, 2), id(s["weather"]))
+    """Replay weather for every window, warmed to this season's climate (backtest-proven), then
+    the user's what-if scenario on top."""
+    k = (s["lat"], s["lon"], round(rain_mult, 3), round(temp_offset, 2), id(s["weather"]), config.A["climate_adjust"])
     if k not in _wx_cache:
         w = s["weather"]
         if rain_mult != 1.0 or temp_offset != 0.0:
             w = ds.apply_climate_shift(w, s["lat"], s["elev"], temp_offset, rain_mult)
-        _wx_cache[k] = wb.weather_matrices(w, wb.windows(s["weather"]))
+        years = wb.windows(s["weather"])
+        if config.A["climate_adjust"]:
+            target = fu.season_start().year
+            _wx_cache[k] = wb.weather_matrices_adjusted(w, years, s["lat"], s["elev"], target,
+                                                        wb.site_warming_trend(s["weather"]))
+        else:
+            _wx_cache[k] = wb.weather_matrices(w, years)
     return _wx_cache[k]
 
 
@@ -394,6 +403,9 @@ def simulate(req: SimRequest):
         scenario=dict(rain_mult=req.rain_mult, temp_offset_c=req.temp_offset, price_mult=req.price_mult,
                       source="user input"),
         weights=req.weights, years=res["years"], pool_size=res["pool_size"],
+        climate=dict(adjusted=bool(wx.get("adjusted_to")), adjusted_to=wx.get("adjusted_to"),
+                     tmax_trend_per_decade=wx.get("trend_per_decade"),
+                     source="computed:nasa:POWER T2M_MAX linear trend; qa/BACKTEST.md"),
         rotations=rot_out, order=res["order"], no_clear_winner=res["no_clear_winner"],
         fusion=fusion_block, scout_summary=sight,
         blind_spots=report.blind_spots(rot_out, ctx),
@@ -422,6 +434,22 @@ def v1_result(req: V1Request):
     if errs:
         raise HTTPException(500, f"contract violation: {errs[:3]}")
     return doc
+
+
+# ---------------------------------------------------------------------------
+# Looking ahead: 16-day irrigation planner + seasonal outlook (Open-Meteo, non-NASA, disclosed)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/ahead")
+def ahead(lat: float, lon: float, winter: str = "wheat", summer: str = "rice"):
+    s = site(lat, lon)
+    meta = site_meta(s["lat"], s["lon"])
+    sc = soilmod.classify(s["soil"])
+    rot = (winter or FALLOW, summer or FALLOW) * wb.YEARS
+    if wb.calendar(rot) is None:
+        raise HTTPException(422, "rotation does not fit the calendar")
+    return _clean(dict(plan=outlook.irrigation_plan(s, rot, sc, meta.get("irrigated", True), OFFLINE),
+                       seasonal=outlook.seasonal(s, OFFLINE)))
 
 
 # ---------------------------------------------------------------------------

@@ -77,7 +77,7 @@ def test_identical_input_identical_output():
 def test_calendar_rules():
     assert wb.calendar(("wheat", "maize") * 3) is not None
     assert wb.calendar(("wheat", "cotton") * 3) is None          # cotton sown before wheat harvest
-    assert wb.calendar(("berseem", "cotton", "wheat", "maize", "faba", "maize")) is not None
+    assert wb.calendar(("potato", "cotton", "wheat", "maize", "faba", "maize")) is not None   # cotton sown 25 Mar, after potato
     assert wb.calendar(("rice", "wheat") * 3) is None             # rice in a winter slot
 
 

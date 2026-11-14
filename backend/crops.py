@@ -73,7 +73,7 @@ CROPS = {
                  ky=1.20, heat_tmax=35, critical=(75, 105), n_credit=(0, 0), residue=4, rainfed_ok=False,
                  price=15000, yield_t=4.0, cost=22000, flooded=True),
     "cotton": dict(name="Cotton", name_ar="القطن", season="summer", family="Malvaceae",
-                   sow=(4, 25), stages=(30, 50, 60, 50), kc=(0.35, 1.18, 0.60), root_m=1.3, p=0.65,
+                   sow=(3, 25), stages=(30, 50, 60, 50), kc=(0.35, 1.18, 0.60), root_m=1.3, p=0.65,
                    ky=0.85, heat_tmax=38, critical=(80, 130), n_credit=(0, 0), residue=3, rainfed_ok=False,
                    price=76000, yield_t=1.1, cost=35000),
     "tomato": dict(name="Tomato (summer)", name_ar="الطماطم (صيفي)", season="summer", family="Solanaceae",

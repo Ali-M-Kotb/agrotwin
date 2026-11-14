@@ -28,7 +28,16 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
   - **Click-anywhere inspector**: 10-year rain, reference ET, aridity, heat trend, soil and elevation.
   - **My farms**: saved fields with boundaries and a history of saved plans.
   - Every panel: lenses, Scout fusion, validation wall, Council, diagnosis.
+- **Next 16 days**: the same water balance continued on the 16-day forecast → "irrigate around Sunday, about 220 m³/feddan".
 - **Installable** on a phone (web-app manifest and service worker); works with a weak signal.
+
+## Proof for the judges
+
+- `make validate` → qa/REPORT.md: twin experiment, hindcast vs MODIS, provenance audit, sanity suite.
+- `python qa/backtest.py` → qa/BACKTEST.md: the last three seasons (2023/24–2025/26) at three sites, forecast
+  from earlier years only. The replay beats "same as last year" by about 50 % (CRPS) for profit, irrigation and
+  yield, and climate-adjusting past years improves it further (irrigation error −29 %, profit coverage 70 → 78 %).
+- `python scripts/sample_cases.py` → docs/SAMPLE_CASES.md: nine worked farmer scenarios for rehearsal.
 
 ## Run
 

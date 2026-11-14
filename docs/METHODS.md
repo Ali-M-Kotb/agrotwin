@@ -20,6 +20,11 @@ with no transpiration. Irrigated fields refill to field capacity at sowing and w
 seasonal cap. Flooded rice adds forced percolation (3 mm/day) and puddling (150 mm). Mass balance closes to
 <1e-11 mm (tested).
 
+**Climate-adjusted replay.** Before replay, each past year is warmed to this season's climate by the site's own
+measured Tmax trend (all three temperatures shifted, ET0 recomputed). Adopted because it wins the backtest
+(qa/BACKTEST.md): over the last three seasons it cut irrigation CRPS from 322 to 228 m³/feddan and raised profit
+coverage from 70 % to 78 %; the plain replay already beats "same as last year" by ~50 %.
+
 **Replay.** A rotation is 6 slots (winter/summer × 3 years). Window *y* runs the real weather of y, y+1, y+2
 after a 120-day bare-soil spin-up: 32 windows, 1991–2024. All rotations × all windows run in one vectorised
 loop (~0.06 s).
@@ -53,6 +58,10 @@ the 3-year outcome was overconfident (coverage 0.57 vs 0.75), so 3-year ranges s
 - **Hindcast, Morocco wheat vs NDVI peak:** ρ = −0.35 / +0.23 (n = 9), right direction but weak; vs MOD16, n = 4, not informative.
 - **Leaf model:** 95.5% on 1,878 grouped held-out images.
 - **Provenance audit:** 1,201 numbers, 0 untagged.
+
+**Looking ahead (non-NASA, disclosed).** The 16-day planner continues the same FAO-56 balance on the Open-Meteo
+forecast (FAO ET0, rain). The 3-month ECMWF SEAS5 outlook is shown as context only, not bias-corrected and never
+used in scores.
 
 **Known limits.** History is not a forecast. Prices are partly assumptions. Planting dates are typical, not
 local. The probe reads one spot. SMAP and IMERG are wired but not yet fetched (login). Costs exclude land rent.

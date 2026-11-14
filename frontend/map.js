@@ -131,14 +131,15 @@
     M.drawing = true;
     M.pts = [];
     document.getElementById("map").classList.add("drawing");
-    document.getElementById("draw-hint").classList.remove("hidden");
+    document.getElementById("draw-bar").classList.remove("hidden");
+    document.getElementById("btn-draw").classList.add("on");
     document.getElementById("btn-draw-finish").disabled = true;
   }
   function addPoint(ll) {
     M.pts.push([+ll.lat.toFixed(6), +ll.lng.toFixed(6)]);
     if (M.drawLine) M.map.removeLayer(M.drawLine);
-    M.drawLine = L.polyline(M.pts, { color: "#f1c04a", weight: 3, dashArray: "6 4" }).addTo(M.map);
-    L.circleMarker(M.pts[M.pts.length - 1], { radius: 5, color: "#f1c04a", fillOpacity: 1 }).addTo(M.drawLayerGroup);
+    M.drawLine = L.polyline(M.pts, { color: "#c9972b", weight: 2.5, dashArray: "6 4" }).addTo(M.map);
+    L.circleMarker(M.pts[M.pts.length - 1], { radius: 4, color: "#1b1f1a", weight: 1.5, fillColor: "#c9972b", fillOpacity: 1 }).addTo(M.drawLayerGroup);
     document.getElementById("btn-draw-finish").disabled = M.pts.length < 3;
     if (M.pts.length >= 3) document.getElementById("draw-area").textContent = areaText(geodesicAreaHa(M.pts));
   }
@@ -146,7 +147,8 @@
     if (M.pts.length < 3) return;
     M.drawing = false;
     document.getElementById("map").classList.remove("drawing");
-    document.getElementById("draw-hint").classList.add("hidden");
+    document.getElementById("draw-bar").classList.add("hidden");
+    document.getElementById("btn-draw").classList.remove("on");
     if (M.drawLine) { M.map.removeLayer(M.drawLine); M.drawLine = null; }
     M.drawLayerGroup.clearLayers();
     setField(M.pts);
@@ -157,7 +159,8 @@
     M.drawing = false;
     M.pts = [];
     document.getElementById("map").classList.remove("drawing");
-    document.getElementById("draw-hint").classList.add("hidden");
+    document.getElementById("draw-bar").classList.add("hidden");
+    document.getElementById("btn-draw").classList.remove("on");
     if (M.drawLine) { M.map.removeLayer(M.drawLine); M.drawLine = null; }
     if (M.drawLayerGroup) M.drawLayerGroup.clearLayers();
     if (alsoField && M.fieldLayer) { M.map.removeLayer(M.fieldLayer); M.fieldLayer = null; M.field = null; document.getElementById("draw-area").textContent = ""; }
@@ -175,14 +178,14 @@
     if (!pts || pts.length < 3) { M.field = null; return; }
     const ha = geodesicAreaHa(pts);
     M.field = { polygon: pts, area_ha: ha };
-    M.fieldLayer = L.polygon(pts, { color: "#5fd08c", weight: 3, fillOpacity: 0.12 }).addTo(M.map);
+    M.fieldLayer = L.polygon(pts, { color: "#f4f1ea", weight: 2.5, dashArray: "6 4", fillColor: "#c9972b", fillOpacity: 0.15 }).addTo(M.map);
     document.getElementById("draw-area").textContent = areaText(ha);
   }
 
   // ---------------------------------------------------------------- inspector
   async function inspect(ll) {
     const lat = +ll.lat.toFixed(3), lon = +ll.lng.toFixed(3);
-    const pop = L.popup({ maxWidth: 300 }).setLatLng(ll).setContent(`<div class="insp">⏳ NASA POWER…</div>`).openOn(M.map);
+    const pop = L.popup({ maxWidth: 300 }).setLatLng(ll).setContent(`<div class="insp">${M.lang() === "ar" ? "جارٍ تحميل بيانات ناسا…" : "Loading NASA POWER…"}</div>`).openOn(M.map);
     try {
       const r = await fetch(`/api/point?lat=${lat}&lon=${lon}`);
       const p = await r.json();
@@ -207,7 +210,7 @@
       }, 0);
       if (M.onInspect) M.onInspect(p);
     } catch (e) {
-      pop.setContent(`<div class="insp">⚠ ${e.message}</div>`);
+      pop.setContent(`<div class="insp">${e.message}</div>`);
     }
   }
 
@@ -216,8 +219,8 @@
     M.farmLayer.clearLayers();
     farms.forEach((f) => {
       const lyr = f.polygon && f.polygon.length >= 3
-        ? L.polygon(f.polygon, { color: "#2b6cb0", weight: 2, fillOpacity: 0.08 })
-        : L.circleMarker([f.lat, f.lon], { radius: 7, color: "#2b6cb0", fillOpacity: 0.6 });
+        ? L.polygon(f.polygon, { color: "#2d5f8b", weight: 2, fillOpacity: 0.08 })
+        : L.circleMarker([f.lat, f.lon], { radius: 6, color: "#fff", weight: 2, fillColor: "#2d5f8b", fillOpacity: 1 });
       lyr.bindTooltip(f.name, { direction: "top" });
       lyr.on("click", (e) => { L.DomEvent.stopPropagation(e); if (M.onFarmOpen) M.onFarmOpen(f); });
       lyr.addTo(M.farmLayer);

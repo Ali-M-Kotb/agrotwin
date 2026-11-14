@@ -13,5 +13,5 @@
   {"id": "delta_03", "name": "Beheira, Nile Delta", "name_ar": "البحيرة، الدلتا", "lat": 30.98, "lon": 30.40,
    "irrigated": true, "existing": ["wheat", "maize"], "country": "EG", "generated_by": "Claude (AI) under human review"},
   {"id": "delta_04", "name": "Gharbia, Nile Delta", "name_ar": "الغربية، الدلتا", "lat": 30.85, "lon": 30.85,
-   "irrigated": true, "existing": ["berseem", "cotton"], "country": "EG", "generated_by": "Claude (AI) under human review"}
+   "irrigated": true, "existing": ["wheat", "maize"], "country": "EG", "generated_by": "Claude (AI) under human review"}
 ]

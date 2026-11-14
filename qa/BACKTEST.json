@@ -1,0 +1,1982 @@
+{
+ "generated_at": "2026-11-14T15:28:48",
+ "sites": [
+  {
+   "site": "delta_01",
+   "name": "Kafr El-Sheikh, Nile Delta",
+   "irrigated": true,
+   "soil_class": "clay_loam",
+   "tmax_trend_per_decade": 0.296,
+   "test_seasons": [
+    "2023/24",
+    "2024/25",
+    "2025/26"
+   ],
+   "rotations": [
+    {
+     "seq": [
+      "wheat",
+      "rice",
+      "wheat",
+      "rice",
+      "wheat",
+      "rice"
+     ],
+     "label": "wheat \u2192 rice",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 60009.135,
+        "raw": {
+         "p10": 54149.985,
+         "median": 60009.135,
+         "p90": 60009.135,
+         "in_range": true,
+         "crps": 724.9351
+        },
+        "adjusted": {
+         "p10": 48290.835,
+         "median": 57079.56,
+         "p90": 60009.135,
+         "in_range": true,
+         "crps": 1651.5601
+        },
+        "last_year": {
+         "value": 60009.135,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 57334.203,
+         "abs_err": 2674.9323
+        },
+        "n_prior": 31
+       },
+       "water": {
+        "actual": 10010.872,
+        "raw": {
+         "p10": 9148.21,
+         "median": 9676.027,
+         "p90": 10228.156,
+         "in_range": true,
+         "crps": 197.7014
+        },
+        "adjusted": {
+         "p10": 9162.835,
+         "median": 9862.166,
+         "p90": 10456.754,
+         "in_range": true,
+         "crps": 140.8306
+        },
+        "last_year": {
+         "value": 9148.21,
+         "abs_err": 862.6614
+        },
+        "long_term_mean": {
+         "value": 9699.803,
+         "abs_err": 311.0688
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 0.95,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0008
+        },
+        "adjusted": {
+         "p10": 0.95,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0009
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 0.994,
+         "abs_err": 0.0065
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 51729.103,
+        "raw": {
+         "p10": 54149.985,
+         "median": 60009.135,
+         "p90": 60009.135,
+         "in_range": false,
+         "crps": 4680.7163
+        },
+        "adjusted": {
+         "p10": 48290.835,
+         "median": 57079.56,
+         "p90": 60009.135,
+         "in_range": true,
+         "crps": 3133.2798
+        },
+        "last_year": {
+         "value": 57079.56,
+         "abs_err": 5350.4567
+        },
+        "long_term_mean": {
+         "value": 57326.245,
+         "abs_err": 5597.1418
+        },
+        "n_prior": 32
+       },
+       "water": {
+        "actual": 10126.614,
+        "raw": {
+         "p10": 9168.353,
+         "median": 9676.815,
+         "p90": 10225.712,
+         "in_range": true,
+         "crps": 260.0224
+        },
+        "adjusted": {
+         "p10": 9191.236,
+         "median": 9875.676,
+         "p90": 10459.851,
+         "in_range": true,
+         "crps": 159.7646
+        },
+        "last_year": {
+         "value": 9793.175,
+         "abs_err": 333.439
+        },
+        "long_term_mean": {
+         "value": 9702.721,
+         "abs_err": 423.8929
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.95,
+        "raw": {
+         "p10": 0.955,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": false,
+         "crps": 0.0383
+        },
+        "adjusted": {
+         "p10": 0.955,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": false,
+         "crps": 0.0383
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.05
+        },
+        "long_term_mean": {
+         "value": 0.994,
+         "abs_err": 0.0438
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 60009.135,
+        "raw": {
+         "p10": 54149.985,
+         "median": 60009.135,
+         "p90": 60009.135,
+         "in_range": true,
+         "crps": 710.4926
+        },
+        "adjusted": {
+         "p10": 48290.835,
+         "median": 57079.56,
+         "p90": 60009.135,
+         "in_range": true,
+         "crps": 1580.25
+        },
+        "last_year": {
+         "value": 60009.135,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 57407.545,
+         "abs_err": 2601.5902
+        },
+        "n_prior": 33
+       },
+       "water": {
+        "actual": 10481.377,
+        "raw": {
+         "p10": 9188.496,
+         "median": 9677.602,
+         "p90": 10223.268,
+         "in_range": false,
+         "crps": 547.0954
+        },
+        "adjusted": {
+         "p10": 9208.155,
+         "median": 9876.767,
+         "p90": 10462.941,
+         "in_range": false,
+         "crps": 329.9157
+        },
+        "last_year": {
+         "value": 10010.872,
+         "abs_err": 470.5056
+        },
+        "long_term_mean": {
+         "value": 9712.059,
+         "abs_err": 769.3187
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 0.96,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0007
+        },
+        "adjusted": {
+         "p10": 0.96,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0008
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 0.994,
+         "abs_err": 0.0061
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "maize",
+      "faba",
+      "maize",
+      "faba",
+      "maize"
+     ],
+     "label": "faba \u2192 maize",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 28.2951
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 31.439
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77192.917,
+         "abs_err": 292.3827
+        },
+        "n_prior": 31
+       },
+       "water": {
+        "actual": 7464.246,
+        "raw": {
+         "p10": 6668.995,
+         "median": 7193.158,
+         "p90": 7535.413,
+         "in_range": true,
+         "crps": 205.6402
+        },
+        "adjusted": {
+         "p10": 6719.555,
+         "median": 7221.946,
+         "p90": 7706.544,
+         "in_range": true,
+         "crps": 150.8852
+        },
+        "last_year": {
+         "value": 6668.995,
+         "abs_err": 795.2512
+        },
+        "long_term_mean": {
+         "value": 7099.581,
+         "abs_err": 364.6656
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 26.5543
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 29.5048
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77202.054,
+         "abs_err": 283.2457
+        },
+        "n_prior": 32
+       },
+       "water": {
+        "actual": 7497.01,
+        "raw": {
+         "p10": 6669.984,
+         "median": 7189.912,
+         "p90": 7534.154,
+         "in_range": true,
+         "crps": 227.8327
+        },
+        "adjusted": {
+         "p10": 6736.333,
+         "median": 7209.676,
+         "p90": 7719.561,
+         "in_range": true,
+         "crps": 160.4583
+        },
+        "last_year": {
+         "value": 7186.666,
+         "abs_err": 310.3446
+        },
+        "long_term_mean": {
+         "value": 7102.302,
+         "abs_err": 394.7085
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 24.9693
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 27.7437
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77210.637,
+         "abs_err": 274.6625
+        },
+        "n_prior": 33
+       },
+       "water": {
+        "actual": 7843.062,
+        "raw": {
+         "p10": 6670.974,
+         "median": 7193.158,
+         "p90": 7532.894,
+         "in_range": false,
+         "crps": 513.1057
+        },
+        "adjusted": {
+         "p10": 6776.125,
+         "median": 7222.853,
+         "p90": 7726.05,
+         "in_range": false,
+         "crps": 399.9415
+        },
+        "last_year": {
+         "value": 7464.246,
+         "abs_err": 378.8156
+        },
+        "long_term_mean": {
+         "value": 7113.27,
+         "abs_err": 729.7918
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "maize",
+      "potato",
+      "maize",
+      "faba",
+      "maize"
+     ],
+     "label": "faba \u2192 maize",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 28.2951
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 31.439
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77192.917,
+         "abs_err": 292.3827
+        },
+        "n_prior": 31
+       },
+       "water": {
+        "actual": 7464.246,
+        "raw": {
+         "p10": 6668.995,
+         "median": 7193.158,
+         "p90": 7535.413,
+         "in_range": true,
+         "crps": 205.6402
+        },
+        "adjusted": {
+         "p10": 6719.555,
+         "median": 7221.946,
+         "p90": 7706.544,
+         "in_range": true,
+         "crps": 150.8852
+        },
+        "last_year": {
+         "value": 6668.995,
+         "abs_err": 795.2512
+        },
+        "long_term_mean": {
+         "value": 7099.581,
+         "abs_err": 364.6656
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 26.5543
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 29.5048
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77202.054,
+         "abs_err": 283.2457
+        },
+        "n_prior": 32
+       },
+       "water": {
+        "actual": 7497.01,
+        "raw": {
+         "p10": 6669.984,
+         "median": 7189.912,
+         "p90": 7534.154,
+         "in_range": true,
+         "crps": 227.8327
+        },
+        "adjusted": {
+         "p10": 6736.333,
+         "median": 7209.676,
+         "p90": 7719.561,
+         "in_range": true,
+         "crps": 160.4583
+        },
+        "last_year": {
+         "value": 7186.666,
+         "abs_err": 310.3446
+        },
+        "long_term_mean": {
+         "value": 7102.302,
+         "abs_err": 394.7085
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 77485.3,
+        "raw": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 24.9693
+        },
+        "adjusted": {
+         "p10": 77485.3,
+         "median": 77485.3,
+         "p90": 77485.3,
+         "in_range": true,
+         "crps": 27.7437
+        },
+        "last_year": {
+         "value": 77485.3,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 77210.637,
+         "abs_err": 274.6625
+        },
+        "n_prior": 33
+       },
+       "water": {
+        "actual": 7843.062,
+        "raw": {
+         "p10": 6670.974,
+         "median": 7193.158,
+         "p90": 7532.894,
+         "in_range": false,
+         "crps": 513.1057
+        },
+        "adjusted": {
+         "p10": 6776.125,
+         "median": 7222.853,
+         "p90": 7726.05,
+         "in_range": false,
+         "crps": 399.9415
+        },
+        "last_year": {
+         "value": 7464.246,
+         "abs_err": 378.8156
+        },
+        "long_term_mean": {
+         "value": 7113.27,
+         "abs_err": 729.7918
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 1.0,
+        "raw": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "adjusted": {
+         "p10": 1.0,
+         "median": 1.0,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0
+        },
+        "last_year": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "long_term_mean": {
+         "value": 1.0,
+         "abs_err": 0.0
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    }
+   ],
+   "data_end": "2026-11-10",
+   "satellite_check": [
+    {
+     "season": "2023/24",
+     "winter_ndvi_peak": 0.851,
+     "winter_mod16_et_mm": 216.3,
+     "model_first_crop_yield_frac": 1.0
+    },
+    {
+     "season": "2024/25",
+     "winter_ndvi_peak": 0.846,
+     "winter_mod16_et_mm": 211.6,
+     "model_first_crop_yield_frac": 0.95
+    },
+    {
+     "season": "2025/26",
+     "winter_ndvi_peak": 0.809,
+     "winter_mod16_et_mm": null,
+     "model_first_crop_yield_frac": 1.0
+    }
+   ]
+  },
+  {
+   "site": "coast_01",
+   "name": "Matrouh coast, rain-fed",
+   "irrigated": false,
+   "soil_class": "loam",
+   "tmax_trend_per_decade": 0.276,
+   "test_seasons": [
+    "2023/24",
+    "2024/25",
+    "2025/26"
+   ],
+   "rotations": [
+    {
+     "seq": [
+      "barley",
+      "fallow",
+      "barley",
+      "fallow",
+      "barley",
+      "fallow"
+     ],
+     "label": "barley",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 4401.563,
+        "raw": {
+         "p10": 4458.339,
+         "median": 6614.503,
+         "p90": 10056.07,
+         "in_range": false,
+         "crps": 1700.7095
+        },
+        "adjusted": {
+         "p10": 4375.689,
+         "median": 6538.027,
+         "p90": 9982.43,
+         "in_range": true,
+         "crps": 1556.4713
+        },
+        "last_year": {
+         "value": 10591.579,
+         "abs_err": 6190.0164
+        },
+        "long_term_mean": {
+         "value": 7039.19,
+         "abs_err": 2637.6278
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.574,
+        "raw": {
+         "p10": 0.578,
+         "median": 0.726,
+         "p90": 0.961,
+         "in_range": false,
+         "crps": 0.1162
+        },
+        "adjusted": {
+         "p10": 0.573,
+         "median": 0.72,
+         "p90": 0.956,
+         "in_range": true,
+         "crps": 0.1064
+        },
+        "last_year": {
+         "value": 0.997,
+         "abs_err": 0.4231
+        },
+        "long_term_mean": {
+         "value": 0.755,
+         "abs_err": 0.1803
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 4989.298,
+        "raw": {
+         "p10": 4474.863,
+         "median": 6803.957,
+         "p90": 9957.263,
+         "in_range": true,
+         "crps": 1317.604
+        },
+        "adjusted": {
+         "p10": 4379.825,
+         "median": 6682.375,
+         "p90": 9853.879,
+         "in_range": true,
+         "crps": 1181.3797
+        },
+        "last_year": {
+         "value": 8052.149,
+         "abs_err": 3062.8512
+        },
+        "long_term_mean": {
+         "value": 7070.845,
+         "abs_err": 2081.5475
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.614,
+        "raw": {
+         "p10": 0.579,
+         "median": 0.738,
+         "p90": 0.954,
+         "in_range": true,
+         "crps": 0.0901
+        },
+        "adjusted": {
+         "p10": 0.573,
+         "median": 0.73,
+         "p90": 0.947,
+         "in_range": true,
+         "crps": 0.0808
+        },
+        "last_year": {
+         "value": 0.824,
+         "abs_err": 0.2094
+        },
+        "long_term_mean": {
+         "value": 0.757,
+         "abs_err": 0.1423
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 2964.199,
+        "raw": {
+         "p10": 4412.918,
+         "median": 6614.503,
+         "p90": 9858.456,
+         "in_range": false,
+         "crps": 2890.4626
+        },
+        "adjusted": {
+         "p10": 4362.833,
+         "median": 6524.201,
+         "p90": 9724.366,
+         "in_range": false,
+         "crps": 2727.339
+        },
+        "last_year": {
+         "value": 4401.563,
+         "abs_err": 1437.3638
+        },
+        "long_term_mean": {
+         "value": 6989.958,
+         "abs_err": 4025.7592
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.476,
+        "raw": {
+         "p10": 0.575,
+         "median": 0.726,
+         "p90": 0.947,
+         "in_range": false,
+         "crps": 0.1976
+        },
+        "adjusted": {
+         "p10": 0.572,
+         "median": 0.719,
+         "p90": 0.938,
+         "in_range": false,
+         "crps": 0.1864
+        },
+        "last_year": {
+         "value": 0.574,
+         "abs_err": 0.0982
+        },
+        "long_term_mean": {
+         "value": 0.751,
+         "abs_err": 0.2752
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "fallow",
+      "faba",
+      "fallow",
+      "wheat",
+      "fallow"
+     ],
+     "label": "faba",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 6317.118,
+        "raw": {
+         "p10": 6911.2,
+         "median": 16241.717,
+         "p90": 32467.329,
+         "in_range": false,
+         "crps": 7470.0934
+        },
+        "adjusted": {
+         "p10": 6701.747,
+         "median": 15699.039,
+         "p90": 32128.043,
+         "in_range": false,
+         "crps": 7025.091
+        },
+        "last_year": {
+         "value": 43203.472,
+         "abs_err": 36886.3541
+        },
+        "long_term_mean": {
+         "value": 19163.442,
+         "abs_err": 12846.3244
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.221,
+        "raw": {
+         "p10": 0.232,
+         "median": 0.4,
+         "p90": 0.691,
+         "in_range": false,
+         "crps": 0.1342
+        },
+        "adjusted": {
+         "p10": 0.228,
+         "median": 0.39,
+         "p90": 0.685,
+         "in_range": false,
+         "crps": 0.1262
+        },
+        "last_year": {
+         "value": 0.884,
+         "abs_err": 0.6629
+        },
+        "long_term_mean": {
+         "value": 0.452,
+         "abs_err": 0.2309
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 9061.278,
+        "raw": {
+         "p10": 6919.229,
+         "median": 17414.635,
+         "p90": 32394.545,
+         "in_range": true,
+         "crps": 5648.5266
+        },
+        "adjusted": {
+         "p10": 6679.395,
+         "median": 16701.484,
+         "p90": 32029.302,
+         "in_range": true,
+         "crps": 5266.6487
+        },
+        "last_year": {
+         "value": 21254.355,
+         "abs_err": 12193.0766
+        },
+        "long_term_mean": {
+         "value": 19228.783,
+         "abs_err": 10167.5054
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.271,
+        "raw": {
+         "p10": 0.232,
+         "median": 0.421,
+         "p90": 0.69,
+         "in_range": true,
+         "crps": 0.1015
+        },
+        "adjusted": {
+         "p10": 0.228,
+         "median": 0.408,
+         "p90": 0.683,
+         "in_range": true,
+         "crps": 0.0946
+        },
+        "last_year": {
+         "value": 0.49,
+         "abs_err": 0.2191
+        },
+        "long_term_mean": {
+         "value": 0.453,
+         "abs_err": 0.1827
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 683.429,
+        "raw": {
+         "p10": 6435.934,
+         "median": 16241.717,
+         "p90": 32321.761,
+         "in_range": false,
+         "crps": 12305.243
+        },
+        "adjusted": {
+         "p10": 6350.693,
+         "median": 15636.114,
+         "p90": 31930.299,
+         "in_range": false,
+         "crps": 11799.2646
+        },
+        "last_year": {
+         "value": 6317.118,
+         "abs_err": 5633.6893
+        },
+        "long_term_mean": {
+         "value": 18837.521,
+         "abs_err": 18154.0922
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.12,
+        "raw": {
+         "p10": 0.223,
+         "median": 0.4,
+         "p90": 0.689,
+         "in_range": false,
+         "crps": 0.2211
+        },
+        "adjusted": {
+         "p10": 0.222,
+         "median": 0.389,
+         "p90": 0.682,
+         "in_range": false,
+         "crps": 0.212
+        },
+        "last_year": {
+         "value": 0.221,
+         "abs_err": 0.1012
+        },
+        "long_term_mean": {
+         "value": 0.446,
+         "abs_err": 0.3262
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "fallow",
+      "faba",
+      "fallow",
+      "faba",
+      "fallow"
+     ],
+     "label": "faba",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 6317.118,
+        "raw": {
+         "p10": 6911.2,
+         "median": 16241.717,
+         "p90": 32467.329,
+         "in_range": false,
+         "crps": 7470.0934
+        },
+        "adjusted": {
+         "p10": 6701.747,
+         "median": 15699.039,
+         "p90": 32128.043,
+         "in_range": false,
+         "crps": 7025.091
+        },
+        "last_year": {
+         "value": 43203.472,
+         "abs_err": 36886.3541
+        },
+        "long_term_mean": {
+         "value": 19163.442,
+         "abs_err": 12846.3244
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.221,
+        "raw": {
+         "p10": 0.232,
+         "median": 0.4,
+         "p90": 0.691,
+         "in_range": false,
+         "crps": 0.1342
+        },
+        "adjusted": {
+         "p10": 0.228,
+         "median": 0.39,
+         "p90": 0.685,
+         "in_range": false,
+         "crps": 0.1262
+        },
+        "last_year": {
+         "value": 0.884,
+         "abs_err": 0.6629
+        },
+        "long_term_mean": {
+         "value": 0.452,
+         "abs_err": 0.2309
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 9061.278,
+        "raw": {
+         "p10": 6919.229,
+         "median": 17414.635,
+         "p90": 32394.545,
+         "in_range": true,
+         "crps": 5648.5266
+        },
+        "adjusted": {
+         "p10": 6679.395,
+         "median": 16701.484,
+         "p90": 32029.302,
+         "in_range": true,
+         "crps": 5266.6487
+        },
+        "last_year": {
+         "value": 21254.355,
+         "abs_err": 12193.0766
+        },
+        "long_term_mean": {
+         "value": 19228.783,
+         "abs_err": 10167.5054
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.271,
+        "raw": {
+         "p10": 0.232,
+         "median": 0.421,
+         "p90": 0.69,
+         "in_range": true,
+         "crps": 0.1015
+        },
+        "adjusted": {
+         "p10": 0.228,
+         "median": 0.408,
+         "p90": 0.683,
+         "in_range": true,
+         "crps": 0.0946
+        },
+        "last_year": {
+         "value": 0.49,
+         "abs_err": 0.2191
+        },
+        "long_term_mean": {
+         "value": 0.453,
+         "abs_err": 0.1827
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 683.429,
+        "raw": {
+         "p10": 6435.934,
+         "median": 16241.717,
+         "p90": 32321.761,
+         "in_range": false,
+         "crps": 12305.243
+        },
+        "adjusted": {
+         "p10": 6350.693,
+         "median": 15636.114,
+         "p90": 31930.299,
+         "in_range": false,
+         "crps": 11799.2646
+        },
+        "last_year": {
+         "value": 6317.118,
+         "abs_err": 5633.6893
+        },
+        "long_term_mean": {
+         "value": 18837.521,
+         "abs_err": 18154.0922
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.12,
+        "raw": {
+         "p10": 0.223,
+         "median": 0.4,
+         "p90": 0.689,
+         "in_range": false,
+         "crps": 0.2211
+        },
+        "adjusted": {
+         "p10": 0.222,
+         "median": 0.389,
+         "p90": 0.682,
+         "in_range": false,
+         "crps": 0.212
+        },
+        "last_year": {
+         "value": 0.221,
+         "abs_err": 0.1012
+        },
+        "long_term_mean": {
+         "value": 0.446,
+         "abs_err": 0.3262
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    }
+   ],
+   "data_end": "2026-11-11",
+   "satellite_check": [
+    {
+     "season": "2023/24",
+     "winter_ndvi_peak": 0.142,
+     "winter_mod16_et_mm": null,
+     "model_first_crop_yield_frac": 0.574
+    },
+    {
+     "season": "2024/25",
+     "winter_ndvi_peak": 0.15,
+     "winter_mod16_et_mm": null,
+     "model_first_crop_yield_frac": 0.614
+    },
+    {
+     "season": "2025/26",
+     "winter_ndvi_peak": 0.106,
+     "winter_mod16_et_mm": null,
+     "model_first_crop_yield_frac": 0.476
+    }
+   ]
+  },
+  {
+   "site": "intl_01",
+   "name": "Sa\u00efs plain, Morocco",
+   "irrigated": false,
+   "soil_class": "clay_loam",
+   "tmax_trend_per_decade": 0.333,
+   "test_seasons": [
+    "2023/24",
+    "2024/25",
+    "2025/26"
+   ],
+   "rotations": [
+    {
+     "seq": [
+      "wheat",
+      "fallow",
+      "wheat",
+      "fallow",
+      "wheat",
+      "fallow"
+     ],
+     "label": "wheat",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 28398.895,
+        "raw": {
+         "p10": 30222.122,
+         "median": 37420.437,
+         "p90": 42417.635,
+         "in_range": false,
+         "crps": 5886.2315
+        },
+        "adjusted": {
+         "p10": 29664.781,
+         "median": 37288.779,
+         "p90": 42392.24,
+         "in_range": false,
+         "crps": 5314.6383
+        },
+        "last_year": {
+         "value": 36007.485,
+         "abs_err": 7608.5901
+        },
+        "long_term_mean": {
+         "value": 36768.276,
+         "abs_err": 8369.3804
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.71,
+        "raw": {
+         "p10": 0.748,
+         "median": 0.897,
+         "p90": 1.0,
+         "in_range": false,
+         "crps": 0.1216
+        },
+        "adjusted": {
+         "p10": 0.737,
+         "median": 0.894,
+         "p90": 0.999,
+         "in_range": false,
+         "crps": 0.1098
+        },
+        "last_year": {
+         "value": 0.868,
+         "abs_err": 0.1571
+        },
+        "long_term_mean": {
+         "value": 0.883,
+         "abs_err": 0.1729
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 42120.458,
+        "raw": {
+         "p10": 29281.292,
+         "median": 36847.791,
+         "p90": 42417.134,
+         "in_range": true,
+         "crps": 3000.2097
+        },
+        "adjusted": {
+         "p10": 28714.972,
+         "median": 36575.197,
+         "p90": 42386.536,
+         "in_range": true,
+         "crps": 3426.4555
+        },
+        "last_year": {
+         "value": 25034.799,
+         "abs_err": 17085.6588
+        },
+        "long_term_mean": {
+         "value": 36401.604,
+         "abs_err": 5718.8534
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.994,
+        "raw": {
+         "p10": 0.729,
+         "median": 0.885,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.062
+        },
+        "adjusted": {
+         "p10": 0.717,
+         "median": 0.879,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0708
+        },
+        "last_year": {
+         "value": 0.641,
+         "abs_err": 0.3529
+        },
+        "long_term_mean": {
+         "value": 0.876,
+         "abs_err": 0.1181
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 41363.724,
+        "raw": {
+         "p10": 28775.36,
+         "median": 36275.144,
+         "p90": 42416.634,
+         "in_range": true,
+         "crps": 2740.4964
+        },
+        "adjusted": {
+         "p10": 28376.435,
+         "median": 35842.508,
+         "p90": 42379.502,
+         "in_range": true,
+         "crps": 3128.712
+        },
+        "last_year": {
+         "value": 28398.895,
+         "abs_err": 12964.8292
+        },
+        "long_term_mean": {
+         "value": 36159.098,
+         "abs_err": 5204.6263
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.978,
+        "raw": {
+         "p10": 0.718,
+         "median": 0.873,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0566
+        },
+        "adjusted": {
+         "p10": 0.71,
+         "median": 0.864,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0646
+        },
+        "last_year": {
+         "value": 0.71,
+         "abs_err": 0.2678
+        },
+        "long_term_mean": {
+         "value": 0.871,
+         "abs_err": 0.1075
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "fallow",
+      "faba",
+      "fallow",
+      "wheat",
+      "fallow"
+     ],
+     "label": "faba",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 25677.678,
+        "raw": {
+         "p10": 23742.236,
+         "median": 40135.382,
+         "p90": 49639.43,
+         "in_range": true,
+         "crps": 8156.4294
+        },
+        "adjusted": {
+         "p10": 23643.496,
+         "median": 39535.203,
+         "p90": 49624.304,
+         "in_range": true,
+         "crps": 7858.925
+        },
+        "last_year": {
+         "value": 24865.883,
+         "abs_err": 811.7955
+        },
+        "long_term_mean": {
+         "value": 38355.215,
+         "abs_err": 12677.5365
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.569,
+        "raw": {
+         "p10": 0.534,
+         "median": 0.829,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.1466
+        },
+        "adjusted": {
+         "p10": 0.533,
+         "median": 0.818,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.1412
+        },
+        "last_year": {
+         "value": 0.555,
+         "abs_err": 0.0146
+        },
+        "long_term_mean": {
+         "value": 0.797,
+         "abs_err": 0.2278
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 29881.767,
+        "raw": {
+         "p10": 23854.601,
+         "median": 39858.044,
+         "p90": 49621.521,
+         "in_range": true,
+         "crps": 5464.5972
+        },
+        "adjusted": {
+         "p10": 23734.139,
+         "median": 39333.909,
+         "p90": 49600.179,
+         "in_range": true,
+         "crps": 5272.888
+        },
+        "last_year": {
+         "value": 31481.18,
+         "abs_err": 1599.4134
+        },
+        "long_term_mean": {
+         "value": 38140.401,
+         "abs_err": 8258.6345
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.645,
+        "raw": {
+         "p10": 0.537,
+         "median": 0.824,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0982
+        },
+        "adjusted": {
+         "p10": 0.534,
+         "median": 0.815,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0948
+        },
+        "last_year": {
+         "value": 0.674,
+         "abs_err": 0.0287
+        },
+        "long_term_mean": {
+         "value": 0.793,
+         "abs_err": 0.1484
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 46723.194,
+        "raw": {
+         "p10": 23966.965,
+         "median": 39580.706,
+         "p90": 49603.612,
+         "in_range": true,
+         "crps": 4584.4486
+        },
+        "adjusted": {
+         "p10": 23823.441,
+         "median": 39141.474,
+         "p90": 49575.28,
+         "in_range": true,
+         "crps": 4790.5446
+        },
+        "last_year": {
+         "value": 25677.678,
+         "abs_err": 21045.5158
+        },
+        "long_term_mean": {
+         "value": 37762.743,
+         "abs_err": 8960.4512
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.947,
+        "raw": {
+         "p10": 0.539,
+         "median": 0.819,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0824
+        },
+        "adjusted": {
+         "p10": 0.536,
+         "median": 0.811,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0861
+        },
+        "last_year": {
+         "value": 0.569,
+         "abs_err": 0.3782
+        },
+        "long_term_mean": {
+         "value": 0.786,
+         "abs_err": 0.161
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    },
+    {
+     "seq": [
+      "faba",
+      "fallow",
+      "faba",
+      "fallow",
+      "faba",
+      "fallow"
+     ],
+     "label": "faba",
+     "seasons": [
+      {
+       "season": "2023/24",
+       "profit": {
+        "actual": 25677.678,
+        "raw": {
+         "p10": 23742.236,
+         "median": 40135.382,
+         "p90": 49639.43,
+         "in_range": true,
+         "crps": 8156.4294
+        },
+        "adjusted": {
+         "p10": 23643.496,
+         "median": 39535.203,
+         "p90": 49624.304,
+         "in_range": true,
+         "crps": 7858.925
+        },
+        "last_year": {
+         "value": 24865.883,
+         "abs_err": 811.7955
+        },
+        "long_term_mean": {
+         "value": 38355.215,
+         "abs_err": 12677.5365
+        },
+        "n_prior": 31
+       },
+       "yield_frac": {
+        "actual": 0.569,
+        "raw": {
+         "p10": 0.534,
+         "median": 0.829,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.1466
+        },
+        "adjusted": {
+         "p10": 0.533,
+         "median": 0.818,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.1412
+        },
+        "last_year": {
+         "value": 0.555,
+         "abs_err": 0.0146
+        },
+        "long_term_mean": {
+         "value": 0.797,
+         "abs_err": 0.2278
+        },
+        "n_prior": 31
+       }
+      },
+      {
+       "season": "2024/25",
+       "profit": {
+        "actual": 29881.767,
+        "raw": {
+         "p10": 23854.601,
+         "median": 39858.044,
+         "p90": 49621.521,
+         "in_range": true,
+         "crps": 5464.5972
+        },
+        "adjusted": {
+         "p10": 23734.139,
+         "median": 39333.909,
+         "p90": 49600.179,
+         "in_range": true,
+         "crps": 5272.888
+        },
+        "last_year": {
+         "value": 31481.18,
+         "abs_err": 1599.4134
+        },
+        "long_term_mean": {
+         "value": 38140.401,
+         "abs_err": 8258.6345
+        },
+        "n_prior": 32
+       },
+       "yield_frac": {
+        "actual": 0.645,
+        "raw": {
+         "p10": 0.537,
+         "median": 0.824,
+         "p90": 1.0,
+         "in_range": true,
+         "crps": 0.0982
+        },
+        "adjusted": {
+         "p10": 0.534,
+         "median": 0.815,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0948
+        },
+        "last_year": {
+         "value": 0.674,
+         "abs_err": 0.0287
+        },
+        "long_term_mean": {
+         "value": 0.793,
+         "abs_err": 0.1484
+        },
+        "n_prior": 32
+       }
+      },
+      {
+       "season": "2025/26",
+       "profit": {
+        "actual": 46723.194,
+        "raw": {
+         "p10": 23966.965,
+         "median": 39580.706,
+         "p90": 49603.612,
+         "in_range": true,
+         "crps": 4584.4486
+        },
+        "adjusted": {
+         "p10": 23823.441,
+         "median": 39141.474,
+         "p90": 49575.28,
+         "in_range": true,
+         "crps": 4790.5446
+        },
+        "last_year": {
+         "value": 25677.678,
+         "abs_err": 21045.5158
+        },
+        "long_term_mean": {
+         "value": 37762.743,
+         "abs_err": 8960.4512
+        },
+        "n_prior": 33
+       },
+       "yield_frac": {
+        "actual": 0.947,
+        "raw": {
+         "p10": 0.539,
+         "median": 0.819,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0824
+        },
+        "adjusted": {
+         "p10": 0.536,
+         "median": 0.811,
+         "p90": 0.999,
+         "in_range": true,
+         "crps": 0.0861
+        },
+        "last_year": {
+         "value": 0.569,
+         "abs_err": 0.3782
+        },
+        "long_term_mean": {
+         "value": 0.786,
+         "abs_err": 0.161
+        },
+        "n_prior": 33
+       }
+      }
+     ]
+    }
+   ],
+   "data_end": "2026-11-11",
+   "satellite_check": [
+    {
+     "season": "2023/24",
+     "winter_ndvi_peak": 0.746,
+     "winter_mod16_et_mm": 206.9,
+     "model_first_crop_yield_frac": 0.71
+    },
+    {
+     "season": "2024/25",
+     "winter_ndvi_peak": 0.762,
+     "winter_mod16_et_mm": 199.2,
+     "model_first_crop_yield_frac": 0.994
+    },
+    {
+     "season": "2025/26",
+     "winter_ndvi_peak": 0.728,
+     "winter_mod16_et_mm": null,
+     "model_first_crop_yield_frac": 0.978
+    }
+   ]
+  }
+ ],
+ "summary": {
+  "profit": {
+   "cases": 27,
+   "coverage_raw": 0.704,
+   "coverage_adjusted": 0.778,
+   "crps_raw": 4113.7101,
+   "crps_adjusted": 3996.4513,
+   "mae_same_as_last_year": 7779.2391,
+   "mae_long_term_mean": 6768.19,
+   "skill_vs_last_year_raw": 0.471,
+   "skill_vs_last_year_adjusted": 0.486
+  },
+  "water": {
+   "cases": 9,
+   "coverage_raw": 0.667,
+   "coverage_adjusted": 0.667,
+   "crps_raw": 321.9974,
+   "crps_adjusted": 228.1201,
+   "mae_same_as_last_year": 515.0476,
+   "mae_long_term_mean": 498.068,
+   "skill_vs_last_year_raw": 0.375,
+   "skill_vs_last_year_adjusted": 0.557
+  },
+  "yield_frac": {
+   "cases": 27,
+   "coverage_raw": 0.704,
+   "coverage_adjusted": 0.741,
+   "crps_raw": 0.0834,
+   "crps_adjusted": 0.0803,
+   "mae_same_as_last_year": 0.1618,
+   "mae_long_term_mean": 0.1336,
+   "skill_vs_last_year_raw": 0.484,
+   "skill_vs_last_year_adjusted": 0.504
+  }
+ },
+ "generated_by": "qa/backtest.py (AI-assisted code; results computed at run time)"
+}

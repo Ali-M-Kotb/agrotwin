@@ -235,7 +235,7 @@ async function selectSite(s) {
     S.prevResult = null;
     await simulate();
     watchSite(s.lat, s.lon);
-  } catch (e) { $("#site-meta").textContent = "⚠ " + e.message; }
+  } catch (e) { $("#site-meta").textContent = e.message; }
   finally { if (mine === S.selSeq) busy(false); }
 }
 
@@ -243,7 +243,7 @@ function siteMeta() {
   const d = S.siteData, m = d.meta || {};
   const sc = S.soilNames?.[d.soil_class]?.[S.lang === "ar" ? 1 : 0] || d.soil_class;
   $("#site-meta").innerHTML = `${esc(S.lang === "ar" ? (m.name_ar || m.name) : m.name)} · ${m.irrigated ? t("irrigated") : t("rainfed")}<br>
-    ${digits(d.lat.toFixed(3))}, ${digits(d.lon.toFixed(3))} · ${esc(sc)} (${num(d.soil.clay, d.soil.source, 0, "% clay")})${d.soil.fallback ? " ⚠" : ""}`;
+    ${digits(d.lat.toFixed(3))}, ${digits(d.lon.toFixed(3))} · ${esc(sc)} (${num(d.soil.clay, d.soil.source, 0, "% clay")})${d.soil.fallback ? " *" : ""}`;
 }
 
 async function watchSite(lat, lon) {
@@ -282,9 +282,48 @@ async function simulate(reason) {
     S.result = res;
     S.council = null;
     render(reason);
+    loadAhead();
   } catch (e) {
-    $("#showdown-sub").textContent = "⚠ " + e.message;
+    $("#showdown-sub").textContent = e.message;
   }
+}
+
+async function loadAhead() {
+  const key = `${S.site.lat},${S.site.lon},${$("#ex-w").value},${$("#ex-s").value}`;
+  if (S.aheadKey === key && S.ahead) return renderAhead();
+  S.aheadKey = key;
+  $("#ahead").innerHTML = `<div class="meta">${t("ahead_loading")}</div>`;
+  try { S.ahead = await api(`/api/ahead?lat=${S.site.lat}&lon=${S.site.lon}&winter=${$("#ex-w").value}&summer=${$("#ex-s").value}`); }
+  catch (e) { S.ahead = null; $("#ahead").innerHTML = `<div class="meta">${esc(e.message)}</div>`; return; }
+  renderAhead();
+}
+function renderAhead() {
+  const A = S.ahead, p = A && A.plan;
+  if (!p || !p.available) { $("#ahead").innerHTML = `<div class="meta">${t("ahead_none")}</div>`; return; }
+  const loc = S.lang === "ar" ? "ar-EG" : "en-GB";
+  const dname = (d) => new Date(d + "T00:00:00").toLocaleDateString(loc, { weekday: "short", day: "numeric", month: "short" });
+  const irr = new Set(p.irrigate_on.map((e) => e.date));
+  let call;
+  if (p.irrigate_on.length) {
+    const e = p.irrigate_on[0];
+    call = t("ahead_irrigate", { day: dname(e.date), m3: fmt(e.gross_m3_per_feddan) });
+  } else if (S.result && !S.result.site.irrigated) call = t("ahead_rainfed", { rain: fmt(p.forecast_rain_mm, 1) });
+  else call = t("ahead_noirr");
+  const next = p.next_crop && !p.crop_now ? `<div class="meta">${t("ahead_next", { crop: cname(p.next_crop.crop), day: dname(p.next_crop.sow) })}</div>` : "";
+  const bars = p.wetness.map((w) => `<div class="${w.forecast ? "fc" : ""}${irr.has(w.date) ? " irr" : ""}" title="${w.date}: ${Math.round(w.value * 100)}%"><i style="height:${Math.round(w.value * 100)}%"></i></div>`).join("");
+  const first = p.wetness[0], last = p.wetness[p.wetness.length - 1];
+  let out = `<div class="ahead-call">${esc(call)}</div>${next}
+    <div class="ahead-days">${bars}</div>
+    <div class="ahead-axis"><span>${first ? dname(first.date) : ""}</span><span>${t("ahead_axis")}</span><span>${last ? dname(last.date) : ""}</span></div>
+    <div class="meta">${t("ahead_totals", { rain: fmt(p.forecast_rain_mm, 1), et0: fmt(p.forecast_et0_mm, 0) })} · <span class="chip-num" data-src="${esc(p.source)}">${t("source")}</span></div>`;
+  const se = A.seasonal;
+  if (se && se.available && S.mode === "advanced") {
+    const q = se.periods.find((x) => x.months === 3) || se.periods[0];
+    const word = (d) => d.above > 0.5 ? t("out_above") : d.below > 0.5 ? t("out_below") : t("out_normal");
+    out += `<div class="outlook"><b>${t("out_title")}</b> (${q.start} → ${q.end}, ${q.members} ${t("out_members")}): ${t("out_rain")} ${word(q.rain)}, ${t("out_temp")} ${word(q.tmax)}.
+      <span class="chip-num" data-src="${esc(se.caveat)}">${t("out_caveat")}</span></div>`;
+  }
+  $("#ahead").innerHTML = out;
 }
 
 function topRot() { const r = S.result; return r.rotations.find((x) => x.rotation_id === r.order[0]); }
@@ -324,25 +363,29 @@ function renderHero() {
   const keep = top.rotation_id === "existing";
   const dw = ex.water_m3.median - top.water_m3.median;
   const why = (top.text.benefits[0] || top.text.why[0] || {})[L] || "";
-  const warn = (top.text.review.find((x) => x.tone === "warn") || R.blind_spots[0] && { [L]: R.blind_spots[0][L].title + " — " + R.blind_spots[0][L].check } || {})[L] || "";
+  const bs = R.blind_spots[0];
+  const warnItem = top.text.review.find((x) => x.tone === "warn");
+  const warn = warnItem ? warnItem[L] : (bs ? `${bs[L].title}: ${bs[L].check}` : "");
+  const clim = R.climate && R.climate.adjusted ? `<div class="meta">${t("climate_note", { tr: (R.climate.tmax_trend_per_decade > 0 ? "+" : "") + digits(R.climate.tmax_trend_per_decade) })}</div>` : "";
   $("#hero").innerHTML = `
-    <div class="k">${esc(keep ? t("hero_keep") : t("hero_title"))}</div>
+    <div class="kicker">${esc(keep ? t("hero_keep") : t("hero_title"))}</div>
     <div class="big">${esc(top.label[L])}</div>
-    <div class="row">
-      <div><div class="k">${t("hero_money")}</div><div class="val">${num(top.profit.p10, top.profit.source)} – ${num(top.profit.p90, top.profit.source)}</div><div class="k">${t("per_fed_yr")}</div></div>
-      ${!keep && dw > 100 ? `<div><div class="k">${t("hero_water")}</div><div class="val">${num(dw, "computed: current − suggested, median year")}</div><div class="k">${t("m3_fed_yr")}</div></div>` : ""}
-      <div><div class="k">${t("loss_years")}</div><div class="val">${num(Math.round(top.loss_year_share.value * top.years.length), top.loss_year_share.source)} / ${digits(top.years.length)}</div></div>
+    <div class="figs">
+      <div><div class="k">${t("hero_money")}</div><div class="val">${num(top.profit.p10, top.profit.source)}–${num(top.profit.p90, top.profit.source)}</div><div class="unit">${t("per_fed_yr")}</div></div>
+      <div><div class="k">${t("hero_water")}</div><div class="val">${!keep && dw > 100 ? num(dw, "computed: current − suggested, median year") : "–"}</div><div class="unit">${t("m3_fed_yr")}</div></div>
+      <div><div class="k">${t("loss_years")}</div><div class="val">${num(Math.round(top.loss_year_share.value * top.years.length), top.loss_year_share.source)} / ${digits(top.years.length)}</div><div class="unit">${digits(top.years[0])}–${digits(top.years[top.years.length - 1] + 2)}</div></div>
     </div>
     <div class="why">${esc(why)}</div>
     ${fieldTotals(top)}
-    ${warn ? `<div class="warnline">⚠ ${t("hero_warn")}: ${esc(warn)}</div>` : ""}
-    <div class="btn-row"><button id="btn-speak">🔊 ${t("hero_read")}</button></div>`;
+    ${warn ? `<div class="warnline"><svg><use href="#i-warn"/></svg><span><b>${t("hero_warn")}.</b> ${esc(warn)}</span></div>` : ""}
+    ${clim}
+    <button id="btn-speak" class="txt speak"><svg><use href="#i-speak"/></svg>${t("hero_read")}</button>`;
   $("#btn-speak").onclick = () => speak(`${keep ? t("hero_keep") : t("hero_title")}: ${top.label[L]}. ${t("hero_money")}: ${Math.round(top.profit.p10)} - ${Math.round(top.profit.p90)} ${t("per_fed_yr")}. ${why} ${warn}`);
 }
 
 function fieldTotals(top) {
   const f = MapUI.getField && MapUI.getField();
-  if (!f) return `<div class="totals">✏️ ${t(S.mode === "advanced" ? "draw_tip_adv" : "draw_tip")}</div>`;
+  if (!f) return `<div class="totals meta">${t(S.mode === "advanced" ? "draw_tip_adv" : "draw_tip")}</div>`;
   const fed = f.area_ha / 0.42;
   return `<div class="totals">${t("totals", { fed: fmt(fed, 2) })}: <b>${num(top.profit.p10 * fed, "computed: per-feddan range × drawn area")} – ${num(top.profit.p90 * fed, "computed: per-feddan range × drawn area")}</b> EGP/yr ·
     <b>${num(top.water_m3.median * fed, "computed: median m³/feddan × drawn area")}</b> m³/yr</div>`;
@@ -529,15 +572,15 @@ function renderSightings(dets) {
 // ---------------------------------------------------------------------------
 function renderBlind() {
   const L = S.lang;
-  $("#blind").innerHTML = S.result.blind_spots.map((b) => `<li><b>${esc(b[L].title)}</b>${esc(b[L].why)}<div class="meta">✔ ${esc(b[L].check)}</div></li>`).join("");
+  $("#blind").innerHTML = S.result.blind_spots.map((b) => `<li><b>${esc(b[L].title)}</b>${esc(b[L].why)}<div class="meta">${esc(b[L].check)}</div></li>`).join("");
 }
 
 function renderCouncil() {
   const c = S.council, box = $("#council");
   if (!c) { box.innerHTML = ""; return; }
-  box.innerHTML = ["agronomist", "economist", "skeptic"].map((a) => `<div class="adv"><h3>${t("adv_" + a)}</h3>${
+  box.innerHTML = ["agronomist", "economist", "skeptic"].map((a) => `<div class="advisor"><h3>${t("adv_" + a)}</h3>${
     (c.advisors[a] || []).map((cl) => `<p>${esc(digits(cl.text))}</p>`).join("")}</div>`).join("") +
-    `<span class="audit">✓ ${t("audit_ok", { n: digits(c.audit.claims), b: digits(c.audit.blocked_claims) })} · ${c.model === "templates" ? t("templates") : esc(c.model)}</span>`;
+    `<span class="audit">${t("audit_ok", { n: digits(c.audit.claims), b: digits(c.audit.blocked_claims) })} · ${c.model === "templates" ? t("templates") : esc(c.model)}</span>`;
 }
 
 async function askCouncil() {
@@ -684,6 +727,8 @@ async function init() {
   $$(".modes button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
   wizardBind();
   $("#btn-farm-save").onclick = saveFarm;
+  $("#btn-layers").onclick = () => { $("#layer-panel").classList.toggle("hidden"); $("#btn-layers").classList.toggle("on"); };
+  $$("[data-close]").forEach((b) => (b.onclick = () => { $("#" + b.dataset.close).classList.add("hidden"); $("#btn-layers").classList.remove("on"); }));
   $("#btn-plan-save").onclick = savePlan;
   loadFarms();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -696,7 +741,7 @@ async function init() {
     i.addEventListener("input", () => { if (o) o.textContent = sliderOut(i.id); if (i.id.startsWith("w-") || i.id.startsWith("x-")) schedule(); });
   });
   ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = () => { $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value; schedule(); }));
-  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); };
+  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); };
   $("#btn-digits").onclick = () => { S.arDigits = !S.arDigits; if (S.result) render(); siteMeta(); };
   $("#btn-card").onclick = fieldCard;
   $("#btn-dlg-close").onclick = () => $("#card-dlg").classList.add("hidden");
@@ -715,7 +760,7 @@ async function init() {
       if (!r.ok) throw new Error(j.detail);
       $("#leaf-status").textContent = j.known ? j.top3.map((x) => `${S.diseaseClasses[x.label]?.[1] || x.label} ${Math.round(x.p * 100)}%`).join(" · ") : t("leaf_unknown");
       S.robotOn = true; await pollRobot(); simulate("sighting");
-    } catch (err) { $("#leaf-status").textContent = "⚠ " + err.message; } finally { busy(false); e.target.value = ""; }
+    } catch (err) { $("#leaf-status").textContent = err.message; } finally { busy(false); e.target.value = ""; }
   };
   setInterval(pollRobot, 3000);
   api("/api/validation").then((v) => { S.validation = v; if (S.result) renderScience(); }).catch(() => {});

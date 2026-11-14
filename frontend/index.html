@@ -4,171 +4,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f2418">
+<meta name="theme-color" content="#1b2a1f">
 <meta name="description" content="AgroTwin: replay decades of NASA weather against your crop rotation before you plant.">
 <title>AgroTwin</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/static/icon.svg">
 <link rel="stylesheet" href="/static/vendor/leaflet.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body data-lens="farmer" data-mode="simple">
-<header class="top">
-  <div class="brand">
-    <img class="logo" src="/static/icon.svg" alt="">
-    <div><h1>AgroTwin</h1><p data-i18n="brand_tag"></p></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 10-5-10-5Zm-10 9 10 5 10-5M2 16l10 5 10-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4Zm11-15 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" stroke-width="1.7"/></symbol>
+  <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4Zm12 0a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Zm0 6v5m0 3v.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+</svg>
+
+<header class="bar">
+  <a class="brand" href="/" aria-label="AgroTwin home"><img src="/static/icon.svg" alt=""><span>AgroTwin</span></a>
+  <div class="searchbox">
+    <input id="map-search" type="search" autocomplete="off" data-i18n-ph="map_search">
+    <div id="map-results" class="results hidden"></div>
   </div>
   <nav class="seg modes" aria-label="Interface mode">
     <button data-mode="simple" data-i18n="mode_simple"></button>
     <button data-mode="advanced" data-i18n="mode_advanced"></button>
   </nav>
-  <nav class="seg lens adv" role="tablist" aria-label="Judge lens">
+  <nav class="seg lens adv" role="tablist" aria-label="Reader">
     <button data-lens="farmer" data-i18n="lens_farmer" role="tab"></button>
     <button data-lens="investor" data-i18n="lens_investor" role="tab"></button>
     <button data-lens="scientist" data-i18n="lens_scientist" role="tab"></button>
   </nav>
-  <div class="top-right">
+  <div class="bar-right">
     <span id="mode-badge" class="mode NONE" tabindex="0"></span>
-    <button id="btn-digits" class="ghost small hidden" data-i18n="arabic_digits"></button>
-    <button id="btn-lang" class="ghost" data-i18n="lang_switch"></button>
-    <button id="btn-card" data-i18n="field_card"></button>
+    <button id="btn-digits" class="txt hidden" data-i18n="arabic_digits"></button>
+    <button id="btn-lang" class="txt" data-i18n="lang_switch"></button>
+    <button id="btn-card" class="solid" data-i18n="field_card"></button>
   </div>
 </header>
 
-<!-- ================= MAP ================= -->
-<section class="map-wrap">
-  <div id="map"></div>
-  <div class="map-ui tl">
-    <div class="searchbox">
-      <input id="map-search" type="search" autocomplete="off" data-i18n-ph="map_search">
-      <button id="btn-locate" class="icon" title="Locate me" aria-label="Locate me">◎</button>
-      <div id="map-results" class="results hidden"></div>
+<div class="app">
+  <!-- ================= MAP (the whole app sits on it) ================= -->
+  <section class="stage">
+    <div id="map"></div>
+
+    <div class="rail">
+      <button id="btn-locate" class="tool" title="Locate me" aria-label="Locate me"><svg><use href="#i-target"/></svg></button>
+      <button id="btn-layers" class="tool adv" title="NASA layers" aria-label="NASA layers"><svg><use href="#i-layers"/></svg></button>
+      <button id="btn-draw" class="tool adv" title="Draw field" aria-label="Draw field"><svg><use href="#i-pen"/></svg></button>
     </div>
-    <div id="site-chips" class="chips map-chips"></div>
-  </div>
-  <div class="map-ui tr adv">
-    <div class="panel">
+
+    <div id="layer-panel" class="floater layers adv hidden">
+      <div class="floater-h"><span data-i18n="map_layer"></span><button class="x" data-close="layer-panel">×</button></div>
       <label><span data-i18n="map_base"></span><select id="map-base"></select></label>
       <label><span data-i18n="map_layer"></span><select id="map-overlay"></select></label>
       <label><span data-i18n="map_opacity"></span><input id="map-opacity" type="range" min="0.2" max="1" step="0.05" value="0.75"></label>
-      <div class="daterow">
-        <button id="map-prev" class="icon" aria-label="previous">‹</button>
-        <input id="map-date" type="date">
-        <button id="map-next" class="icon" aria-label="next">›</button>
-        <button id="map-play" class="icon play" title="Time-lapse">▶</button>
+      <p class="fine">NASA GIBS · MODIS, SMAP L4, GPM IMERG</p>
+    </div>
+
+    <div id="draw-bar" class="floater drawbar adv hidden">
+      <span id="draw-hint" data-i18n="draw_hint"></span>
+      <div class="row">
+        <button id="btn-draw-finish" class="solid" data-i18n="draw_finish" disabled></button>
+        <button id="btn-draw-clear" class="txt" data-i18n="draw_clear"></button>
       </div>
+    </div>
+
+    <div class="timebar adv">
+      <button id="map-play" class="play" title="Time-lapse" aria-label="Time-lapse">▶</button>
+      <button id="map-prev" class="step" aria-label="earlier">‹</button>
+      <input id="map-date" type="date">
+      <button id="map-next" class="step" aria-label="later">›</button>
       <div id="map-legend" class="legend"></div>
-      <div class="src">NASA GIBS · MODIS · SMAP · GPM IMERG</div>
     </div>
-  </div>
-  <div class="map-ui bl adv">
-    <div class="panel row">
-      <button id="btn-draw" data-i18n="draw"></button>
-      <button id="btn-draw-finish" class="ghost" data-i18n="draw_finish" disabled></button>
-      <button id="btn-draw-clear" class="ghost" data-i18n="draw_clear"></button>
-      <b id="draw-area"></b>
-    </div>
-    <div id="draw-hint" class="hint hidden" data-i18n="draw_hint"></div>
-  </div>
-  <div class="map-ui bc simple-only"><div class="hint big" data-i18n="tap_hint"></div></div>
-  <div id="site-progress" class="map-ui br progress hidden"></div>
-</section>
 
-<!-- ================= SIMPLE WIZARD ================= -->
-<section class="wizard simple-only">
-  <div class="wstep"><span class="num">1</span><div><div class="wk" data-i18n="wiz1"></div><div id="wiz-field" class="wv">—</div></div></div>
-  <div class="wstep"><span class="num">2</span><div><div class="wk" data-i18n="wiz2"></div>
-    <div class="grid2"><select id="sw-w" aria-label="winter crop"></select><select id="sw-s" aria-label="summer crop"></select></div></div></div>
-  <div class="wstep"><span class="num">3</span><div><div class="wk" data-i18n="wiz3"></div>
-    <div class="pris" id="pris">
-      <button data-p="water">💧 <span data-i18n="w_water"></span></button>
-      <button data-p="soil">🌱 <span data-i18n="w_soil"></span></button>
-      <button data-p="profit">💰 <span data-i18n="w_profit"></span></button>
-      <button data-p="risk">🛡 <span data-i18n="w_risk"></span></button>
-    </div></div></div>
-</section>
+    <div class="tap simple-only" data-i18n="tap_hint"></div>
+    <div id="field-tag" class="field-tag"><b id="draw-area"></b></div>
+    <div id="site-progress" class="progress hidden"></div>
+  </section>
 
-<main class="layout">
-  <aside class="side adv">
-    <section class="card">
-      <h2 data-i18n="s_field"></h2>
+  <!-- ================= SHEET: everything about this field ================= -->
+  <aside class="sheet" id="sheet">
+    <div class="grip" id="grip" aria-hidden="true"></div>
+
+    <section class="s-field">
+      <div class="kicker" data-i18n="s_field"></div>
+      <h1 id="wiz-field">—</h1>
       <div id="site-meta" class="meta"></div>
+      <div id="site-chips" class="chips"></div>
     </section>
-    <section class="card">
-      <h2 data-i18n="farms_title"></h2>
-      <div class="farm-save">
-        <input id="farm-name" data-i18n-ph="farm_name">
-        <button id="btn-farm-save" data-i18n="farm_save"></button>
-      </div>
-      <ul id="farms" class="farms"></ul>
-      <div id="farm-plans"></div>
-    </section>
-    <section class="card">
-      <h2 data-i18n="s_rotation"></h2>
-      <div class="grid2">
-        <label><span data-i18n="winter"></span><select id="ex-w"></select></label>
-        <label><span data-i18n="summer"></span><select id="ex-s"></select></label>
-      </div>
-      <button id="btn-ndvi" class="link" data-i18n="ndvi_suggest"></button>
-      <div id="ndvi-sugg" class="meta"></div>
-    </section>
-    <section class="card">
-      <h2 data-i18n="s_priorities"></h2>
-      <div class="slider"><label data-i18n="w_water"></label><input type="range" id="w-water" min="0" max="5" value="3"><output></output></div>
-      <div class="slider"><label data-i18n="w_soil"></label><input type="range" id="w-soil" min="0" max="5" value="2"><output></output></div>
-      <div class="slider"><label data-i18n="w_profit"></label><input type="range" id="w-profit" min="0" max="5" value="2"><output></output></div>
-      <div class="slider"><label data-i18n="w_risk"></label><input type="range" id="w-risk" min="0" max="5" value="2"><output></output></div>
-    </section>
-    <section class="card">
-      <h2 data-i18n="s_whatif"></h2>
-      <div class="slider"><label data-i18n="x_rain"></label><input type="range" id="x-rain" min="-50" max="20" step="5" value="0"><output></output></div>
-      <div class="slider"><label data-i18n="x_warm"></label><input type="range" id="x-warm" min="0" max="3" step="0.5" value="0"><output></output></div>
-      <div class="slider"><label data-i18n="x_price"></label><input type="range" id="x-price" min="-40" max="40" step="10" value="0"><output></output></div>
-    </section>
-    <section class="card">
-      <h2 data-i18n="s_constraints"></h2>
-      <label class="check"><input type="checkbox" id="cap-on"><span data-i18n="cap_toggle"></span></label>
-      <div class="grid2" id="cap-box">
-        <label><span data-i18n="cap_w"></span><input type="number" id="cap-w" value="2500" step="250"></label>
-        <label><span data-i18n="cap_s"></span><input type="number" id="cap-s" value="5000" step="250"></label>
-      </div>
-      <div class="meta" data-i18n="candidates"></div>
-      <div id="cand" class="chips"></div>
-    </section>
-  </aside>
 
-  <section class="content">
-    <section id="hero" class="card hero"></section>
-
-    <section class="card">
-      <div class="head-row">
-        <div><h2 data-i18n="showdown"></h2><div id="showdown-sub" class="meta"></div></div>
-        <button id="btn-plan-save" class="ghost small adv" data-i18n="plan_save"></button>
+    <section class="s-steps">
+      <div class="step2">
+        <div class="kicker" data-i18n="wiz2"></div>
+        <div class="grid2">
+          <label><span data-i18n="winter"></span><select id="sw-w"></select></label>
+          <label><span data-i18n="summer"></span><select id="sw-s"></select></label>
+        </div>
+        <button id="btn-ndvi" class="link" data-i18n="ndvi_suggest"></button>
+        <div id="ndvi-sugg" class="meta"></div>
       </div>
-      <div id="tie" class="banner hidden"></div>
+      <div class="step3">
+        <div class="kicker" data-i18n="wiz3"></div>
+        <div class="pris" id="pris">
+          <button data-p="water"><span data-i18n="w_water"></span></button>
+          <button data-p="soil"><span data-i18n="w_soil"></span></button>
+          <button data-p="profit"><span data-i18n="w_profit"></span></button>
+          <button data-p="risk"><span data-i18n="w_risk"></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="hero" class="s-hero"></section>
+
+    <section class="s-block">
+      <div class="h-row"><h2 data-i18n="showdown"></h2><button id="btn-plan-save" class="txt adv" data-i18n="plan_save"></button></div>
+      <div id="showdown-sub" class="meta"></div>
+      <div id="tie" class="note hidden"></div>
       <div id="rotations" class="rots"></div>
     </section>
 
-    <section id="investor" class="card adv lens-investor lens-scientist"></section>
+    <section class="s-block" id="ahead-block">
+      <h2 data-i18n="ahead_title"></h2>
+      <div id="ahead"></div>
+    </section>
 
-    <section class="card scout adv">
-      <div class="head-row">
-        <div><h2 data-i18n="scout_title"></h2><div class="meta" data-i18n="scout_sub"></div></div>
-      </div>
-      <div class="scout-grid">
-        <div>
-          <div id="scout-controls"></div>
-          <div id="fusion-stats" class="stats"></div>
-          <div id="range-viz"></div>
-        </div>
-        <div><div id="fusion-chart" class="chart small"></div></div>
-      </div>
+    <section id="investor" class="s-block adv lens-investor lens-scientist"></section>
+
+    <section class="s-block scout adv">
+      <h2 data-i18n="scout_title"></h2>
+      <div class="meta" data-i18n="scout_sub"></div>
+      <div id="scout-controls"></div>
+      <div id="fusion-stats" class="stats"></div>
+      <div id="range-viz"></div>
+      <div id="fusion-chart" class="chart small"></div>
       <details class="robot">
         <summary><span data-i18n="robot_title"></span> · <span data-i18n="leaf_title"></span></summary>
-        <div class="btn-row">
-          <button id="btn-robot" class="ghost" data-i18n="robot_start"></button>
-          <button id="btn-robot-reset" class="ghost" data-i18n="robot_reset"></button>
+        <div class="row">
+          <button id="btn-robot" class="txt" data-i18n="robot_start"></button>
+          <button id="btn-robot-reset" class="txt" data-i18n="robot_reset"></button>
           <span id="robot-mode" class="mode NONE"></span>
         </div>
         <div class="tiles">
@@ -177,10 +152,10 @@
           <div class="tile"><span data-i18n="t_soil"></span><b id="r-soil">–</b></div>
           <div class="tile"><span data-i18n="t_rain"></span><b id="r-rain">–</b></div>
         </div>
-        <div class="btn-row">
+        <div class="row">
           <label class="file-btn"><input type="file" id="leaf-file" accept="image/*"><span data-i18n="leaf_upload"></span></label>
           <select id="leaf-class"></select>
-          <button id="btn-leaf" class="ghost" data-i18n="leaf_record"></button>
+          <button id="btn-leaf" class="txt" data-i18n="leaf_record"></button>
         </div>
         <div id="leaf-status" class="meta"></div>
         <ul id="sightings" class="sightings"></ul>
@@ -188,16 +163,47 @@
       </details>
     </section>
 
-    <div class="two">
-      <section class="card"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
-      <section class="card">
-        <div class="head-row"><h2 data-i18n="council_title"></h2><button id="btn-council" class="ghost small" data-i18n="council_ask"></button></div>
-        <div class="meta" data-i18n="council_sub"></div>
-        <div id="council"></div>
-      </section>
-    </div>
+    <section class="s-block"><h2 data-i18n="blind_title"></h2><ul id="blind" class="blind"></ul></section>
 
-    <section class="card adv">
+    <section class="s-block">
+      <div class="h-row"><h2 data-i18n="council_title"></h2><button id="btn-council" class="txt" data-i18n="council_ask"></button></div>
+      <div class="meta" data-i18n="council_sub"></div>
+      <div id="council"></div>
+    </section>
+
+    <section class="s-block adv">
+      <h2 data-i18n="farms_title"></h2>
+      <div class="farm-save"><input id="farm-name" data-i18n-ph="farm_name"><button id="btn-farm-save" class="solid" data-i18n="farm_save"></button></div>
+      <ul id="farms" class="farms"></ul>
+      <div id="farm-plans"></div>
+    </section>
+
+    <section class="s-block adv">
+      <h2 data-i18n="s_settings"></h2>
+      <div class="grid2">
+        <label><span data-i18n="winter"></span><select id="ex-w"></select></label>
+        <label><span data-i18n="summer"></span><select id="ex-s"></select></label>
+      </div>
+      <h3 data-i18n="s_priorities"></h3>
+      <div class="slider"><label data-i18n="w_water"></label><input type="range" id="w-water" min="0" max="5" value="3"><output></output></div>
+      <div class="slider"><label data-i18n="w_soil"></label><input type="range" id="w-soil" min="0" max="5" value="2"><output></output></div>
+      <div class="slider"><label data-i18n="w_profit"></label><input type="range" id="w-profit" min="0" max="5" value="2"><output></output></div>
+      <div class="slider"><label data-i18n="w_risk"></label><input type="range" id="w-risk" min="0" max="5" value="2"><output></output></div>
+      <h3 data-i18n="s_whatif"></h3>
+      <div class="slider"><label data-i18n="x_rain"></label><input type="range" id="x-rain" min="-50" max="20" step="5" value="0"><output></output></div>
+      <div class="slider"><label data-i18n="x_warm"></label><input type="range" id="x-warm" min="0" max="3" step="0.5" value="0"><output></output></div>
+      <div class="slider"><label data-i18n="x_price"></label><input type="range" id="x-price" min="-40" max="40" step="10" value="0"><output></output></div>
+      <h3 data-i18n="s_constraints"></h3>
+      <label class="check"><input type="checkbox" id="cap-on"><span data-i18n="cap_toggle"></span></label>
+      <div class="grid2">
+        <label><span data-i18n="cap_w"></span><input type="number" id="cap-w" value="2500" step="250"></label>
+        <label><span data-i18n="cap_s"></span><input type="number" id="cap-s" value="5000" step="250"></label>
+      </div>
+      <div class="meta" data-i18n="candidates"></div>
+      <div id="cand" class="chips"></div>
+    </section>
+
+    <section class="s-block adv">
       <h2 data-i18n="diag_title"></h2>
       <div class="tabs" id="diag-tabs">
         <button data-tab="danger" class="active" data-i18n="tab_danger"></button>
@@ -210,25 +216,23 @@
       <ul id="sources" class="sources hidden"></ul>
     </section>
 
-    <section id="science" class="card adv lens-scientist"></section>
-    <footer class="foot">
-      <span data-i18n="foot"></span> · <a href="/docs" target="_blank">API</a> · <a href="https://github.com/Ali-M-Kotb/agrotwin" target="_blank">GitHub</a>
-    </footer>
-  </section>
-</main>
+    <section id="science" class="s-block adv lens-scientist"></section>
+    <footer class="foot"><span data-i18n="foot"></span> · <a href="/docs" target="_blank">API</a> · <a href="https://github.com/Ali-M-Kotb/agrotwin" target="_blank">GitHub</a></footer>
+  </aside>
+</div>
 
 <div id="chip-pop" class="chip-pop hidden"></div>
 <div id="card-dlg" class="dlg hidden"><div class="dlg-in">
   <h2 data-i18n="card_title"></h2>
   <pre id="wa-text"></pre>
-  <div class="btn-row">
-    <a id="card-open" class="btn" target="_blank" data-i18n="card_print"></a>
-    <a id="card-wa" class="btn ghost" target="_blank" rel="noopener">WhatsApp</a>
-    <button id="btn-wa" class="ghost" data-i18n="card_wa"></button>
-    <button id="btn-dlg-close" class="ghost">✕</button>
+  <div class="row">
+    <a id="card-open" class="btn solid" target="_blank" data-i18n="card_print"></a>
+    <a id="card-wa" class="btn" target="_blank" rel="noopener">WhatsApp</a>
+    <button id="btn-wa" class="txt" data-i18n="card_wa"></button>
+    <button id="btn-dlg-close" class="txt">×</button>
   </div>
 </div></div>
-<div id="loading" class="loading hidden"><div class="spinner"></div><span id="loading-text"></span></div>
+<div id="loading" class="loading hidden"><span class="bar-anim"></span><span id="loading-text"></span></div>
 <div id="toast" class="toast hidden"></div>
 
 <script src="/static/vendor/leaflet.js"></script>

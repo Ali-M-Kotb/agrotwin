@@ -44,9 +44,10 @@ def robust_z(series: pd.Series, half_window: int = 7) -> pd.Series:
             continue
         med = np.median(vals[near])
         mad = np.median(np.abs(vals[near] - med)) * 1.4826
+        if mad <= 1e-9:   # e.g. a dry month where most days are 0 mm: use the mean deviation (as in Yaseen's danger.py)
+            mad = np.mean(np.abs(vals[near] - med))
         sel = doy == d
-        if mad > 1e-9:
-            z[sel] = (vals[sel] - med) / mad
+        z[sel] = (vals[sel] - med) / mad if mad > 1e-9 else 0.0
     return pd.Series(z, index=s.index)
 
 

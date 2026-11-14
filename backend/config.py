@@ -10,6 +10,7 @@ typo fails loudly.
 ASSUMPTIONS = {
     # replay
     "replay_first_year": (1991, "first replay start year (plan: every year since 1991)"),
+    "climate_adjust": (True, "warm each past year to today's climate by the site's measured Tmax trend before replay (wins the 3-season backtest)"),
     "spinup_days": (120, "bare-soil spin-up before each window so starting soil water comes from that year's weather"),
     "gap_days": (5, "minimum days between harvest and the next sowing"),
     # soil water

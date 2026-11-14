@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 — 14 Nov 2026: backtest, look-ahead, map-first design
+- qa/backtest.py: last three seasons, forecast from earlier years only, CRPS vs 'same as last year' and long-term mean
+- Climate-adjusted replay (site Tmax trend), adopted because it wins the backtest
+- 16-day irrigation planner (Open-Meteo forecast + FAO-56 balance) and SEAS5 seasonal outlook (context only)
+- Map-first interface: sheet + full-screen map, tool rail, layer panel, timeline bar; field-notebook styling, no emoji
+- Fixes: Council hidden in Simple mode; cotton sown 25 Mar (inside the verified window); Gharbia default rotation
+- Danger windows: zero-MAD fallback (from Yaseen Abdelal's danger.py)
+- docs/SAMPLE_CASES.md for pitch rehearsal
+
 ## 0.2.0 — 14 Nov 2026: merge with the AgroTwin scaffold + product map
 
 Merged from Yaseen Abdelal's AgroTwin repo (github.com/Yaseen-Saad/AgroTwin):

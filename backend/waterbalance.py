@@ -112,6 +112,36 @@ def weather_matrices(weather: pd.DataFrame, years: list[int]) -> dict:
     return dict(et0=et0, rain=rain, tmax=tmax, years=list(years))
 
 
+def site_warming_trend(weather: pd.DataFrame) -> float:
+    """°C per year: linear trend of annual mean Tmax over the full POWER record (complete years)."""
+    ann = weather["T2M_MAX"].groupby(weather.index.year).agg(["mean", "count"])
+    ann = ann[ann["count"] >= 360]["mean"]
+    return float(np.polyfit(ann.index.values.astype(float), ann.values, 1)[0])
+
+
+def weather_matrices_adjusted(weather: pd.DataFrame, years: list[int], lat: float, elev: float,
+                              target_year: int, trend: float | None = None) -> dict:
+    """Climate-adjusted replay: each past window is warmed to target_year's climate by the site's
+    own measured Tmax trend (all three temperatures shifted, ET0 recomputed with FAO-56).
+    Backtest (qa/BACKTEST.md): improves irrigation CRPS by ~29% and profit coverage 70% → 78%."""
+    import data_sources as ds
+    trend = site_warming_trend(weather) if trend is None else trend
+    spin = A["spinup_days"]
+    cols = {"et0": [], "rain": [], "tmax": []}
+    for y in years:
+        i0 = weather.index.get_loc(pd.Timestamp(y, 10, 1)) - spin
+        sl = weather.iloc[i0:i0 + spin + T_DAYS].drop(columns=["ET0"], errors="ignore").copy()
+        dT = trend * (target_year - y)
+        for c in ("T2M", "T2M_MAX", "T2M_MIN"):
+            sl[c] = sl[c] + dT
+        sl = ds.add_et0(sl, lat, elev)
+        cols["et0"].append(np.nan_to_num(sl["ET0"].to_numpy(float), nan=4.0))
+        cols["rain"].append(np.nan_to_num(sl["PRECTOTCORR"].to_numpy(float), nan=0.0))
+        cols["tmax"].append(np.nan_to_num(sl["T2M_MAX"].to_numpy(float), nan=25.0))
+    return dict(et0=np.stack(cols["et0"]), rain=np.stack(cols["rain"]), tmax=np.stack(cols["tmax"]),
+                years=list(years), adjusted_to=target_year, trend_per_decade=round(trend * 10, 3))
+
+
 def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irrigated: bool,
              cap_net_mm: dict | None = None, irrigation_days: np.ndarray | None = None,
              keep_wetness_days: int = 0) -> dict:
@@ -160,6 +190,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
     clamp_loss = np.zeros((R, W))
     keep = min(keep_wetness_days, T_DAYS)
     wet_trace = np.zeros((R, W, keep)) if keep else None
+    irr_trace = np.zeros((R, W, keep)) if keep else None
 
     ar = np.arange(R)
     aw = np.arange(W)
@@ -228,6 +259,7 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
         in_sum += P[None, :] + I
         if keep and c < keep:
             wet_trace[:, :, c] = 1 - Dr / taw
+            irr_trace[:, :, c] = I
 
         if crop.any():
             ii = (ar[:, None], aw[None, :], np.maximum(sl, 0)[:, None])
@@ -254,5 +286,5 @@ def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irriga
         bare_days=bare_days, erosion=erosion,
         # mass balance terms (tests): inputs − ET − DP − RO − clamp = Δstorage
         _in=in_sum, _et=et_sum, _dp=dp_sum, _ro=ro_sum, _clamp=clamp_loss, _Dr0=Dr0, _Dr1=Dr,
-        wet=wet_trace,
+        wet=wet_trace, irr_trace=irr_trace,
     )
