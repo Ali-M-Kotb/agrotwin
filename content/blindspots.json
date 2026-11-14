@@ -1,0 +1,227 @@
+[
+  {
+    "id": "soil_salinity",
+    "en": {
+      "title": "Soil salinity",
+      "why": "Salty soil can cut the yield of sensitive crops even when water and weather look fine, and some crops in a rotation tolerate salt far better than others.",
+      "check": "Send a soil sample to the agricultural directorate or nearest research station lab for a salinity (electrical conductivity) test, and look for white crusts on the surface or patches of weak, stunted plants."
+    },
+    "ar": {
+      "title": "ملوحة التربة",
+      "why": "الأرض المالحة قد تقلل إنتاج المحاصيل الحساسة حتى لو كان الماء والطقس مناسبين، وبعض محاصيل الدورة يتحمل الملوحة أكثر بكثير من غيره.",
+      "check": "أرسل عينة تربة إلى معمل مديرية الزراعة أو أقرب محطة بحثية لقياس الملوحة (التوصيل الكهربي)، ولاحظ وجود قشرة بيضاء على السطح أو بقع يكون فيها الزرع ضعيفًا وقصيرًا."
+    },
+    "triggers": ["north_delta", "clay_over_40", "crop:rice", "crop:sugarbeet"],
+    "needs_native_review": true
+  },
+  {
+    "id": "subsurface_ph",
+    "en": {
+      "title": "Soil pH below the surface",
+      "why": "Soil pH in the deeper layers controls how much phosphorus, iron and zinc the roots can take up, and neither satellites nor the robot measure it.",
+      "check": "Take samples from the topsoil and from deeper in the root zone and have the pH tested at a soil lab."
+    },
+    "ar": {
+      "title": "حموضة التربة تحت السطح (pH)",
+      "why": "درجة حموضة الطبقات العميقة من التربة تتحكم في قدرة الجذور على امتصاص الفوسفور والحديد والزنك، ولا يقيسها القمر الصناعي ولا الروبوت.",
+      "check": "خذ عينات من سطح التربة ومن عمق منطقة الجذور واطلب قياس الـ pH في معمل تحليل التربة."
+    },
+    "triggers": ["always"],
+    "needs_native_review": true
+  },
+  {
+    "id": "nematodes_soilborne_disease",
+    "en": {
+      "title": "Nematodes and soil-borne disease",
+      "why": "Root-knot nematodes and soil-borne diseases build up when the same crop family returns to the field too soon, and they can erase the benefit of a rotation that looks good on water and profit.",
+      "check": "Dig up a few plants and look for knots or rot on the roots, and ask the agricultural extension officer about a soil nematode test before planting potato or tomato again."
+    },
+    "ar": {
+      "title": "النيماتودا وأمراض التربة",
+      "why": "نيماتودا تعقد الجذور وأمراض التربة تتراكم عندما يعود نفس نوع المحصول إلى الأرض بسرعة، وقد تضيّع فائدة دورة تبدو جيدة من ناحية الماء والربح.",
+      "check": "اقلع بعض النباتات وافحص الجذور بحثًا عن عُقد أو عفن، واسأل المرشد الزراعي عن تحليل التربة للنيماتودا قبل زراعة البطاطس أو الطماطم مرة أخرى."
+    },
+    "triggers": ["family:Solanaceae", "crop:potato", "crop:sugarbeet", "scout_disease_seen"],
+    "needs_native_review": true
+  },
+  {
+    "id": "pest_pressure",
+    "en": {
+      "title": "Insect pest pressure",
+      "why": "Insects such as moths, aphids and leaf miners can decide the harvest, and their pressure depends on neighbouring fields and the season, which the model cannot see.",
+      "check": "Walk the field every few days and check the undersides of leaves, and ask neighbours and the cooperative which pests hit the area last season."
+    },
+    "ar": {
+      "title": "ضغط الآفات الحشرية",
+      "why": "حشرات مثل الفراشات والمنّ وصانعات الأنفاق قد تحدد مصير المحصول، وشدتها تعتمد على حقول الجيران والموسم، وهذا لا يراه النموذج.",
+      "check": "امشِ في الأرض كل بضعة أيام وافحص ظهر الأوراق، واسأل الجيران والجمعية الزراعية عن الآفات التي ظهرت في المنطقة الموسم الماضي."
+    },
+    "triggers": ["always"],
+    "needs_native_review": true
+  },
+  {
+    "id": "seed_input_availability",
+    "en": {
+      "title": "Local seed and input availability",
+      "why": "A rotation only works if certified seed, fertilizer and pesticides for each crop can be bought locally at planting time and at an affordable price.",
+      "check": "Before the season, ask the agricultural cooperative and local input dealers whether seed and fertilizer for each planned crop will be in stock, and at what price."
+    },
+    "ar": {
+      "title": "توفر التقاوي ومستلزمات الإنتاج محليًا",
+      "why": "الدورة لا تنجح إلا إذا توفرت التقاوي المعتمدة والأسمدة والمبيدات لكل محصول في وقت الزراعة وبسعر مناسب.",
+      "check": "قبل الموسم اسأل الجمعية الزراعية وتجار المستلزمات عن توفر تقاوي وأسمدة كل محصول في الخطة وعن أسعارها."
+    },
+    "triggers": ["always"],
+    "needs_native_review": true
+  },
+  {
+    "id": "canal_rotation",
+    "en": {
+      "title": "Irrigation scheduling and canal rotation",
+      "why": "In much of Egypt canal water arrives on a rotation of on and off turns, so a crop can suffer during off turns even when the season's total water looks sufficient.",
+      "check": "Ask the irrigation engineer or the water users' association for the turn schedule of the canal branch that serves your field, and compare it with the crop's danger windows."
+    },
+    "ar": {
+      "title": "مناوبات الري على الترعة",
+      "why": "في أماكن كثيرة في مصر تصل مياه الترعة بنظام المناوبة (أيام عمالة وأيام بطالة)، فقد يعطش الزرع في أيام البطالة حتى لو كان إجمالي ماء الموسم كافيًا.",
+      "check": "اسأل مهندس الري أو رابطة مستخدمي المياه عن جدول المناوبة لفرع الترعة الذي يروي أرضك، وقارنه بنوافذ الخطر للمحصول."
+    },
+    "triggers": ["irrigated", "crop:rice", "water_cap_binding"],
+    "needs_native_review": true
+  },
+  {
+    "id": "water_rights",
+    "en": {
+      "title": "Water rights and allocation",
+      "why": "Water-hungry crops, rice in particular, may be limited to permitted areas, and your share of canal water is set by allocation rules the model does not know.",
+      "check": "Confirm with the local agricultural directorate or irrigation office whether your field may grow rice or other high-water crops this season, and what your water share is."
+    },
+    "ar": {
+      "title": "حصة المياه والمساحات المسموح بها",
+      "why": "قد تكون زراعة المحاصيل الشرهة للمياه، وخاصة الأرز، مقصورة على مناطق مصرّح بها، وحصتك من ماء الترعة تحددها قواعد توزيع لا يعرفها النموذج.",
+      "check": "تأكد من مديرية الزراعة أو إدارة الري المحلية هل يُسمح لأرضك بزراعة الأرز أو غيره من المحاصيل كثيفة الاستهلاك للمياه هذا الموسم، وما هي حصتك من المياه."
+    },
+    "triggers": ["irrigated", "crop:rice", "water_cap_binding"],
+    "needs_native_review": true
+  },
+  {
+    "id": "groundwater",
+    "en": {
+      "title": "Groundwater level and quality",
+      "why": "Shallow or salty groundwater can waterlog roots or pull salt up into the root zone, and well water quality can decide which crops survive; neither satellites nor the robot see below the probe.",
+      "check": "Watch the water depth in a nearby well or dug pit through the season, and have well or drain water tested for salinity at a lab."
+    },
+    "ar": {
+      "title": "مستوى المياه الجوفية ونوعيتها",
+      "why": "المياه الجوفية القريبة من السطح أو المالحة قد تخنق الجذور أو ترفع الأملاح إلى منطقة الجذور، ونوعية ماء البئر قد تحدد أي المحاصيل تنجح، ولا يرى القمر الصناعي ولا الروبوت ما تحت المجس.",
+      "check": "تابع عمق الماء في بئر قريب أو حفرة خلال الموسم، وأرسل عينة من ماء البئر أو المصرف إلى المعمل لقياس ملوحتها."
+    },
+    "triggers": ["irrigated", "water_cap_binding", "north_delta"],
+    "needs_native_review": true
+  },
+  {
+    "id": "within_field_variability",
+    "en": {
+      "title": "Differences across the field",
+      "why": "The probe reads one spot, but low corners, sandy patches or the part near the canal can be much wetter or drier, so a single reading may not represent the whole field.",
+      "check": "Move the robot, or push a stick into the soil, at several spots (high and low, near and far from the water inlet) and compare them."
+    },
+    "ar": {
+      "title": "اختلاف الأرض من مكان لآخر",
+      "why": "المجس يقرأ نقطة واحدة فقط، بينما قد تكون الأماكن المنخفضة أو البقع الرملية أو الجزء القريب من الترعة أرطب أو أجف بكثير، فلا تمثل القراءة الواحدة الأرض كلها.",
+      "check": "انقل الروبوت أو اغرز عصا في التربة في عدة أماكن (مرتفع ومنخفض، قريب من فتحة الري وبعيد عنها) وقارن بينها."
+    },
+    "triggers": ["scout_data"],
+    "needs_native_review": true
+  },
+  {
+    "id": "field_soil_unknown",
+    "en": {
+      "title": "Your field's actual moisture and soil type",
+      "why": "Without robot readings the app relies on general soil assumptions, so the starting moisture and how much water the soil holds may not match your field.",
+      "check": "Run the Verdex Scout in the field, or at least squeeze a handful of soil from root depth to judge whether it is sandy or clayey and how moist it is."
+    },
+    "ar": {
+      "title": "رطوبة أرضك ونوع تربتها الفعلي",
+      "why": "بدون قراءات الروبوت يعتمد التطبيق على افتراضات عامة عن التربة، فقد لا تطابق رطوبة البداية وقدرة التربة على حفظ الماء أرضك الحقيقية.",
+      "check": "شغّل Verdex Scout في الأرض، أو على الأقل خذ حفنة من التربة من عمق الجذور واضغطها بيدك لتعرف هل هي رملية أم طينية ومدى رطوبتها."
+    },
+    "triggers": ["no_scout_data"],
+    "needs_native_review": true
+  },
+  {
+    "id": "local_weather",
+    "en": {
+      "title": "Weather at your exact field",
+      "why": "The NASA weather data is an average over a large area, so a local shower, a frost pocket or a sea breeze near the coast can make your field differ from it.",
+      "check": "Keep a simple rain gauge and thermometer at the field, or compare with the nearest agricultural weather station, and note the days they disagree."
+    },
+    "ar": {
+      "title": "الطقس في أرضك بالتحديد",
+      "why": "بيانات الطقس من ناسا متوسط لمساحة كبيرة، فقد يختلف طقس أرضك بسبب مطرة محلية أو صقيع في منطقة منخفضة أو نسيم البحر قرب الساحل.",
+      "check": "ضع مقياس مطر بسيطًا وترمومترًا في الأرض، أو قارن بأقرب محطة أرصاد زراعية، وسجّل الأيام التي تختلف فيها القراءات."
+    },
+    "triggers": ["rainfed", "north_delta", "no_scout_data"],
+    "needs_native_review": true
+  },
+  {
+    "id": "legume_nodulation",
+    "en": {
+      "title": "Whether the legume really fixed nitrogen",
+      "why": "The legume nitrogen credit assumes the roots formed working nodules and the residue stayed in the field; poor inoculation or cutting berseem many times for fodder can leave less nitrogen than the model counts.",
+      "check": "At flowering, dig up a few plants and cut open the root nodules: pink or red inside means they are fixing nitrogen, white or green means they are not."
+    },
+    "ar": {
+      "title": "هل ثبّت المحصول البقولي النيتروجين فعلًا؟",
+      "why": "رصيد النيتروجين يفترض أن الجذور كوّنت عُقدًا نشطة وأن بقايا النبات بقيت في الأرض، لكن ضعف التلقيح البكتيري أو حش البرسيم مرات كثيرة للعلف قد يترك نيتروجينًا أقل مما يحسبه النموذج.",
+      "check": "عند التزهير اقلع بعض النباتات واقطع العُقد الجذرية: إذا كان لونها من الداخل ورديًا أو أحمر فهي تثبّت النيتروجين، وإذا كان أبيض أو أخضر فهي لا تثبّته."
+    },
+    "triggers": ["family:Fabaceae"],
+    "needs_native_review": true
+  },
+  {
+    "id": "market_price",
+    "en": {
+      "title": "Market access and price at harvest",
+      "why": "Profit depends on the price at harvest, which can drop sharply if many farmers in the area plant the same crop, while the model uses past or assumed prices.",
+      "check": "Before planting, ask traders, the cooperative or a contract buyer (for example the sugar factory for sugar beet) what price, payment terms and delivery point they will offer."
+    },
+    "ar": {
+      "title": "الوصول إلى السوق وسعر الحصاد",
+      "why": "الربح يعتمد على السعر وقت الحصاد، وقد ينخفض بشدة إذا زرع كثير من الفلاحين في المنطقة نفس المحصول، بينما يستخدم النموذج أسعارًا سابقة أو مفترضة.",
+      "check": "قبل الزراعة اسأل التجار أو الجمعية أو جهة التعاقد (مثل مصنع السكر بالنسبة للبنجر) عن السعر وشروط الدفع ومكان التسليم."
+    },
+    "triggers": ["always"],
+    "needs_native_review": true
+  },
+  {
+    "id": "labour_availability",
+    "en": {
+      "title": "Labour availability",
+      "why": "Some crops need many hands for transplanting, harvesting or digging, and if workers are not available at the right time part of the crop is lost or costs rise.",
+      "check": "Work out the busy weeks for each crop and ask about the availability and wages of workers in those weeks, especially if they overlap with neighbours' harvests."
+    },
+    "ar": {
+      "title": "توفر العمالة",
+      "why": "بعض المحاصيل تحتاج أيدي عاملة كثيرة في الشتل أو الحصاد أو التقليع، وإذا لم تتوفر في الوقت المناسب يضيع جزء من المحصول أو ترتفع التكلفة.",
+      "check": "حدد أسابيع الذروة لكل محصول واسأل عن توفر العمال وأجورهم في تلك الأسابيع، خاصة إذا تزامنت مع حصاد الجيران."
+    },
+    "triggers": ["always"],
+    "needs_native_review": true
+  },
+  {
+    "id": "leaf_camera_limits",
+    "en": {
+      "title": "The leaf camera knows only 8 classes",
+      "why": "The leaf camera model was trained on only 8 classes of apple, potato and strawberry leaves, so it cannot recognise diseases of other crops and may mislabel any leaf it was not trained on.",
+      "check": "Treat a camera result as a hint only, and show the leaf to the extension officer or a plant clinic before spraying."
+    },
+    "ar": {
+      "title": "كاميرا الأوراق تعرف 8 حالات فقط",
+      "why": "نموذج كاميرا الأوراق مدرَّب على 8 حالات فقط لأوراق التفاح والبطاطس والفراولة، فلا يتعرف على أمراض المحاصيل الأخرى وقد يخطئ في تصنيف أي ورقة لم يتدرب عليها.",
+      "check": "اعتبر نتيجة الكاميرا مجرد تنبيه، واعرض الورقة على المرشد الزراعي أو عيادة النبات قبل الرش."
+    },
+    "triggers": ["scout_data", "scout_disease_seen"],
+    "needs_native_review": true
+  }
+]

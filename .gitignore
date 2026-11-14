@@ -1,0 +1,13 @@
+# macOS / network-drive sidecar files
+._*
+.DS_Store
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+# Farm data posted by the Scout stays on the farmer's machine
+data/scout/
+# Secrets
+.env
+.netrc

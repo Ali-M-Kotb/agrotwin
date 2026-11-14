@@ -1,0 +1,262 @@
+{
+  "et0": {
+    "en": {
+      "term": "Reference evapotranspiration (ET0)",
+      "definition": "The water a well-watered reference grass surface would lose to the air through soil evaporation and plant transpiration, computed from weather (temperature, humidity, wind and sunshine). It measures how thirsty the weather is, independent of the crop.",
+      "farmer": "How much water the weather pulls out of the field each day."
+    },
+    "ar": {
+      "term": "البخر-نتح المرجعي (ET0)",
+      "definition": "كمية الماء التي يفقدها سطح عشبي مرجعي مروي جيدًا إلى الجو بالتبخر من التربة والنتح من النبات، وتُحسب من بيانات الطقس مثل الحرارة والرطوبة والرياح وأشعة الشمس. وهي تقيس مدى عطش الجو بغض النظر عن نوع المحصول.",
+      "farmer": "مقدار الماء الذي يسحبه الجو من الأرض كل يوم."
+    },
+    "needs_native_review": true
+  },
+  "etc": {
+    "en": {
+      "term": "Crop water use (ETc)",
+      "definition": "Reference evapotranspiration multiplied by a crop coefficient (Kc) that changes with the crop and its growth stage. It estimates how much water this particular crop actually uses.",
+      "farmer": "How much water your crop drinks at its current age."
+    },
+    "ar": {
+      "term": "استهلاك المحصول للماء (ETc)",
+      "definition": "هو البخر-نتح المرجعي مضروبًا في معامل المحصول (Kc) الذي يتغير حسب نوع المحصول ومرحلة نموه، ويقدّر كمية الماء التي يستهلكها هذا المحصول بعينه.",
+      "farmer": "كمية الماء التي يشربها زرعك في عمره الحالي."
+    },
+    "needs_native_review": true
+  },
+  "soil_moisture": {
+    "en": {
+      "term": "Soil moisture",
+      "definition": "The share of the soil volume taken up by water (volumetric water content). In AgroTwin it comes either from the Verdex Scout probe or from the model's daily water balance.",
+      "farmer": "How wet the soil is where the roots are."
+    },
+    "ar": {
+      "term": "رطوبة التربة",
+      "definition": "نسبة حجم الماء إلى حجم التربة (المحتوى المائي الحجمي). وتأتي في AgroTwin إما من مجس روبوت Verdex Scout أو من حساب الميزان المائي اليومي في النموذج.",
+      "farmer": "مدى ابتلال التربة عند الجذور."
+    },
+    "needs_native_review": true
+  },
+  "root_zone": {
+    "en": {
+      "term": "Root zone",
+      "definition": "The soil layer from the surface down to the depth the crop's roots reach. Only water stored in this layer is available to the plant, and the layer deepens as the crop grows.",
+      "farmer": "The depth of soil your plant's roots can reach and drink from."
+    },
+    "ar": {
+      "term": "منطقة الجذور",
+      "definition": "طبقة التربة من السطح حتى العمق الذي تصل إليه جذور المحصول. والماء المخزون في هذه الطبقة فقط هو المتاح للنبات، ويزيد عمقها مع نمو المحصول.",
+      "farmer": "عمق التربة الذي تصل إليه جذور زرعك وتشرب منه."
+    },
+    "needs_native_review": true
+  },
+  "ndvi": {
+    "en": {
+      "term": "Vegetation index (NDVI)",
+      "definition": "A satellite index computed by comparing red and near-infrared light reflected from the ground. Higher values mean denser, greener plant cover; values near zero mean bare soil or water.",
+      "farmer": "A satellite score of how green and thick the plants are."
+    },
+    "ar": {
+      "term": "مؤشر الغطاء النباتي (NDVI)",
+      "definition": "مؤشر يُحسب من صور الأقمار الصناعية بمقارنة الضوء الأحمر بالأشعة تحت الحمراء القريبة المنعكسة من الأرض. القيم الأعلى تعني نباتًا أكثف وأكثر خضرة، والقيم القريبة من الصفر تعني أرضًا مكشوفة أو ماءً.",
+      "farmer": "درجة من القمر الصناعي توضح مدى خضرة الزرع وكثافته."
+    },
+    "needs_native_review": true
+  },
+  "water_balance": {
+    "en": {
+      "term": "Water balance",
+      "definition": "A daily account of the root zone: water in from rain and irrigation, water out through crop use, surface runoff and deep drainage. What remains is the soil water carried into the next day.",
+      "farmer": "A daily account of water coming into the field and water leaving it."
+    },
+    "ar": {
+      "term": "الميزان المائي",
+      "definition": "حساب يومي لمنطقة الجذور: ما يدخل من مطر وري، وما يخرج باستهلاك المحصول والجريان السطحي والتسرب إلى أسفل. والباقي هو ماء التربة المرحَّل إلى اليوم التالي.",
+      "farmer": "دفتر حساب يومي للماء الداخل إلى الأرض والخارج منها."
+    },
+    "needs_native_review": true
+  },
+  "deficit": {
+    "en": {
+      "term": "Water stress days",
+      "definition": "The number of days in a season when root-zone water falls below the level the crop can take up without effort, so growth and yield are reduced.",
+      "farmer": "Days when your crop is thirsty and cannot get enough water."
+    },
+    "ar": {
+      "term": "أيام العطش (الإجهاد المائي)",
+      "definition": "عدد أيام الموسم التي ينخفض فيها ماء منطقة الجذور تحت الحد الذي يستطيع المحصول امتصاصه بسهولة، فيقل النمو والإنتاج.",
+      "farmer": "الأيام التي يعطش فيها زرعك ولا يجد ماءً كافيًا."
+    },
+    "needs_native_review": true
+  },
+  "erosion_exposure": {
+    "en": {
+      "term": "Erosion exposure",
+      "definition": "Days when heavy rain falls on soil with little or no crop cover. It is a proxy for the risk that topsoil is washed away or sealed into a crust.",
+      "farmer": "Heavy rain on bare ground can wash away your best soil."
+    },
+    "ar": {
+      "term": "التعرض للانجراف",
+      "definition": "الأيام التي يسقط فيها مطر غزير على أرض مكشوفة بلا غطاء نباتي أو بغطاء قليل، وهو مؤشر لخطر جرف الطبقة السطحية أو تكوّن قشرة صلبة عليها.",
+      "farmer": "المطر الغزير على الأرض المكشوفة قد يجرف أخصب طبقة في أرضك."
+    },
+    "needs_native_review": true
+  },
+  "range": {
+    "en": {
+      "term": "Range (p10 to p90)",
+      "definition": "The spread of outcomes across past years, from the 10th percentile (a bad year: nine years in ten did better) to the 90th percentile (a good year: only one year in ten did better).",
+      "farmer": "Between a bad year and a good year, the result usually falls between these two numbers."
+    },
+    "ar": {
+      "term": "المدى (من p10 إلى p90)",
+      "definition": "مدى النتائج عبر السنوات الماضية، من المئين العاشر (سنة سيئة كانت النتيجة أفضل منها في تسع سنوات من كل عشر) إلى المئين التسعين (سنة جيدة لم تتفوق عليها إلا سنة واحدة من كل عشر).",
+      "farmer": "بين السنة السيئة والسنة الجيدة، تقع النتيجة غالبًا بين هذين الرقمين."
+    },
+    "needs_native_review": true
+  },
+  "ess": {
+    "en": {
+      "term": "Effective sample size (ESS)",
+      "definition": "After past years are re-weighted, the number of equally weighted years they are worth. A low value means the answer rests on only a few past years and deserves less trust.",
+      "farmer": "How many past years the answer really leans on; fewer years means less certainty."
+    },
+    "ar": {
+      "term": "حجم العينة الفعّال (ESS)",
+      "definition": "بعد إعادة وزن السنوات الماضية، هو عدد السنوات متساوية الوزن التي تعادلها. والقيمة المنخفضة تعني أن الإجابة تعتمد على سنوات قليلة فقط ويجب التعامل معها بحذر.",
+      "farmer": "عدد السنوات الماضية التي تستند إليها الإجابة فعلًا؛ وكلما قلّت قلّت الثقة."
+    },
+    "needs_native_review": true
+  },
+  "harvest_barcode": {
+    "en": {
+      "term": "Harvest barcode",
+      "definition": "A strip with one stripe per past year showing how this rotation would have ended in that year: green for a profit, amber for a thin margin, red for a loss.",
+      "farmer": "Each stripe is one past year: green you gained, amber you barely covered costs, red you lost."
+    },
+    "ar": {
+      "term": "باركود الحصاد",
+      "definition": "شريط فيه خط لكل سنة ماضية يوضح كيف كانت ستنتهي هذه الدورة في تلك السنة: أخضر للربح، وأصفر مائل للبرتقالي (كهرماني) لهامش ربح ضعيف، وأحمر للخسارة.",
+      "farmer": "كل خط يمثل سنة ماضية: الأخضر ربح، والأصفر بالكاد غطّى التكاليف، والأحمر خسارة."
+    },
+    "needs_native_review": true
+  },
+  "fusion": {
+    "en": {
+      "term": "Fusion",
+      "definition": "Re-weighting past years so that years whose simulated soil and weather resemble what the robot is measuring now count more in the result.",
+      "farmer": "The robot's readings tell the app which past years look most like your field today."
+    },
+    "ar": {
+      "term": "الدمج",
+      "definition": "إعادة وزن السنوات الماضية بحيث يكون للسنوات التي تشبه فيها حالة التربة والطقس المحسوبة ما يقيسه الروبوت الآن وزنٌ أكبر في النتيجة.",
+      "farmer": "قراءات الروبوت تخبر التطبيق أي السنوات الماضية تشبه أرضك اليوم أكثر."
+    },
+    "needs_native_review": true
+  },
+  "calibration": {
+    "en": {
+      "term": "Probe calibration",
+      "definition": "Fitting the low-cost soil-moisture probe's raw readings to the true water content found by weighing soil samples before and after oven drying, so the probe reports real moisture for this particular soil.",
+      "farmer": "Teaching the cheap probe to read your soil correctly by comparing it with dried soil samples."
+    },
+    "ar": {
+      "term": "معايرة المجس",
+      "definition": "مطابقة القراءات الخام لمجس الرطوبة منخفض التكلفة مع المحتوى المائي الحقيقي الذي يُعرف بوزن عينات التربة قبل تجفيفها في الفرن وبعده، حتى يعطي المجس رطوبة حقيقية لهذه التربة بالذات.",
+      "farmer": "تعليم المجس الرخيص أن يقرأ أرضك بشكل صحيح بمقارنته بعينات تربة مجففة."
+    },
+    "needs_native_review": true
+  },
+  "legume_credit": {
+    "en": {
+      "term": "Legume nitrogen credit",
+      "definition": "Nitrogen left in the soil by a legume crop such as berseem (Egyptian clover) or faba bean, fixed by bacteria in its root nodules. It reduces the fertilizer the next crop needs.",
+      "farmer": "Berseem and beans leave natural fertilizer in the soil, so the next crop needs less."
+    },
+    "ar": {
+      "term": "رصيد نيتروجين البقوليات",
+      "definition": "النيتروجين الذي يتركه محصول بقولي مثل البرسيم أو الفول في التربة، وتثبّته بكتيريا تعيش في العُقد الجذرية، فيقل السماد الذي يحتاجه المحصول التالي.",
+      "farmer": "البرسيم والفول يتركان سمادًا طبيعيًا في الأرض، فيحتاج الزرع التالي سمادًا أقل."
+    },
+    "needs_native_review": true
+  },
+  "rotation": {
+    "en": {
+      "term": "Crop rotation",
+      "definition": "The planned sequence of crops grown on the same field across seasons and years, for example a winter crop followed by a summer crop.",
+      "farmer": "Which crop you plant after which, season after season."
+    },
+    "ar": {
+      "term": "الدورة الزراعية",
+      "definition": "التسلسل المخطط للمحاصيل التي تُزرع في نفس الأرض عبر المواسم والسنين، مثل محصول شتوي يليه محصول صيفي.",
+      "farmer": "أي محصول تزرعه بعد أي محصول، موسمًا بعد موسم."
+    },
+    "needs_native_review": true
+  },
+  "feddan": {
+    "en": {
+      "term": "Feddan",
+      "definition": "The traditional Egyptian unit of land area, slightly smaller than a hectare. AgroTwin reports costs, yields and profit per feddan.",
+      "farmer": "All numbers in the app are for one feddan of your land."
+    },
+    "ar": {
+      "term": "فدان",
+      "definition": "وحدة مساحة الأرض التقليدية في مصر، وهي أصغر قليلًا من الهكتار. ويعرض AgroTwin التكاليف والإنتاج والربح لكل فدان.",
+      "farmer": "كل الأرقام في التطبيق محسوبة للفدان الواحد من أرضك."
+    },
+    "needs_native_review": true
+  },
+  "scenario": {
+    "en": {
+      "term": "Scenario (what-if)",
+      "definition": "A set of slider settings, such as crop price, water allowance or planting date, that re-runs the comparison so you can see how the answer changes.",
+      "farmer": "Move the sliders to ask: what if prices drop or water is less?"
+    },
+    "ar": {
+      "term": "السيناريو (ماذا لو)",
+      "definition": "مجموعة من إعدادات المؤشرات المنزلقة، مثل سعر المحصول أو حصة المياه أو موعد الزراعة، يُعاد بها حساب المقارنة لترى كيف تتغير النتيجة.",
+      "farmer": "حرّك المؤشرات لتسأل: ماذا لو نزل السعر أو قلّت المياه؟"
+    },
+    "needs_native_review": true
+  },
+  "source_tag": {
+    "en": {
+      "term": "Source tag",
+      "definition": "A label on each number saying where it comes from: NASA (weather data published by NASA), computed (calculated by the app's model), robot (measured by the Verdex Scout), or assumption (a default value you can change).",
+      "farmer": "A small label that tells you whether a number was measured, calculated or assumed."
+    },
+    "ar": {
+      "term": "وسم المصدر",
+      "definition": "علامة على كل رقم توضح مصدره: ناسا (بيانات طقس تنشرها ناسا)، أو محسوب (ناتج عن نموذج التطبيق)، أو الروبوت (قاسه Verdex Scout)، أو افتراض (قيمة افتراضية يمكنك تغييرها).",
+      "farmer": "علامة صغيرة تقول لك هل الرقم مقاس أم محسوب أم مفترض."
+    },
+    "needs_native_review": true
+  },
+  "live_replay_simulated": {
+    "en": {
+      "term": "Live / Replay / Simulated",
+      "definition": "Data modes for robot readings: Live uses readings arriving from the robot now, Replay plays back readings recorded earlier, and Simulated uses generated readings for demonstration that are never presented as real measurements.",
+      "farmer": "Shows whether the robot data is coming in now, is an old recording, or is a practice example."
+    },
+    "ar": {
+      "term": "مباشر / إعادة تشغيل / محاكاة",
+      "definition": "أوضاع بيانات الروبوت: «مباشر» يستخدم قراءات تصل من الروبوت الآن، و«إعادة تشغيل» يعرض قراءات سُجلت من قبل، و«محاكاة» يستخدم قراءات مولَّدة للعرض فقط ولا تُقدَّم أبدًا على أنها قياسات حقيقية.",
+      "farmer": "يوضح هل بيانات الروبوت تصل الآن، أم تسجيل قديم، أم مثال للتجربة."
+    },
+    "needs_native_review": true
+  },
+  "danger_window": {
+    "en": {
+      "term": "Danger window",
+      "definition": "A period in the season when the crop is at a sensitive growth stage and past weather shows a higher chance of a damaging event such as extreme heat, heavy rain or water shortage.",
+      "farmer": "The weeks when bad weather would hurt your crop the most."
+    },
+    "ar": {
+      "term": "نافذة الخطر",
+      "definition": "فترة من الموسم يكون فيها المحصول في مرحلة نمو حساسة، وتُظهر بيانات الطقس في السنوات الماضية احتمالًا أعلى لحدث ضار مثل الحر الشديد أو المطر الغزير أو نقص المياه.",
+      "farmer": "الأسابيع التي يضر فيها سوء الطقس زرعك أكثر من أي وقت آخر."
+    },
+    "needs_native_review": true
+  }
+}

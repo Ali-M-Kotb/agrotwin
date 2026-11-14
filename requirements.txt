@@ -1,0 +1,15 @@
+fastapi>=0.115
+uvicorn>=0.30
+pandas>=2.2
+numpy>=1.26
+requests>=2.31
+python-multipart>=0.0.9
+paho-mqtt>=2.0
+pytest>=8.0
+# Optional — run the team's leaf-disease model inside the planner:
+#   pip install torch torchvision timm pillow
+# Optional — SMAP / IMERG with an Earthdata login:
+#   pip install earthaccess xarray h5netcdf
+jsonschema>=4.20
+qrcode[pil]>=7.4
+anthropic>=2.0   # optional: Council written by Claude; templates without a key
