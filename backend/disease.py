@@ -23,7 +23,6 @@ MODEL_FILE = os.environ.get("VERDEX_MODEL", "v2_deit3.pt")
 _model = None
 _info: dict = {"loaded": False, "reason": "not tried"}
 
-
 def load() -> dict:
     global _model, _info
     if _model is not None or _info["reason"] != "not tried":
@@ -47,7 +46,6 @@ def load() -> dict:
     except Exception as exc:  # torch missing, file missing, etc.
         _info = dict(loaded=False, reason=f"{type(exc).__name__}: {exc}")
     return _info
-
 
 def classify(image_bytes: bytes) -> dict:
     info = load()

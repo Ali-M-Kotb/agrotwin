@@ -1,5 +1,4 @@
 <!doctype html>
-<!-- AgroTwin methodology — AI-generated (Claude, Anthropic) under human review. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -38,10 +37,9 @@
 
 <article class="doc">
   <div class="kicker">Methodology</div>
-  <h1>How AgroTwin decides what to suggest, and how we know it is honest</h1>
-  <p class="lede">A farmer choosing next season's crops is betting a year of water, soil and income. AgroTwin
-  doesn't guess the future. It replays the past thirty-odd years of real NASA weather over your field, for your
-  current rotation and for the alternatives, and shows how each would have done, good years and bad.</p>
+  <h1>How AgroTwin compares crop plans</h1>
+  <p class="lede">AgroTwin compares your current crops with alternative rotations using the weather recorded for your field.
+  Each plan runs through past seasons to estimate water use, profit and the risk of a poor year.</p>
 
   <p class="ar">باختصار: بنعيد تشغيل طقس أرضك الحقيقي من ناسا لكل سنة من ١٩٩١، على دورتك الحالية وعلى البدائل، ونوريك كل دورة كانت هتعمل إيه في السنين الحلوة والوحشة. والروبوت بيقيس تربتك عشان يضيّق التوقع. كل رقم ليه مصدر، وكل حاجة اتختبرت على آخر تلات مواسم.</p>
 
@@ -131,24 +129,24 @@
   The speech is turned into text on the laptop itself (Whisper, open source; no audio is sent anywhere), or by the browser.
   The assistant then calls the same engines as the page (the replay, the 16-day water planner, Field Pulse, the time
   machine, the quoted prices) and answers out loud with an Egyptian neural voice.</p>
-  <p>Without an internet connection or an AI key, a rule-based router understands the common questions. With a Claude key,
-  Claude chooses which engines to call, and a checker refuses any number in its answer that no engine produced; if it
-  finds one, the rule-based answer is used instead. Under each answer, the app lists the engines it used.</p>
+  <p>Questions that change the farm or the plan go to AgroTwin's own engines, so they are instant and exact. Open
+  questions (“why no rice?”, “is cotton a good idea here?”) are answered by a language model that may only use the
+  numbers AgroTwin computed for this field; a checker removes any answer containing a number no engine produced, and
+  without a connection a rule-based router answers the common questions. Under each answer, the app lists the engines it used.</p>
 
   <h2><span class="n">08</span>Plan Mode: plan by talking</h2>
-  <p>Press <b>Plan with AI</b> and talk. The assistant asks a few questions (crops, area, salinity, how often canal water
+  <p>Press <b>Plan my field</b> and talk. The assistant asks a few questions (crops, area, salinity, how often canal water
   runs short, what matters most), then searches every candidate rotation × summer sowing date (−14, 0, +14 days) × water
   strategy (full or 85% summer irrigation) through the same physics, with price swings, canal shortfalls and FAO salt
   tolerance included, and draws the plan: crops, sowing and harvest dates, water, yields, profit ranges and every option
   it tried on a water-versus-profit chart. Say “keep rice”, “less water” or “I have 3 feddans” and it re-plans in about two
-  seconds. It remembers the farm. With a Claude key, Claude runs the conversation and calls the plan engine; a checker
-  rejects any number the engine did not produce. Without one, a fast rule engine for Egyptian Arabic and English runs offline.</p>
+  seconds. It remembers the farm. Open questions are answered by a language model from the plan's own numbers, checked before they are spoken; offline, a fast rule engine for Egyptian Arabic and English takes over.</p>
   <p class="cap">We also tested whether last summer's NASA POWER heat and soil wetness predict the coming season well enough to
   favour some past years over others. They did not (−0.5% skill), so all past years keep equal weight. Our water engine was
   checked against NASA's independent MODIS ET product: it follows the seasonal timing (monthly r = 0.59 irrigated, 0.88
   rain-fed) but runs higher than MODIS over irrigated fields, a known limitation of that product in deserts; both are reported.</p>
 
-  <h2><span class="n">09</span>Things a farm twin usually can't do</h2>
+  <h2><span class="n">09</span>Field history and shared water</h2>
   <p><b>Your field's past, read from orbit.</b> MODIS shows which seasons your field was green. AgroTwin replays each of
   them on that year's weather and tells you what the suggested rotation would have saved and earned since 2015, without
   asking you a single question about your history.</p>
@@ -158,7 +156,7 @@
   <p><b>Next 16 days.</b> The same water bookkeeping continues on the weather forecast, so the advice ends with a date:
   "irrigate around Sunday, about 220 m³ per feddan".</p>
 
-  <h2><span class="n">10</span>Honesty rules</h2>
+  <h2><span class="n">10</span>Sources and limitations</h2>
   <ul>
     <li>Every number on screen can be tapped to see where it came from: NASA, computed, the robot, a quoted source, or a named assumption.</li>
     <li>A badge always says whether robot data is live, a replay, or simulated.</li>

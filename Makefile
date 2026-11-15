@@ -1,4 +1,4 @@
-# AgroTwin — AI-generated (Claude, Anthropic) under human review.
+# AgroTwin development commands
 PY ?= $(HOME)/.venvs/verdex/bin/python
 
 test:            ## unit tests + contract checks

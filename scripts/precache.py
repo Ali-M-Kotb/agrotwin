@@ -17,19 +17,16 @@ import data_sources as ds  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 
-
 def fast(lat, lon, label):
     df, elev = ds.power_daily(lat, lon)
     soil = ds.soilgrids(lat, lon)
     print(f"{label}: POWER {df.index[0].date()} → {df.index[-1].date()} ({len(df)} days, "
           f"elev {elev:.0f} m) | soil clay {soil.get('clay')}% [{soil['source']}]", flush=True)
 
-
 def modis(kind, lat, lon, label):
     fn = ds.modis_ndvi if kind == "ndvi" else ds.modis_et
     s = fn(lat, lon)
     return f"{label}: {kind} {len(s)} composites"
-
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:

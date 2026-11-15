@@ -1,7 +1,5 @@
 """Soil classes and water-holding limits.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 theta_FC / theta_WP are midpoints of the ranges in FAO-56 (Allen et al. 1998),
 Table 19 "Typical soil water characteristics for different soil types".
 FAO-56 has no 'clay loam' row; we use its 'silty clay loam' row and say so.
@@ -24,7 +22,6 @@ NAMES = {
     "clay": ("Clay", "طينية"),
 }
 
-
 def classify(soil: dict) -> str:
     """USDA-triangle shortcut from SoilGrids sand/clay %, collapsed to the 5 classes."""
     clay = soil.get("clay") or 35
@@ -39,11 +36,9 @@ def classify(soil: dict) -> str:
         return "sandy_loam"
     return "loam"
 
-
 def taw_per_m(soil_class: str) -> float:
     fc, wp = SOIL_CLASSES[soil_class]
     return 1000 * (fc - wp)          # mm of plant-available water per m of root zone
-
 
 def relative_wetness(vwc: float, soil_class: str) -> float:
     fc, wp = SOIL_CLASSES[soil_class]

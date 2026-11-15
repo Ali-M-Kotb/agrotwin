@@ -1,10 +1,8 @@
 """Voice assistant: the farmer asks (by voice), the assistant calls AgroTwin's own engines and answers
 (by voice) in Egyptian Arabic or English.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Two engines, same tools:
-  - "claude": Claude Opus 5.5 chooses and calls the tools (needs ANTHROPIC_API_KEY). Every number in its
+  - "llm": a language model (backend/llm.py: NVIDIA Nemotron, Claude or any OpenAI-compatible model). Every number in its
     reply is checked against the tool results; if one cannot be traced, the rules engine answers instead.
   - "rules":  a keyword router for Egyptian colloquial Arabic and English. No network, no key — the stage default.
 Tools never invent data: each one wraps an existing endpoint (replay, 16-day planner, Field Pulse, prices,
@@ -25,11 +23,9 @@ MODEL = "claude-opus-5-5"
 
 _AR_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩٫٬", "0123456789.,")
 
-
 def norm_ar(s: str) -> str:
     s = re.sub(r"[ً-ْـ]", "", s.translate(_AR_DIGITS))
     return (s.replace("أ", "ا").replace("إ", "ا").replace("آ", "ا").replace("ة", "ه").replace("ى", "ي").lower())
-
 
 CROP_WORDS = {
     "wheat": ["قمح", "wheat"], "barley": ["شعير", "barley"], "berseem": ["برسيم", "berseem", "clover"],
@@ -41,7 +37,6 @@ WINTER = {"wheat", "barley", "berseem", "faba", "sugarbeet", "potato"}
 AR_NAME = {"wheat": "القمح", "barley": "الشعير", "berseem": "البرسيم", "faba": "الفول البلدي", "sugarbeet": "البنجر",
            "potato": "البطاطس", "maize": "الدرة الشامية", "sorghum": "الدرة الرفيعة", "rice": "الرز", "cotton": "القطن",
            "tomato": "الطماطم", "soybean": "فول الصويا", "fallow": "أرض بور"}
-
 
 def crops_in(text: str) -> list[str]:
     t = norm_ar(text)
@@ -64,7 +59,6 @@ def crops_in(text: str) -> list[str]:
         out.remove("maize")
     return out
 
-
 INTENTS = [
     ("irrigation", ["اروي", "نروي", "يروي", "هروي", "الري", "ريه", "ري ", "اسقي", "نسقي", "سقي", "irrigat", "water the", "when to water"]),
     ("weather", ["مطر", "الجو", "حر ", "حراره", "سقعه", "برد", "weather", "rain", "forecast", "hot", "temperature"]),
@@ -78,7 +72,6 @@ INTENTS = [
     ("help", ["تعمل ايه", "بتعرف", "مساعده", "help", "what can you"]),
 ]
 
-
 def intents_in(text: str) -> list[str]:
     t = " " + norm_ar(text) + " "
     pos = {name: min((t.find(w) for w in words if w in t), default=-1) for name, words in INTENTS}
@@ -86,7 +79,6 @@ def intents_in(text: str) -> list[str]:
     if "price" in hits and "recommend" in hits and not any(w in t for w in ("ازرع", "نزرع", "plant", "grow", "recommend")):
         hits.remove("recommend")
     return hits
-
 
 def spoken_label(label: str, lang: str) -> str:
     """'Faba bean → Maize (×3)' → 'faba bean, then maize, every year'."""
@@ -97,11 +89,9 @@ def spoken_label(label: str, lang: str) -> str:
         return " وبعده ".join(parts) + (" كل سنة" if rep else "")
     return ", then ".join(p.lower() for p in parts) + (", every year" if rep else "")
 
-
 def k(n: float) -> str:
     """Spoken-style rounding: 77485 → '77 ألف' / '77 thousand'."""
     return f"{round(n / 1000):,}" if abs(n) >= 10000 else f"{round(n):,}"
-
 
 # ---------------------------------------------------------------------------
 # tools (each wraps an existing AgroTwin function; `api` is a dict of callables from app.py)
@@ -125,7 +115,6 @@ TOOLS = [
     dict(name="robot_status", description="Verdex Scout robot: connection mode (LIVE, SIMULATED, offline) and latest soil readings or leaf-disease detections.",
          input_schema=dict(type="object", properties={})),
 ]
-
 
 class Toolbox:
     def __init__(self, api: dict, ctx: dict):
@@ -214,7 +203,6 @@ class Toolbox:
                     note="SIMULATED readings are a replayed past season, not a real robot" if mode == "SIMULATED" else "",
                     source="Verdex Scout bridge")
 
-
 # ---------------------------------------------------------------------------
 # rules engine
 # ---------------------------------------------------------------------------
@@ -227,7 +215,6 @@ def _day(d: str, lang: str) -> str:
         months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
         return f"يوم {days[ts.dayofweek]} {ts.day} {months[ts.month - 1]}"
     return ts.strftime("%A %d %B")
-
 
 def _say(intent: str, box: Toolbox, lang: str, text: str) -> str:
     ar = lang == "ar"
@@ -322,7 +309,6 @@ def _say(intent: str, box: Toolbox, lang: str, text: str) -> str:
                 f"{p['crop'].title()} sells at about {p['price_egp_per_t']:,} EGP per tonne; a feddan yields about {p['yield_t_per_feddan']:.1f} t.")
     return ""
 
-
 def rules_answer(text: str, lang: str, box: Toolbox) -> str:
     its = intents_in(text)
     if not its:
@@ -332,9 +318,8 @@ def rules_answer(text: str, lang: str, box: Toolbox) -> str:
     parts = [_say(i, box, lang, text) for i in its[:2]]
     return " ".join(p for p in parts if p)
 
-
 # ---------------------------------------------------------------------------
-# Claude engine
+# Language-model engine
 # ---------------------------------------------------------------------------
 
 SYSTEM = """You are the AgroTwin voice assistant for small farmers in Egypt. Your answer is read aloud.
@@ -346,11 +331,9 @@ Rules:
 - If the robot mode is SIMULATED, say the readings are simulated.
 - End advice about changing crops with: the decision is the farmer's ("القرار في الآخر قرارك")."""
 
-
 def _numbers(s: str) -> list[float]:
     s = s.translate(_AR_DIGITS)
     return [float(x.replace(",", "")) for x in re.findall(r"\d[\d,]*\.?\d*", s)]
-
 
 def _allowed(obj, acc: set):
     if isinstance(obj, dict):
@@ -363,7 +346,6 @@ def _allowed(obj, acc: set):
         acc.add(float(obj))
     elif isinstance(obj, str):
         acc.update(_numbers(obj))
-
 
 def audit(reply: str, tool_results: list, user_text: str) -> list[float]:
     ok: set[float] = set()
@@ -380,8 +362,7 @@ def audit(reply: str, tool_results: list, user_text: str) -> list[float]:
         bad.append(n)
     return bad
 
-
-def claude_answer(text: str, lang: str, box: Toolbox, history: list) -> tuple[str | None, list]:
+def llm_answer(text: str, lang: str, box: Toolbox, history: list) -> tuple[str | None, list]:
     """Language-model engine (Claude or any OpenAI-compatible provider, see backend/llm.py)."""
     import llm
     if not llm.provider():
@@ -402,7 +383,6 @@ TALK = """You are AgroTwin, a friendly assistant for Egyptian smallholder farmer
 - 1 to 3 short sentences, no lists, no markdown, no emoji.
 - Answer ONLY from the FACTS (computed by AgroTwin from NASA data for this field). If the answer is not there, say you don't know and
   suggest the local agricultural extension officer. Use only numbers from the FACTS. Never promise outcomes."""
-
 
 def _llm_talk(text: str, lang: str, box: "Toolbox", history: list, asked_crops: list | None = None):
     import llm
@@ -432,7 +412,6 @@ def _llm_talk(text: str, lang: str, box: "Toolbox", history: list, asked_crops: 
         return None, []
     bad = audit(reply, [facts], text)
     return (None, bad) if bad else (re.sub(r"[*#_`]", "", reply).strip(), [])
-
 
 # ---------------------------------------------------------------------------
 # entry point

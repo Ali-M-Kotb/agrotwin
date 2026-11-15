@@ -1,7 +1,5 @@
 """Plan engine: from a farm profile to a full three-year plan.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Steps (all on real NASA data, every number tagged):
  1. Field productivity index from the field's own MODIS NDVI peaks vs 6.8 M Nile Delta cropland pixel-seasons
     (backend/models/ndvi_peers.json, from NASA GIBS). Scales potential yields for this field.
@@ -39,7 +37,6 @@ DEFAULTS = dict(area_feddan=1.0, winter="wheat", summer="rice", salinity_ece=0.0
                 water_budget_m3=None, priorities=dict(water=1.0, soil=1.0, profit=1.0, risk=1.0),
                 exclude=[], must_include=[], irrigated=None)
 
-
 def field_index(ndvi) -> dict:
     """Ratio of the field's median cropped-season NDVI peak to the Delta peer median, clipped to 0.8–1.1."""
     if ndvi is None or PEERS is None or len(ndvi.dropna()) < 60:
@@ -62,11 +59,9 @@ def field_index(ndvi) -> dict:
     return dict(factor=round(float(np.clip(ratio, 0.8, 1.1)), 3), raw_ratio=round(ratio, 3), available=True, seasons=out,
                 source="computed: field's MODIS NDVI peaks vs 6.8 M Delta cropland pixel-seasons (NASA GIBS); yield scaled in proportion, clipped 0.8–1.1 (assumption:ndvi_yield_scaling)")
 
-
 def _season_start() -> date:
     t = date.today()
     return date(t.year if t.month >= 10 else t.year - 1, 10, 1)
-
 
 def _evaluate(rots, wx, plan, prices, overrides, shift, strategy, need_summer):
     cap = None
@@ -96,7 +91,6 @@ def _evaluate(rots, wx, plan, prices, overrides, shift, strategy, need_summer):
                         water=dict(p10=float(np.percentile(water, 10)), median=float(np.median(water)), p90=float(np.percentile(water, 90))),
                         loss_share=float((mc < 0).mean()), _i=i))
     return out, (sim, eco)
-
 
 def make_plan(site: dict, wx: dict, profile: dict, prices: dict, soil_class: str, irrigated: bool, clay: float,
               ndvi=None, pulse_status: dict | None = None) -> dict:

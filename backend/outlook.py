@@ -1,7 +1,5 @@
 """Looking ahead: 16-day irrigation planner and 6-month seasonal outlook.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Non-NASA data, disclosed as such on screen:
   Open-Meteo forecast API   16-day daily FAO-56 ET0, rain, Tmax (ECMWF/GFS blend), no key
   Open-Meteo seasonal API   ECMWF SEAS5 ensemble, ~6 months ahead, no key
@@ -29,7 +27,6 @@ from config import A
 
 TTL = 6 * 3600
 
-
 def _cached(name: str, url: str, params: dict, offline: bool) -> dict | None:
     p = ds.CACHE / f"openmeteo_{name}_{params['latitude']:.3f}_{params['longitude']:.3f}.json"
     if p.exists() and (offline or time.time() - p.stat().st_mtime < TTL):
@@ -45,7 +42,6 @@ def _cached(name: str, url: str, params: dict, offline: bool) -> dict | None:
     except Exception:
         return json.loads(p.read_text()) if p.exists() else None
 
-
 def forecast16(lat: float, lon: float, offline: bool = False) -> pd.DataFrame | None:
     d = _cached("fc16", "https://api.open-meteo.com/v1/forecast",
                 dict(latitude=round(lat, 3), longitude=round(lon, 3), forecast_days=16, timezone="GMT",
@@ -58,7 +54,6 @@ def forecast16(lat: float, lon: float, offline: bool = False) -> pd.DataFrame | 
                      index=pd.to_datetime(dd["time"]))
     f["T2M"] = (f["T2M_MAX"] + f["T2M_MIN"]) / 2
     return f.astype(float)
-
 
 def irrigation_plan(site: dict, rotation: tuple, soil_class: str, irrigated: bool, offline: bool = False) -> dict:
     fc = forecast16(site["lat"], site["lon"], offline)
@@ -100,7 +95,6 @@ def irrigation_plan(site: dict, rotation: tuple, soil_class: str, irrigated: boo
                 irrigate_on=events if irrigated else [], rain_refills=rain,
                 forecast_rain_mm=round(float(fc["PRECTOTCORR"].sum()), 1), forecast_et0_mm=round(float(fc["ET0"].sum()), 1),
                 source="computed: FAO-56 balance on nasa:POWER to " + str(w.index[-1].date()) + ", then Open-Meteo 16-day forecast (non-NASA)")
-
 
 def seasonal(site: dict, offline: bool = False) -> dict:
     d = _cached("seas5", "https://seasonal-api.open-meteo.com/v1/seasonal",

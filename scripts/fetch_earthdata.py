@@ -30,14 +30,11 @@ ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "data" / "cache"
 APPEEARS = "https://appeears.earthdatacloud.nasa.gov/api"
 
-
 def sites():
     return json.loads((ROOT / "data" / "sites.json").read_text())
 
-
 def key(lat, lon):
     return f"{lat:.3f}_{lon:.3f}"
-
 
 def creds():
     u, p = os.environ.get("EARTHDATA_USERNAME"), os.environ.get("EARTHDATA_PASSWORD")
@@ -49,7 +46,6 @@ def creds():
         except Exception:
             sys.exit("Set EARTHDATA_USERNAME / EARTHDATA_PASSWORD or ~/.netrc first.")
     return u, p
-
 
 # ---------------------------------------------------------------------------
 # SMAP L4 via AppEEARS point sampling (no 140 MB HDF5 downloads)
@@ -103,7 +99,6 @@ def smap(start: str):
         (CACHE / f"smap_{key(s['lat'], s['lon'])}.json").write_text(json.dumps(out))
         print(f"{s['name']}: {len(daily)} days of SMAP root-zone moisture")
 
-
 # ---------------------------------------------------------------------------
 # GPM IMERG daily via earthaccess (reads only the pixels it needs)
 # ---------------------------------------------------------------------------
@@ -133,7 +128,6 @@ def imerg(days: int):
         out = {"source": "GPM_3IMERGDF v07 (earthaccess)", "units": "mm/day", "values": vals[s["id"]]}
         (CACHE / f"imerg_{key(s['lat'], s['lon'])}.json").write_text(json.dumps(out))
         print(f"{s['name']}: {len(vals[s['id']])} days of IMERG rain")
-
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

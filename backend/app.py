@@ -1,7 +1,5 @@
 """AgroTwin API: from the sky to the land.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
     ./run.sh               → http://127.0.0.1:8000
     VERDEX_OFFLINE=1       cache only (stage mode)
     AGROTWIN_TOKEN=...     bearer token the Scout must send to /api/scout/run (default: verdex-demo)
@@ -67,7 +65,6 @@ _jobs: dict = {}
 _wx_cache: dict = {}
 _result_cache: dict = {}
 
-
 def _clean(o):
     if isinstance(o, dict):
         return {k: _clean(v) for k, v in o.items() if not str(k).startswith("_")}
@@ -83,7 +80,6 @@ def _clean(o):
         return bool(o)
     return o
 
-
 # ---------------------------------------------------------------------------
 # sites (non-blocking; slow sources load in the background)
 # ---------------------------------------------------------------------------
@@ -91,7 +87,6 @@ def _clean(o):
 def _key_lock(key) -> threading.Lock:
     with _locks_guard:
         return _site_locks.setdefault(key, threading.Lock())
-
 
 def site(lat: float, lon: float) -> dict:
     key = (round(lat, 3), round(lon, 3))
@@ -110,7 +105,6 @@ def site(lat: float, lon: float) -> dict:
             if not OFFLINE:
                 _start_background(key)
         return _sites[key]
-
 
 def _start_background(key):
     lat, lon = key
@@ -147,7 +141,6 @@ def _start_background(key):
                 prog["state"], prog["error"] = "failed", str(exc)[:200]
         threading.Thread(target=run, daemon=True).start()
 
-
 def site_meta(lat, lon) -> dict:
     for s in SITES.values():
         if abs(s["lat"] - lat) < 1e-3 and abs(s["lon"] - lon) < 1e-3:
@@ -155,11 +148,9 @@ def site_meta(lat, lon) -> dict:
     return dict(id=f"pin_{lat:.3f}_{lon:.3f}".replace("-", "m"), name=f"{lat:.3f}, {lon:.3f}",
                 name_ar=f"{lat:.3f}، {lon:.3f}", lat=lat, lon=lon, irrigated=True, existing=["wheat", "maize"])
 
-
 @app.get("/api/sites")
 def sites():
     return list(SITES.values())
-
 
 @app.get("/api/site/status")
 def site_status(lat: float, lon: float):
@@ -169,14 +160,12 @@ def site_status(lat: float, lon: float):
                 ndvi=job.get("ndvi", {"state": "done" if ds.modis_cached("MOD13Q1", *key) else "missing"}),
                 et=job.get("et", {"state": "done" if ds.modis_cached("MOD16A2GF", *key) else "missing"}))
 
-
 @app.get("/api/crops")
 def crops():
     prices = econ.load_prices()
     return _clean(dict(crops=CROPS, fallow=FALLOW, families_ar=FAMILY_AR, disease_classes=DISEASE_CLASSES,
                        prices=prices, assumptions=config.table(), soil_classes=soilmod.NAMES,
                        crop_sources=__import__("crops").SRC))
-
 
 @app.get("/api/site")
 def site_info(lat: float, lon: float):
@@ -228,7 +217,6 @@ def site_info(lat: float, lon: float):
     out["danger"] = history.danger_windows(w, ndvi if len(ndvi) else None)
     return _clean(out)
 
-
 # ---------------------------------------------------------------------------
 # simulate: the main result
 # ---------------------------------------------------------------------------
@@ -252,7 +240,6 @@ class SimRequest(BaseModel):
     salinity_ece: float = 0.0
     canal_short_prob: float | None = None
 
-
 def _wx(s, rain_mult, temp_offset):
     """Replay weather for every window, warmed to this season's climate (backtest-proven), then
     the user's what-if scenario on top."""
@@ -270,7 +257,6 @@ def _wx(s, rain_mult, temp_offset):
             _wx_cache[k] = wb.weather_matrices(w, years)
     return _wx_cache[k]
 
-
 def sigma_model_for(site_id, s, plan, wx, soil_class, irrigated) -> dict:
     """Per-site model-error σ, calibrated by the twin experiment and cached on disk."""
     rot = rp.existing_rotation(plan)
@@ -283,7 +269,6 @@ def sigma_model_for(site_id, s, plan, wx, soil_class, irrigated) -> dict:
     cal = fu.calibrate_sigma_model(wet, res["_all"][0]["_season1"])
     p.write_text(json.dumps(cal))
     return cal
-
 
 def _sightings(runs) -> dict:
     lo = config.A["vision_min_conf"]
@@ -311,13 +296,11 @@ def _sightings(runs) -> dict:
                 alert=bool(n >= min_n and c["diseased"] / max(n, 1) >= share),
                 note="Sightings are observations, not diagnoses.")
 
-
 def _fingerprint(req: SimRequest, s) -> str:
     d = req.model_dump()
     d["_soil"] = s["soil"].get("source")
     d["_det"] = len(robot.detections)
     return hashlib.sha1(json.dumps(d, sort_keys=True, default=str).encode()).hexdigest()
-
 
 @app.post("/api/simulate")
 def simulate(req: SimRequest):
@@ -431,14 +414,12 @@ def simulate(req: SimRequest):
         _result_cache.pop(next(iter(_result_cache)))
     return out
 
-
 # ---------------------------------------------------------------------------
 # v1 contract (shared with the AgroTwin repo by Yaseen Abdelal)
 # ---------------------------------------------------------------------------
 
 class V1Request(SimRequest):
     lang: str = "en"
-
 
 @app.post("/api/v1/result")
 def v1_result(req: V1Request):
@@ -448,7 +429,6 @@ def v1_result(req: V1Request):
     if errs:
         raise HTTPException(500, f"contract violation: {errs[:3]}")
     return doc
-
 
 # ---------------------------------------------------------------------------
 # Looking ahead: 16-day irrigation planner + seasonal outlook (Open-Meteo, non-NASA, disclosed)
@@ -464,7 +444,6 @@ def ahead(lat: float, lon: float, winter: str = "wheat", summer: str = "rice"):
         raise HTTPException(422, "rotation does not fit the calendar")
     return _clean(dict(plan=outlook.irrigation_plan(s, rot, sc, meta.get("irrigated", True), OFFLINE),
                        seasonal=outlook.seasonal(s, OFFLINE)))
-
 
 # ---------------------------------------------------------------------------
 # Unique 1: time machine — the field's past seasons read from MODIS, replayed
@@ -488,7 +467,6 @@ def timemachine(lat: float, lon: float, winter: str = "wheat", summer: str = "ri
     out["existing_label"] = res["rotations"][0]["label"]
     return _clean(out)
 
-
 # ---------------------------------------------------------------------------
 # Field Pulse — our trained model (backend/pulse.py, qa/PULSE.md)
 # ---------------------------------------------------------------------------
@@ -502,12 +480,10 @@ def pulse_ep(lat: float, lon: float):
         ndvi = None
     return _clean(pulse.field_pulse(ndvi, s["weather"], s["lat"]))
 
-
 @app.get("/api/pulse/report")
 def pulse_report():
     p = ROOT / "qa" / "PULSE.json"
     return json.loads(p.read_text()) if p.exists() else {}
-
 
 # ---------------------------------------------------------------------------
 # Plan Mode engine (backend/planner.py)
@@ -517,7 +493,6 @@ class PlanReq(BaseModel):
     lat: float
     lon: float
     profile: dict = {}
-
 
 def make_plan_for(lat: float, lon: float, profile: dict) -> dict:
     s = site(lat, lon)
@@ -538,14 +513,12 @@ def make_plan_for(lat: float, lon: float, profile: dict) -> dict:
     out["site"] = dict(name=meta.get("name"), name_ar=meta.get("name_ar"), lat=s["lat"], lon=s["lon"], irrigated=irrigated, soil_class=soil_class)
     return _clean(out)
 
-
 @app.post("/api/plan")
 def plan_ep(req: PlanReq):
     try:
         return make_plan_for(req.lat, req.lon, req.profile)
     except ValueError as e:
         raise HTTPException(422, str(e))
-
 
 class PlanChatReq(BaseModel):
     text: str
@@ -554,9 +527,7 @@ class PlanChatReq(BaseModel):
     lon: float
     sid: str | None = None
 
-
 _plan_cache: dict = {}
-
 
 @app.post("/api/plan/chat")
 def plan_chat(req: PlanChatReq):
@@ -568,7 +539,6 @@ def plan_chat(req: PlanChatReq):
                 _plan_cache.pop(next(iter(_plan_cache)))
         return _plan_cache[key]
     return _clean(plan_agent.turn(req.sid, req.text.strip()[:500], req.lang, mk))
-
 
 # ---------------------------------------------------------------------------
 # Field alerts (Field Pulse → spoken alert) and the outcome log (labels for the next models)
@@ -586,7 +556,6 @@ def alerts(lat: float, lon: float, lang: str = "ar"):
                         text=text, speak=dict(endpoint="/api/speak", text=text, lang=lang), source=p.get("source")))
     return dict(alerts=out, checked=p.get("latest_image"), note="Delivery by SMS/WhatsApp needs a messaging account; the text and voice note are ready to send.")
 
-
 class Outcome(BaseModel):
     lat: float
     lon: float
@@ -596,7 +565,6 @@ class Outcome(BaseModel):
     yield_t_per_feddan: float | None = None
     notes: str | None = None
     consent: bool = False
-
 
 @app.post("/api/outcomes")
 def outcomes(o: Outcome):
@@ -610,7 +578,6 @@ def outcomes(o: Outcome):
     n = sum(1 for _ in open(d / "outcomes.jsonl"))
     return dict(stored=True, total=n, use="labels for the crop-type detector and Field Pulse yield link (stored locally, never uploaded)")
 
-
 @app.get("/api/ai/status")
 def ai_status():
     import llm
@@ -618,15 +585,12 @@ def ai_status():
     st["mode"] = (f"{st['provider']} runs the conversation and calls the AgroTwin engines" if st["active"] else
                   (f"offline engine: {st['provider']} unavailable ({st['last_error']})" if st["provider"] else
                    "offline engine (keyword understanding); add an API key to agrotwin/.env for full conversation"))
-    st["claude"] = st["active"]          # backwards compatible field
     return st
-
 
 @app.get("/api/prithvi/status")
 def prithvi_status():
     import prithvi
     return prithvi.status()
-
 
 # ---------------------------------------------------------------------------
 # Voice assistant: speech in → AgroTwin tools → speech out (backend/chat.py)
@@ -641,7 +605,6 @@ class ChatReq(BaseModel):
     summer: str | None = "rice"
     history: list[dict] = []
 
-
 def _chat_api() -> dict:
     def _fc(lat, lon):
         s = site(lat, lon)
@@ -650,15 +613,12 @@ def _chat_api() -> dict:
         simulate=lambda lat, lon, ex: simulate(SimRequest(lat=lat, lon=lon, existing=ex, use_scout=False)),
         ahead=ahead, forecast=_fc, pulse=pulse_ep, prices=econ.load_prices(), timemachine=timemachine, robot=robot_state)
 
-
 @app.post("/api/chat")
 def chat_ep(req: ChatReq):
     ctx = dict(lat=req.lat, lon=req.lon, winter=req.winter or "wheat", summer=req.summer or "rice")
     return _clean(chat.answer(req.text.strip()[:500], req.lang, ctx, req.history, _chat_api()))
 
-
 _whisper = {}
-
 
 @app.post("/api/stt")
 async def stt(file: UploadFile = File(...), lang: str = "ar"):
@@ -683,7 +643,6 @@ async def stt(file: UploadFile = File(...), lang: str = "ar"):
         os.unlink(path)
     return dict(text=text, engine=f"faster-whisper {size} (local)")
 
-
 # ---------------------------------------------------------------------------
 # Unique 2: canal mode — neighbours on one canal coordinate their rotations
 # ---------------------------------------------------------------------------
@@ -691,7 +650,6 @@ async def stt(file: UploadFile = File(...), lang: str = "ar"):
 class CanalReq(BaseModel):
     farm_ids: list[str] | None = None      # saved farms; empty → the demo canal
     tolerance: float = 10.0
-
 
 @app.post("/api/canal")
 def canal_ep(req: CanalReq):
@@ -721,7 +679,6 @@ def canal_ep(req: CanalReq):
     out["demo"] = demo
     return _clean(out)
 
-
 # ---------------------------------------------------------------------------
 # Egyptian Arabic voice (Microsoft neural voices via edge-tts; cached; browser voice as fallback)
 # ---------------------------------------------------------------------------
@@ -730,7 +687,6 @@ class SpeakReq(BaseModel):
     text: str
     lang: str = "ar"
     voice: str | None = None
-
 
 @app.post("/api/speak")
 async def speak(req: SpeakReq):
@@ -750,7 +706,6 @@ async def speak(req: SpeakReq):
         except Exception as exc:
             raise HTTPException(503, f"voice service unavailable: {exc}")
     return FileResponse(path, media_type="audio/mpeg")
-
 
 # ---------------------------------------------------------------------------
 # Investor view: how the money moves when prices or weather move
@@ -784,7 +739,6 @@ def sensitivity(req: SimRequest):
     return _clean(dict(rotations=[dict(rotation_id=b["rotation_id"], label=b["label"]) for b in base["rotations"]],
                        cases=out, source="computed: same rotations re-run on shifted nasa:POWER weather / prices"))
 
-
 # ---------------------------------------------------------------------------
 # Map inspector: quick facts for any point (cache-first)
 # ---------------------------------------------------------------------------
@@ -812,24 +766,20 @@ def point(lat: float, lon: float):
         meta=site_meta(s["lat"], s["lon"]),
     ))
 
-
 # ---------------------------------------------------------------------------
 # My farms: saved fields, boundaries and plan history (stays on this machine)
 # ---------------------------------------------------------------------------
 
 FARMS = ROOT / "data" / "farms" / "farms.json"
 
-
 def _farms() -> list:
     return json.loads(FARMS.read_text()) if FARMS.exists() else []
-
 
 def _save_farms(fs):
     FARMS.parent.mkdir(parents=True, exist_ok=True)
     tmp = FARMS.with_suffix(".tmp")
     tmp.write_text(json.dumps(fs, ensure_ascii=False, indent=1))
     tmp.replace(FARMS)
-
 
 class Farm(BaseModel):
     id: str | None = None
@@ -842,11 +792,9 @@ class Farm(BaseModel):
     irrigated: bool = True
     notes: str = ""
 
-
 @app.get("/api/farms")
 def farms_list():
     return _farms()
-
 
 @app.post("/api/farms")
 def farms_save(f: Farm):
@@ -868,12 +816,10 @@ def farms_save(f: Farm):
     _save_farms(fs)
     return d
 
-
 @app.delete("/api/farms/{fid}")
 def farms_delete(fid: str):
     _save_farms([x for x in _farms() if x["id"] != fid])
     return dict(ok=True)
-
 
 class PlanSnap(BaseModel):
     label: str
@@ -885,7 +831,6 @@ class PlanSnap(BaseModel):
     scenario: dict
     weights: dict
     mode: str
-
 
 @app.post("/api/farms/{fid}/plans")
 def farms_plan(fid: str, p: PlanSnap):
@@ -900,7 +845,6 @@ def farms_plan(fid: str, p: PlanSnap):
     _save_farms(fs)
     return farm
 
-
 # ---------------------------------------------------------------------------
 # Council + Field Card
 # ---------------------------------------------------------------------------
@@ -909,15 +853,12 @@ class ExplainRequest(SimRequest):
     lang: str = "en"
     use_llm: bool = True
 
-
 @app.post("/api/council")
 def council_ep(req: ExplainRequest):
     res = simulate(SimRequest(**req.model_dump(exclude={"lang", "use_llm"})))
     return council.explain(res, req.lang, req.use_llm)
 
-
 _cards: dict = {}
-
 
 @app.post("/api/fieldcard")
 def fieldcard_ep(req: ExplainRequest, request: Request):
@@ -928,13 +869,11 @@ def fieldcard_ep(req: ExplainRequest, request: Request):
     text = fieldcard.whatsapp(res, req.lang, url)
     return dict(id=cid, print_url=f"/fieldcard/{cid}", whatsapp=text, chars=len(text), url=url)
 
-
 @app.get("/fieldcard/{cid}")
 def fieldcard_view(cid: str):
     if cid not in _cards:
         raise HTTPException(404, "card expired; generate it again")
     return HTMLResponse(_cards[cid])
-
 
 # ---------------------------------------------------------------------------
 # Scout
@@ -943,7 +882,6 @@ def fieldcard_view(cid: str):
 def _auth(authorization: str | None):
     if authorization != f"Bearer {TOKEN}":
         raise HTTPException(401, "bad or missing bearer token")
-
 
 @app.post("/api/scout/run")
 def scout_run(run: dict, authorization: str | None = Header(default=None)):
@@ -955,12 +893,10 @@ def scout_run(run: dict, authorization: str | None = Header(default=None)):
     _result_cache.clear()
     return r
 
-
 class Calib(BaseModel):
     site_id: str
     samples: list[dict]
     soil_class: str | None = None
-
 
 @app.post("/api/scout/calibrate")
 def scout_calibrate(c: Calib):
@@ -973,14 +909,12 @@ def scout_calibrate(c: Calib):
     _result_cache.clear()
     return cal
 
-
 class SimRun(BaseModel):
     lat: float
     lon: float
     truth_year: int | None = None
     days: int = 135
     existing: list[str] | None = None
-
 
 @app.post("/api/scout/simulate")
 def scout_simulate(req: SimRun):
@@ -1002,11 +936,9 @@ def scout_simulate(req: SimRun):
     return dict(run_id=run["run_id"], truth_year=ty, days=req.days, n_points=len(run["points"]),
                 mode="SIMULATED", calibration_id=cal["id"])
 
-
 @app.get("/api/scout/runs")
 def scout_runs(site_id: str):
     return dict(runs=scout.list_runs(site_id), calibration=scout.latest_calibration(site_id))
-
 
 @app.delete("/api/scout/runs")
 def scout_clear(site_id: str):
@@ -1014,12 +946,10 @@ def scout_clear(site_id: str):
     _result_cache.clear()
     return dict(ok=True)
 
-
 @app.get("/api/scout/export")
 def scout_export(site_id: str):
     return JSONResponse(scout.export(site_id), headers={
         "Content-Disposition": f'attachment; filename="agrotwin_{site_id}_my_farm_data.json"'})
-
 
 # ---------------------------------------------------------------------------
 # Robot telemetry + leaf camera (live Verdex)
@@ -1031,7 +961,6 @@ def robot_state():
     st["model"] = {k: v for k, v in disease._info.items() if k != "class_names"}
     return _clean(st)
 
-
 @app.post("/api/robot/telemetry")
 def telemetry(payload: dict):
     try:
@@ -1039,12 +968,10 @@ def telemetry(payload: dict):
     except ValueError as exc:
         raise HTTPException(400, str(exc))
 
-
 class Detection(BaseModel):
     label: str
     confidence: float = 0.9
     source: str = "replay"
-
 
 @app.post("/api/robot/detect")
 def detect(d: Detection):
@@ -1053,11 +980,9 @@ def detect(d: Detection):
     _result_cache.clear()
     return robot.detect(d.label, d.confidence, d.source)
 
-
 @app.get("/api/model")
 def model_info():
     return disease.load()
-
 
 @app.post("/api/robot/diagnose")
 async def diagnose(file: UploadFile = File(...)):
@@ -1074,20 +999,17 @@ async def diagnose(file: UploadFile = File(...)):
     res["recorded"] = res["known"]
     return res
 
-
 @app.post("/api/robot/sim/start")
 def robot_sim(req: SimRun):
     s = site(req.lat, req.lon)
     robot.start_sim(s["weather"], s["lat"], s["lon"])
     return dict(mode=robot.mode)
 
-
 @app.post("/api/robot/reset")
 def robot_reset():
     robot.reset()
     _result_cache.clear()
     return dict(mode=robot.mode)
-
 
 # ---------------------------------------------------------------------------
 # Validation wall + static demo
@@ -1100,7 +1022,6 @@ def validation():
         return dict(status="not run", how="make validate")
     return _clean(json.loads(p.read_text()))
 
-
 @app.get("/api/backtest")
 def backtest_report():
     p = ROOT / "qa" / "BACKTEST.json"
@@ -1108,11 +1029,9 @@ def backtest_report():
         return dict(status="not run", how="python qa/backtest.py")
     return _clean(json.loads(p.read_text()))
 
-
 @app.get("/methods")
 def methods_page():
     return FileResponse(FRONT / "methods.html")
-
 
 @app.get("/demo/{site_id}")
 def demo(site_id: str):
@@ -1121,29 +1040,23 @@ def demo(site_id: str):
         raise HTTPException(404, "no precomputed demo for this site (run scripts/build_demo.py)")
     return json.loads(p.read_text())
 
-
 @app.get("/api/health")
 def health():
     return dict(ok=True, offline=OFFLINE, sites=len(SITES), model=disease._info.get("loaded"))
 
-
 FRONT = ROOT / "frontend"
-
 
 @app.get("/")
 def index():
     return FileResponse(FRONT / "index.html")
-
 
 @app.get("/sw.js")
 def service_worker():
     # served from the root so it may control the whole app (installable, works offline)
     return FileResponse(FRONT / "sw.js", media_type="text/javascript", headers={"Service-Worker-Allowed": "/"})
 
-
 @app.get("/manifest.webmanifest")
 def manifest():
     return FileResponse(FRONT / "manifest.webmanifest", media_type="application/manifest+json")
-
 
 app.mount("/static", StaticFiles(directory=FRONT), name="static")

@@ -1,7 +1,5 @@
 """Crop table: agronomy from FAO papers, money from data/prices.csv.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Sources (each field below is tagged with one of these):
   FAO56_T11  stage lengths      FAO-56 Table 11, adapted to the Delta / Maghreb calendar
   FAO56_T12  Kc ini / mid / end FAO-56 Table 12 (wheat: non-frozen-soil row 0.70; berseem: averaged
@@ -113,16 +111,13 @@ DISEASE_CLASSES = {
     "Strawberry___healthy": ("Rosaceae", "Healthy strawberry leaf", False),
 }
 
-
 def name(c: str, lang: str = "en") -> str:
     if c == FALLOW:
         return FALLOW_INFO["name_ar" if lang == "ar" else "name"]
     return CROPS[c]["name_ar" if lang == "ar" else "name"]
 
-
 def family(c: str):
     return None if c == FALLOW else CROPS[c]["family"]
-
 
 def total_days(c: str) -> int:
     return sum(CROPS[c]["stages"])

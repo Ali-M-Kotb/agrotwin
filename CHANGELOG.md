@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2 — 15 Nov 2026: interface and presentation polish
+- Centralised development disclosure in docs/AI_USE.md and retained generated result metadata.
+- Removed repetitive source headers and provider branding from the interface.
+- Revised field-planning copy in English and Arabic and improved contrast and spacing.
+- Fixed open planner labels when switching between Arabic and English.
+- Fixed crop suggestion routing and kept interview buttons aligned with the active question.
+- Refreshed the offline app shell.
+
 ## 0.6.1 — 15 Nov 2026: real conversation (hybrid language-model chat)
 - `backend/llm.py`: one interface for any provider, chosen from the key in `.env` (git-ignored): Anthropic (Claude),
   NVIDIA Build (`nvapi-…`, default `nvidia/nemotron-3-ultra-550b-a55b`), OpenCode or any OpenAI-compatible API

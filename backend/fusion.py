@@ -1,7 +1,5 @@
 """Sky + Scout fusion: re-weight past years by how well they match the field's own readings.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Each past window k, replayed through the water balance, predicts the root-zone relative
 wetness h_k,t for the current crop on day t of this season. The Scout measures y_t.
 
@@ -31,19 +29,15 @@ import waterbalance as wb
 from config import A
 from soil import relative_wetness
 
-
 class FusionRefused(Exception):
     pass
-
 
 def season_start(today: date | None = None) -> date:
     today = today or date.today()
     return date(today.year if today.month >= 10 else today.year - 1, 10, 1)
 
-
 def _parse_t(s: str) -> datetime:
     return datetime.fromisoformat(s.replace("Z", "+00:00"))
-
 
 def daily_observations(points: list[dict], calibration: dict, soil_class: str,
                        start: date, irrigation_dates: list[str] | None = None) -> dict:
@@ -89,7 +83,6 @@ def daily_observations(points: list[dict], calibration: dict, soil_class: str,
     return dict(obs=obs, n_raw=len(points), n_valid=sum(len(v) for v in by_day.values()) - dropped["spike"],
                 dropped=dropped)
 
-
 def decorrelation_days(wet: np.ndarray, max_lag: int = 120) -> int:
     """Lag (days) where the mean autocorrelation of wetness anomalies drops below 1/e."""
     an = wet - wet.mean(0)
@@ -98,7 +91,6 @@ def decorrelation_days(wet: np.ndarray, max_lag: int = 120) -> int:
         if cs and np.mean(cs) < np.exp(-1):
             return lag
     return max_lag
-
 
 def weights_from(obs: dict, wet: np.ndarray, sigma: float, tau: int = 1,
                  exclude: int | None = None) -> dict:
@@ -128,13 +120,11 @@ def weights_from(obs: dict, wet: np.ndarray, sigma: float, tau: int = 1,
         guard = True
     return dict(w=w, ess=float(ess), sigma=float(sigma), temper=float(temper), guard=guard, n=len(days))
 
-
 def confidence(n_points: int, guard: bool) -> str:
     lo, hi = A["confidence_bins"]
     if n_points < lo or guard:
         return "low"
     return "medium" if n_points <= hi else "high"
-
 
 def predicted_wetness(rotation: tuple[str, ...], wx: dict, soil_class: str, irrigated: bool,
                       irrigation_dates: list[str] | None, start: date) -> np.ndarray:
@@ -151,7 +141,6 @@ def predicted_wetness(rotation: tuple[str, ...], wx: dict, soil_class: str, irri
     sim = wb.simulate([rotation], wx, soil_class, irrigated, None, irrigation_days=irr_days,
                       keep_wetness_days=365)
     return sim["wet"][0]
-
 
 def fuse(runs: list[dict], calibration: dict | None, rotation, wx, soil_class, irrigated,
          irrigation_dates=None, today: date | None = None, sigma_model: float | None = None) -> dict:
@@ -183,7 +172,6 @@ def fuse(runs: list[dict], calibration: dict | None, rotation, wx, soil_class, i
                    predicted_p90=np.percentile(wet[:, days], 90, axis=0).tolist() if days else [],
                    start=str(start)),
     )
-
 
 # ---------------------------------------------------------------------------
 # Twin experiment (plan section 5.4): is the narrowed range honest?
@@ -225,7 +213,6 @@ def twin_experiment(wet: np.ndarray, outcome: np.ndarray, reading_days: list[int
                 ess_p90=float(np.percentile(esss, 90)),
                 target_band=list(A["coverage_band"]),
                 in_band=bool(A["coverage_band"][0] <= cov <= A["coverage_band"][1]))
-
 
 def calibrate_sigma_model(wet: np.ndarray, outcome: np.ndarray, horizons=(30, 90, 135, 180),
                           grid=(0.05, 0.08, 0.10, 0.15, 0.20, 0.30, 0.45), slack: float = 0.05) -> dict:

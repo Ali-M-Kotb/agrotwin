@@ -1,6 +1,6 @@
 """Verify the downloaded Prithvi-EO-2.0-300M-TL encoder loads and produces field embeddings.
 Uses the HLS example chip shipped with the model (Mexico, 2018) — no HLS download needed.
-AI-generated (Claude, Anthropic) under human review.     python scripts/prithvi_check.py"""
+     python scripts/prithvi_check.py"""
 import sys
 import time
 from pathlib import Path
@@ -10,7 +10,6 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 import prithvi  # noqa: E402
-
 
 def main():
     import rasterio
@@ -35,7 +34,6 @@ def main():
     pv = np.linalg.norm(e1["patches"] - e1["patches"].mean(0), axis=1)
     print(f"example chip at {lat:.3f}, {lon:.3f}: embedding {e1['embedding'].shape}, {e1['tokens']} patch tokens, {e1['seconds']}s on CPU")
     print(f"cosine(real chip, noise) = {cos:.3f} (lower = the model separates real land from noise); patch-embedding spread {pv.mean():.2f}")
-
 
 if __name__ == "__main__":
     main()

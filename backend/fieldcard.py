@@ -1,6 +1,5 @@
 """Field Card: one printable page, one WhatsApp text (< 600 characters), one local QR code.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
 Built only from the result object; the QR is generated on this machine (no outside service).
 """
 from __future__ import annotations
@@ -13,10 +12,8 @@ import qrcode.image.svg
 
 from crops import FALLOW, name
 
-
 def _f(x):
     return f"{round(x):,}"
-
 
 def qr_svg(url: str) -> str:
     img = qrcode.make(url, image_factory=qrcode.image.svg.SvgPathImage, box_size=8, border=2)
@@ -24,11 +21,9 @@ def qr_svg(url: str) -> str:
     img.save(buf)
     return buf.getvalue().decode()
 
-
 def _top(result):
     tid = result["order"][0]
     return next(r for r in result["rotations"] if r["rotation_id"] == tid)
-
 
 def whatsapp(result: dict, lang: str, url: str) -> str:
     r, ex = _top(result), result["rotations"][0]
@@ -53,7 +48,6 @@ def whatsapp(result: dict, lang: str, url: str) -> str:
                   f"Data: {result['mode'] if result['mode'] != 'NONE' else 'NASA only'}", url]
     text = "\n".join(lines)
     return text if len(text) < 600 else text[:590] + "…"
-
 
 def card_html(result: dict, lang: str, url: str) -> str:
     ar = lang == "ar"

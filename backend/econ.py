@@ -1,7 +1,5 @@
 """Yield, profit and the Harvest Barcode.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Yield (FAO-33):   1 − Ya/Ym = Ky (1 − ETa/ETc), then a heat loss per day above the crop's
                   Tmax limit in its sensitive window (assumption:heat_loss_per_day, capped).
 Profit per slot:  Ya · P · price_mult − cost − water_cost · gross m³ + N credit · P_N
@@ -24,7 +22,6 @@ from crops import CROPS, FALLOW, MM_TO_M3_PER_FEDDAN, N_PRICE_EGP_KG
 from waterbalance import SLOTS
 
 PRICES_CSV = Path(__file__).resolve().parent.parent / "data" / "prices.csv"
-
 
 def load_prices() -> dict:
     """crop -> {price, yield_t, cost, src:{price, yield_t, cost}}; plus 'nitrogen'."""
@@ -61,7 +58,6 @@ def load_prices() -> dict:
         out[crop]["src"]["cost"] = srcs.pop() if len(srcs) == 1 else "computed:sum of prices.csv cost rows"
     return out
 
-
 def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: dict | None = None, ece: float = 0.0) -> dict:
     """Per (rotation, window, slot): yield fraction, revenue, cost, profit (EGP / feddan)."""
     R, W = sim["etc"].shape[:2]
@@ -92,7 +88,6 @@ def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: 
     profit = rev - cost + ncredit
     return dict(yield_frac=yf, revenue=rev, cost=cost, ncredit=ncredit, profit=profit)
 
-
 # FAO-29 (Ayers & Westcot, 1985, Table 4; after Maas & Hoffman, 1977): yield falls by b % per dS/m of soil
 # salinity ECe above the threshold a (dS/m).  Yr = 100 − b (ECe − a).
 SALT_TOLERANCE = {
@@ -102,20 +97,17 @@ SALT_TOLERANCE = {
 }
 SALT_SOURCE = "FAO-29 (Ayers & Westcot 1985) Table 4, Maas–Hoffman salt tolerance"
 
-
 def salinity_factor(crop: str, ece: float) -> float:
     if not ece or crop not in SALT_TOLERANCE:
         return 1.0
     a, b = SALT_TOLERANCE[crop]
     return float(min(1.0, max(0.0, 1 - b / 100 * max(0.0, ece - a))))
 
-
 def _price_draws(crop: str, k: int, seed: int = 7) -> np.ndarray:
     cv = A["price_cv"].get(crop, A["price_cv"]["default"])
     rng = np.random.default_rng(zlib.crc32(f"price|{crop}|{seed}".encode()))
     s = np.sqrt(np.log(1 + cv ** 2))
     return rng.lognormal(-s * s / 2, s, k)          # mean 1
-
 
 def mc_profit_year(sim: dict, eco: dict, r: int, irrigated: bool, p_short: float | None = None,
                    supply: float | None = None, draws: int | None = None, seed: int = 11) -> np.ndarray:
@@ -145,7 +137,6 @@ def mc_profit_year(sim: dict, eco: dict, r: int, irrigated: bool, p_short: float
         total += rev - eco["cost"][r, :, j][:, None] + eco["ncredit"][r, :, j][:, None]
     return total / YEARS
 
-
 def barcode(window_profit: np.ndarray, window_cost: np.ndarray, years: list[int]) -> list[dict]:
     """window_profit / cost: (W,) EGP per feddan per year averaged over the window."""
     out = []
@@ -153,7 +144,6 @@ def barcode(window_profit: np.ndarray, window_cost: np.ndarray, years: list[int]
         cls = "red" if p < 0 else ("amber" if p < A["amber_margin"] * c else "green")
         out.append(dict(year=int(y), profit=float(round(p)), cls=cls, source="computed"))
     return out
-
 
 def wquantile(x: np.ndarray, q, w: np.ndarray | None = None):
     """Weighted quantiles (w None = equal weights)."""

@@ -1,7 +1,5 @@
 """Evidence, benefits, gaps, local-review flags and blind spots, in English and Arabic.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Fixed templates filled only from fields of the result object; a sentence whose field is
 missing is omitted. Every number in a sentence is also listed in `nums` with the result
 path it came from, so the Number Auditor (council.py) can check any rewritten version.
@@ -22,10 +20,8 @@ DISEASE_AR = {"Potato late blight": "اللفحة المتأخرة في البط
 STRENGTH = {"water": ("saving water", "توفير المياه"), "soil": ("soil health", "صحة التربة"),
             "profit": ("profit", "الربح"), "risk": ("low risk", "تقليل المخاطر")}
 
-
 def f(x) -> str:
     return f"{round(x):,}"
-
 
 def label(seq, lang="en") -> str:
     # collapse a repeating 2-season pattern: "Wheat → Rice (×3)"
@@ -38,10 +34,8 @@ def label(seq, lang="en") -> str:
     sep = " ← " if lang == "ar" else " → "
     return sep.join(name(c, lang) for c in seq if c != FALLOW) or name(FALLOW, lang)
 
-
 def _s(en, ar, nums=(), tone="info"):
     return dict(en=en, ar=ar, nums=list(nums), tone=tone)
-
 
 def rotation_text(r: dict, i: int, existing: dict, ctx: dict) -> dict:
     """r: one shown rotation; existing: the farmer's current one; ctx: site / fusion facts."""
@@ -147,7 +141,6 @@ def rotation_text(r: dict, i: int, existing: dict, ctx: dict) -> dict:
     rev.append(_s("Sowing dates follow a typical calendar; a local agronomist should confirm them.",
                   "مواعيد الزراعة تقويم نموذجي؛ يجب أن يؤكدها مهندس زراعي محلي."))
     return dict(why=why, evidence=ev, benefits=ben, gaps=gaps, review=rev)
-
 
 def blind_spots(shown: list[dict], ctx: dict) -> list[dict]:
     fams = {family(c) for r in shown for c in r["seq"] if c != FALLOW}

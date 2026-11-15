@@ -1,7 +1,5 @@
 """Prithvi-EO-2.0 (NASA–IBM geospatial foundation model) inside AgroTwin.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Prithvi-EO-2.0-300M-TL is a 300 M-parameter vision transformer pre-trained by NASA and IBM on NASA's Harmonized
 Landsat-Sentinel-2 (HLS) imagery, with time and location encodings (Apache-2.0,
 huggingface.co/ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL). Weights (1.33 GB) live in data/models/prithvi/ (git-ignored).
@@ -34,10 +32,8 @@ HEAD = Path(__file__).resolve().parent / "models" / "crop_head.pkl"
 _lock = threading.Lock()
 _model = {}
 
-
 def config() -> dict:
     return json.loads((DIR / "config.json").read_text())["pretrained_cfg"]
-
 
 def status() -> dict:
     ok = WEIGHTS.exists() and WEIGHTS.stat().st_size > 1e9
@@ -46,7 +42,6 @@ def status() -> dict:
                 hls_imagery="not downloaded (pending the team's approval; needs an Earthdata login)",
                 crop_head="trained" if HEAD.exists() else "not trained (needs labelled fields from the outcome log)",
                 bands=config()["bands"] if (DIR / "config.json").exists() else None)
-
 
 def load(num_frames: int = 4):
     """Encoder only (decoder dropped to save memory). Cached per frame count."""
@@ -69,7 +64,6 @@ def load(num_frames: int = 4):
         _model[num_frames] = (enc, [k for k in missing if k.startswith("encoder.") and "pos_embed" not in k])
         return _model[num_frames]
 
-
 def embed(chips: np.ndarray, dates: list[tuple[int, int]], lat: float, lon: float) -> dict:
     """chips: (T, 6, H, W) HLS surface reflectance (scaled integers, bands B02,B03,B04,B05,B06,B07), H = W = 224.
     dates: [(year, day_of_year)] per frame. Returns the pooled 1,024-d field embedding and the per-patch grid."""
@@ -89,7 +83,6 @@ def embed(chips: np.ndarray, dates: list[tuple[int, int]], lat: float, lon: floa
     last = feats[-1][0, 1:, :].numpy()                                       # tokens without CLS
     return dict(embedding=last.mean(0), patches=last, tokens=last.shape[0], seconds=round(time.time() - t0, 2))
 
-
 def train_head(embeddings: np.ndarray, labels: list[str]) -> dict:
     """Fit the crop-type head on labelled field embeddings (logistic regression; small data friendly)."""
     from sklearn.linear_model import LogisticRegression
@@ -100,7 +93,6 @@ def train_head(embeddings: np.ndarray, labels: list[str]) -> dict:
     with open(HEAD, "wb") as f:
         pickle.dump(dict(clf=clf, classes=sorted(set(labels)), n=len(labels), cv=None if cv is None else float(cv.mean())), f)
     return dict(n=len(labels), classes=sorted(set(labels)), cv_accuracy=None if cv is None else float(cv.mean()))
-
 
 def detect(embedding: np.ndarray) -> dict:
     if not HEAD.exists():

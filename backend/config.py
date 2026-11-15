@@ -1,7 +1,5 @@
 """Every judgment-call threshold in one place, each with an assumption tag.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 The Scientist lens lists this table verbatim, so a judge can see every number we
 chose (rather than measured) and change it. Values are read through A[...] so a
 typo fails loudly.
@@ -55,19 +53,15 @@ ASSUMPTIONS = {
     "danger_rule": ((2.0, 5), "|robust z| above 2.0 for 5+ consecutive days = danger window"),
 }
 
-
 class _A(dict):
     def __getitem__(self, k):
         return ASSUMPTIONS[k][0]
 
-
 A = _A()
-
 
 def tag(name: str) -> str:
     assert name in ASSUMPTIONS, name
     return f"assumption:{name}"
-
 
 def table() -> list[dict]:
     return [dict(name=k, value=v[0], meaning=v[1], source=f"assumption:{k}") for k, v in ASSUMPTIONS.items()]

@@ -1,7 +1,5 @@
 """Bulk MODIS NDVI for Field Pulse v2, from NASA GIBS (no login, works while the ORNL service is down).
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 GIBS serves MODIS Terra MOD13Q1 16-day NDVI as colour-mapped PNG tiles (EPSG:4326, 250 m, level 8 =
 1.125° tiles of 512 × 512 px ≈ 240 m). The official GIBS colour map (data/training/MODIS_L3_NDVI_colormap.xml)
 maps every colour back to an NDVI bin 0.005 wide, so the tiles decode to quantitative NDVI.
@@ -31,12 +29,10 @@ URL = "https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Terra_L3_NDVI_16
 TILES = [(52, 186), (52, 187), (52, 188)]
 SPAN = 1.125  # degrees per level-8 tile
 
-
 def tile_bounds(r, c):
     lon0 = -180 + c * SPAN
     lat0 = 90 - r * SPAN
     return lat0, lon0  # top-left corner; pixel size SPAN/512
-
 
 def lut():
     """rgb -> uint8 code (0 = no data)."""
@@ -48,7 +44,6 @@ def lut():
         m[tuple(int(x) for x in rgb.split(","))] = int(np.clip(round((v + 0.2) * 200), 1, 255))
     return m
 
-
 def composite_dates(start=2018, end_date=None):
     end_date = end_date or date.today()
     out = []
@@ -58,7 +53,6 @@ def composite_dates(start=2018, end_date=None):
             out.append(d)
             d += timedelta(days=16)
     return out
-
 
 def fetch(args):
     d, r, c, L = args
@@ -79,7 +73,6 @@ def fetch(args):
             time.sleep(3 * (k + 1))
     return d, r, c, None, 0
 
-
 def main():
     L = lut()
     dates = composite_dates()
@@ -99,7 +92,6 @@ def main():
         np.savez_compressed(OUT / f"ndvi_r{r}_c{c}.npz", ndvi=cube, dates=np.array([d.isoformat() for d in dates]),
                             lat0=lat0, lon0=lon0, px=SPAN / 512)
     print(f"done: {got}/{len(jobs)} tiles, {mb:.1f} MB downloaded")
-
 
 if __name__ == "__main__":
     main()

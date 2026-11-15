@@ -1,7 +1,5 @@
 """Adapter: our simulate() result → the frozen AgroTwin v1 result contract.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 The v1 contracts (contracts/v1/*.schema.json) were designed in Yaseen Abdelal's AgroTwin
 repository (github.com/Yaseen-Saad/AgroTwin). The engine here works per feddan; the contract
 is per hectare (1 feddan = 0.42 ha), water in mm (1 mm over a feddan = 4.2 m³).
@@ -21,10 +19,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = json.loads((ROOT / "contracts" / "v1" / "result.schema.json").read_text())
 VERSION = (ROOT / "VERSION").read_text().strip() if (ROOT / "VERSION").exists() else "0.0.0"
 
-
 def _per_ha(x):
     return round(x / FEDDAN_HA, 2)
-
 
 def _rng(m: dict, f=lambda v: v, unit=None, currency=None) -> dict:
     out = dict(p10=round(f(m["p10"]), 2), median=round(f(m["median"]), 2), p90=round(f(m["p90"]), 2),
@@ -34,7 +30,6 @@ def _rng(m: dict, f=lambda v: v, unit=None, currency=None) -> dict:
     if currency:
         out["currency"] = currency
     return out
-
 
 def to_v1(res: dict, lang: str = "en") -> dict:
     rots = []
@@ -102,7 +97,6 @@ def to_v1(res: dict, lang: str = "en") -> dict:
                           value=a["value"] if isinstance(a["value"], (str, int, float, bool)) or a["value"] is None else json.dumps(a["value"]),
                           source=a["source"], editable=True) for a in config.table()],
     )
-
 
 def validate(doc: dict) -> list[str]:
     return [f"{'/'.join(map(str, e.path))}: {e.message}" for e in jsonschema.Draft202012Validator(SCHEMA).iter_errors(doc)]

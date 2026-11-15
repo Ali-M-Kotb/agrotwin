@@ -1,6 +1,6 @@
 # Status snapshot
 
-> Updated: 2026-11-14 · Version **0.6.1** · Tests: `make test` → 39 passed
+> Updated: 2026-11-14 · Version **0.6.2** · Tests: `make test` → 41 passed
 
 ## One line
 

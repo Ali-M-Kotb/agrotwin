@@ -1,7 +1,5 @@
 """The Council: three advisors explain a result; the Number Auditor decides what reaches the screen.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Advisors (agronomist, economist, skeptic) receive ONLY the structured result. Each claim must
 declare every number it shows as {path, shown_as}, where path points into the result object.
 The auditor:
@@ -26,12 +24,10 @@ CERTAINTY = re.compile(r"\b(will|guarantee[sd]?|certain(ly)?|definitely|sure to)
                        re.IGNORECASE)
 NUM = re.compile(r"-?\d+(?:\.\d+)?")
 
-
 def normalise(text: str) -> str:
     t = text.translate(ARABIC_DIGITS)
     t = re.sub(r"(?<=\d)[,٬](?=\d{3})", "", t)
     return t.replace("٫", ".")
-
 
 def resolve(result: dict, path: str):
     """'rotations[1].profit.median', 'years.length', or 'A - B' differences."""
@@ -54,11 +50,9 @@ def resolve(result: dict, path: str):
             return None
     return cur if isinstance(cur, (int, float)) and not isinstance(cur, bool) else None
 
-
 def _matches(shown: float, value: float) -> bool:
     cands = [round(value), round(value, 1), round(value * 100), round(value * 100, 1)]
     return any(abs(shown - c) < 1e-6 for c in cands) or abs(abs(shown) - abs(round(value))) < 1e-6
-
 
 def audit_claim(claim: dict, result: dict) -> tuple[bool, str]:
     raw = claim.get("text", "")
@@ -84,14 +78,12 @@ def audit_claim(claim: dict, result: dict) -> tuple[bool, str]:
             return False, f"undeclared number {x}"
     return True, "ok"
 
-
 # ---------------------------------------------------------------------------
 # fixed templates (also the fallback for any blocked claim)
 # ---------------------------------------------------------------------------
 
 def _fmt(x):
     return f"{round(x):,}"
-
 
 def templates(result: dict, lang: str = "en") -> dict:
     rots = result["rotations"]
@@ -137,12 +129,10 @@ def templates(result: dict, lang: str = "en") -> dict:
         numbers=[]))
     return out
 
-
 def _consts(result: dict) -> dict:
     r = dict(result)
     r["const"] = {"eight": 8, "ten": 10}
     return r
-
 
 # ---------------------------------------------------------------------------
 # LLM advisors
@@ -170,14 +160,12 @@ and the text exactly as shown. Shares may be shown as percentages of the stored 
 Write about the past ("would have", "in the historical record"); never say will, guarantee or certain.
 Two short claims per advisor. The skeptic names a real limit of the data. Plain words, no jargon."""
 
-
 def _slim(result: dict) -> dict:
     keep = ("rotation_id", "label", "seq", "water_m3", "profit", "season1_profit", "loss_year_share", "worst_year",
             "n_credit_kg_fed", "bare_days", "deficit_days", "heat_stress_share", "scores", "total", "rank", "strength")
     return dict(site=result["site"]["name"], irrigated=result["site"]["irrigated"], years=result["years"],
                 order=result["order"], no_clear_winner=result["no_clear_winner"], mode=result["mode"],
                 rotations=[{k: r[k] for k in keep if k in r} for r in result["rotations"]])
-
 
 def llm_claims(result: dict, lang: str) -> dict | None:
     try:
@@ -199,7 +187,6 @@ def llm_claims(result: dict, lang: str) -> dict | None:
         return {a["advisor"]: a["claims"] for a in data["advisors"]}
     except Exception:
         return None
-
 
 def explain(result: dict, lang: str = "en", use_llm: bool = True) -> dict:
     tmpl = templates(result, lang)

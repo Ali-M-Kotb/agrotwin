@@ -1,7 +1,5 @@
 """Field Pulse — a hybrid physics + machine-learning model of field greenness.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 What it does
     Forecasts the field's MODIS NDVI 16 and 32 days ahead as a range (10th, 50th, 90th percentile),
     and checks the newest satellite image against what the model expected from the weather.
@@ -39,12 +37,10 @@ FEATURES = ["n0", "n1", "n2", "n3", "slope1", "slope2", "c0", "ch", "a0", "cdelt
             "sin_t", "cos_t", "rain16", "rain60", "et0_16", "tmax16", "tmax_anom", "heat16", "gwet",
             "deficit30", "etc16", "ks16", "ks_min60", "rain_annual", "lat", "h"]
 
-
 def _composites(ndvi: pd.Series) -> pd.Series:
     s = ndvi.sort_index()
     s = s[~s.index.duplicated()]
     return s.interpolate(limit=2, limit_area="inside")
-
 
 def _climatology(s: pd.Series, loyo: bool) -> pd.DataFrame:
     """Mean NDVI per composite day-of-year. With loyo, each year's own value is left out."""
@@ -60,7 +56,6 @@ def _climatology(s: pd.Series, loyo: bool) -> pd.DataFrame:
     by_doy = g.mean()
     return df, by_doy
 
-
 def _bucket(weather: pd.DataFrame, kc_daily: pd.Series) -> pd.DataFrame:
     """FAO-56 single bucket, rain only (what the sky alone would do for this canopy)."""
     et0 = weather["ET0"].fillna(0).values
@@ -75,12 +70,10 @@ def _bucket(weather: pd.DataFrame, kc_daily: pd.Series) -> pd.DataFrame:
         ks_out[i], etc_out[i] = ks, etc
     return pd.DataFrame({"ks": ks_out, "etc": etc_out}, index=weather.index)
 
-
 def _window(cum: np.ndarray, end: np.ndarray, n: int) -> np.ndarray:
     """Sum of the n days ending at index `end` (inclusive), from a cumulative-sum array."""
     lo = np.clip(end - n, -1, None)
     return cum[end] - np.where(lo >= 0, cum[np.maximum(lo, 0)], 0.0)
-
 
 def build_rows(ndvi: pd.Series, weather: pd.DataFrame, lat: float, loyo: bool = True,
                with_target: bool = True) -> pd.DataFrame:
@@ -151,13 +144,11 @@ def build_rows(ndvi: pd.Series, weather: pd.DataFrame, lat: float, loyo: bool = 
     out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
     return out.dropna(subset=[c for c in FEATURES if c in out.columns]) if len(out) else out
 
-
 # ---------------------------------------------------------------------------
 # inference
 # ---------------------------------------------------------------------------
 
 _MODEL = None
-
 
 def load():
     global _MODEL
@@ -165,7 +156,6 @@ def load():
         with open(MODEL_PATH, "rb") as f:
             _MODEL = pickle.load(f)
     return _MODEL
-
 
 def predict(rows: pd.DataFrame) -> pd.DataFrame:
     m = load()
@@ -177,7 +167,6 @@ def predict(rows: pd.DataFrame) -> pd.DataFrame:
     wd = m.get("widen", 0.0)                                   # split-conformal widening (qa/pulse_train.py)
     out["q10"], out["q50"], out["q90"] = (qs[:, 0] - wd).clip(-0.2, 1), qs[:, 1], (qs[:, 2] + wd).clip(-0.2, 1)
     return out
-
 
 def field_pulse(ndvi: pd.Series, weather: pd.DataFrame, lat: float) -> dict:
     m = load()

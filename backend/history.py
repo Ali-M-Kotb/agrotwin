@@ -1,7 +1,5 @@
 """Field diagnosis: climate trend, NDVI seasons, danger windows.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Danger windows (plan 5.6): for each day-of-year, median and MAD over a ±7-day window across
 all years; robust z = (x − median) / (1.4826 · MAD). A danger window is |z| > 2 for 5 or more
 consecutive days (assumption:danger_rule). Rain uses 30-day totals (daily rain is mostly zero).
@@ -13,7 +11,6 @@ import pandas as pd
 
 from config import A
 from crops import CROPS, total_days
-
 
 def climate_summary(weather: pd.DataFrame) -> dict:
     full = weather.groupby(weather.index.year).filter(lambda g: len(g) >= 360)
@@ -32,7 +29,6 @@ def climate_summary(weather: pd.DataFrame) -> dict:
                 trend_per_decade={k: round(v, 2) for k, v in trend.items()},
                 source="nasa:POWER", first=str(weather.index[0].date()), last=str(weather.index[-1].date()))
 
-
 def robust_z(series: pd.Series, half_window: int = 7) -> pd.Series:
     s = series.dropna()
     doy = s.index.day_of_year.values
@@ -50,7 +46,6 @@ def robust_z(series: pd.Series, half_window: int = 7) -> pd.Series:
         z[sel] = (vals[sel] - med) / mad if mad > 1e-9 else 0.0
     return pd.Series(z, index=s.index)
 
-
 def _runs(z: pd.Series, thr: float, min_len: int, sign: int) -> list[dict]:
     flag = (z * sign > thr).fillna(False).values
     out, start = [], None
@@ -64,7 +59,6 @@ def _runs(z: pd.Series, thr: float, min_len: int, sign: int) -> list[dict]:
                                 days=int(i - start), peak_z=round(float(seg.abs().max()), 1)))
             start = None
     return out
-
 
 def danger_windows(weather: pd.DataFrame, ndvi: pd.Series | None = None, months: int = 24) -> dict:
     thr, min_len = A["danger_rule"]
@@ -87,7 +81,6 @@ def danger_windows(weather: pd.DataFrame, ndvi: pd.Series | None = None, months:
         out["low_greenness"] = dict(windows=ws, source="nasa:MODIS MOD13Q1 NDVI")
     return dict(rule=f"|robust z| > {thr} for {min_len}+ days", rule_source="assumption:danger_rule",
                 since=str(since.date()), until=str(weather.index[-1].date()), kinds=out)
-
 
 def ndvi_seasons(ndvi: pd.Series) -> dict:
     """Green-up peaks → which seasons the field was cropped, and crops whose peak timing fits."""

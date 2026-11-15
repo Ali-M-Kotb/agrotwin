@@ -1,7 +1,5 @@
 """Backtest: would AgroTwin have called the last three seasons, using only the past?
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
     python qa/backtest.py           → qa/BACKTEST.md + qa/BACKTEST.json
 
 For each demo site, each test season S (Oct S → the following autumn) of the last three that
@@ -44,11 +42,9 @@ from crops import FALLOW, MM_TO_M3_PER_FEDDAN  # noqa: E402
 SITES = {s["id"]: s for s in json.loads((ROOT / "data" / "sites.json").read_text())}
 TEST_SITES = ["delta_01", "coast_01", "intl_01"]
 
-
 def crps(ens: np.ndarray, x: float) -> float:
     ens = np.asarray(ens, float)
     return float(np.mean(np.abs(ens - x)) - 0.5 * np.mean(np.abs(ens[:, None] - ens[None, :])))
-
 
 def padded(weather: pd.DataFrame) -> pd.DataFrame:
     """Append 2 years after the data end (copies of the last two years) so a window starting in
@@ -61,14 +57,12 @@ def padded(weather: pd.DataFrame) -> pd.DataFrame:
         parts.append(tail[tail.index > parts[-1].index[-1]])
     return pd.concat(parts)
 
-
 def season1(rot, wx, soil_class, irrigated, prices, overrides):
     sim = wb.simulate([rot], wx, soil_class, irrigated)
     eco = econ.slot_economics(sim, prices, 1.0, overrides)
     return dict(profit=eco["profit"][0, :, :2].sum(1),
                 water=sim["irr_gross"][0, :, :2].sum(1) * MM_TO_M3_PER_FEDDAN,
                 yield_frac=np.where(eco["yield_frac"][0, :, 0] > 0, eco["yield_frac"][0, :, 0], eco["yield_frac"][0, :, 1]))
-
 
 def run_site(sid: str, prices) -> dict:
     s = SITES[sid]
@@ -152,7 +146,6 @@ def run_site(sid: str, prices) -> dict:
     out["satellite_check"] = sat
     return out
 
-
 def summarize(sites: list[dict]) -> dict:
     agg = {}
     for st in sites:
@@ -183,7 +176,6 @@ def summarize(sites: list[dict]) -> dict:
         )
     return out
 
-
 def to_md(rep: dict) -> str:
     L = [f"# Backtest — last three seasons ({rep['generated_at']})", "",
          "_Computed by qa/backtest.py. Forecasts use only years before each test season; 'actual' is the season "
@@ -212,7 +204,6 @@ def to_md(rep: dict) -> str:
         L.append("")
     return "\n".join(L) + "\n"
 
-
 def main():
     prices = econ.load_prices()
     sites = [run_site(sid, prices) for sid in TEST_SITES]
@@ -221,7 +212,6 @@ def main():
     (ROOT / "qa" / "BACKTEST.json").write_text(json.dumps(rep, indent=1))
     (ROOT / "qa" / "BACKTEST.md").write_text(to_md(rep))
     print(to_md(rep))
-
 
 if __name__ == "__main__":
     main()

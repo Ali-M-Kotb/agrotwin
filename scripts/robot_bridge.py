@@ -25,14 +25,12 @@ import requests
 
 API = "http://127.0.0.1:8000"
 
-
 def post(payload: dict):
     try:
         r = requests.post(f"{API}/api/robot/telemetry", json=payload, timeout=5)
         print(("ok  " if r.ok else f"{r.status_code} ") + json.dumps(payload)[:120], flush=True)
     except requests.RequestException as exc:
         print(f"planner not reachable: {exc}", flush=True)
-
 
 def run_mqtt(host, port, topic):
     import paho.mqtt.client as mqtt
@@ -50,7 +48,6 @@ def run_mqtt(host, port, topic):
     print(f"listening on mqtt://{host}:{port}/{topic}", flush=True)
     c.loop_forever()
 
-
 def run_serial(port, baud):
     import serial  # pip install pyserial
 
@@ -64,14 +61,12 @@ def run_serial(port, baud):
                 except json.JSONDecodeError:
                     pass
 
-
 def run_replay(path, speed):
     rows = [json.loads(line) for line in open(path) if line.strip().startswith("{")]
     print(f"replaying {len(rows)} readings", flush=True)
     for r in rows:
         post(r)
         time.sleep(5 / speed)
-
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

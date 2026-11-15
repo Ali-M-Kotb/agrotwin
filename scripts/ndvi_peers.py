@@ -1,5 +1,5 @@
 """Seasonal peak-NDVI distribution of Nile Delta cropland (MODIS via NASA GIBS, 2018–2026) → backend/models/ndvi_peers.json.
-Used by the planner's field productivity index. AI-generated (Claude, Anthropic) under human review.
+Used by the planner's field productivity index.
     python scripts/ndvi_peers.py"""
 import json
 from pathlib import Path

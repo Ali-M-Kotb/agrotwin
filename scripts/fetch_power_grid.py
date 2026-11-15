@@ -1,5 +1,5 @@
 """NASA POWER daily weather for every MERRA-2 grid cell under the GIBS training tiles (≈1.5 MB each).
-AI-generated (Claude, Anthropic) under human review.   python scripts/fetch_power_grid.py"""
+   python scripts/fetch_power_grid.py"""
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path

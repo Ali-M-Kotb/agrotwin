@@ -1,7 +1,5 @@
 """The validation wall: run every check on the real system and write what comes out.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
     make validate        (or: python qa/validate.py)
 
 Writes qa/REPORT.json (read by the Scientist lens) and qa/REPORT.md. Nothing here is
@@ -32,11 +30,9 @@ from crops import FALLOW  # noqa: E402
 SITES = {s["id"]: s for s in json.loads((ROOT / "data" / "sites.json").read_text())}
 MODEL_DIR = ROOT.parent / "farming_robot" / "farming_robot"
 
-
 def spearman(a, b) -> float:
     a, b = pd.Series(a).rank(), pd.Series(b).rank()
     return float(np.corrcoef(a, b)[0, 1])
-
 
 def _load(site_id):
     s = SITES[site_id]
@@ -45,7 +41,6 @@ def _load(site_id):
     wx = wb.weather_matrices(site["weather"], wb.windows(site["weather"]))
     plan = rp.Plan(existing=tuple(s["existing"]), irrigated=s["irrigated"], soil_class=sc)
     return s, site, sc, wx, plan
-
 
 # ---------------------------------------------------------------------------
 def twin(site_id: str) -> dict:
@@ -71,7 +66,6 @@ def twin(site_id: str) -> dict:
                                       decision="3-year ranges are NOT re-weighted in the product: readings cannot know future seasons"),
                 method="each past window hidden in turn; synthetic readings = its modelled wetness + N(0, 0.05); "
                        "weighted 10–90% range from the other windows; 5 noise seeds; decorrelation time from the replay")
-
 
 # ---------------------------------------------------------------------------
 def hindcast(site_id: str) -> dict:
@@ -132,7 +126,6 @@ def hindcast(site_id: str) -> dict:
         return dict(status="not run", why="fewer than 5 overlapping seasons")
     return out
 
-
 # ---------------------------------------------------------------------------
 def robot_check() -> dict:
     runs = []
@@ -159,7 +152,6 @@ def robot_check() -> dict:
     return dict(status="run" if out else "not run", runs=out,
                 why=None if out else "stored runs do not overlap POWER days yet (POWER lags ~3 days)")
 
-
 # ---------------------------------------------------------------------------
 def vision() -> dict:
     p = MODEL_DIR / "v2_deit3_history.json"
@@ -177,7 +169,6 @@ def vision() -> dict:
                 model=h["backbone"], test_accuracy=round(h["test_acc"], 4), n_test=n_test, per_class=per,
                 split_sizes=sizes, split_note="grouped by photo scene so near-duplicates never cross train/test",
                 caveat="8 classes only (apple, potato, strawberry leaves); a sighting is an observation, not a diagnosis")
-
 
 # ---------------------------------------------------------------------------
 def provenance() -> dict:
@@ -217,7 +208,6 @@ def provenance() -> dict:
     return dict(status="run", numbers_checked=total, untagged=len(untagged), examples=untagged[:12],
                 passed=len(untagged) == 0)
 
-
 # ---------------------------------------------------------------------------
 def sanity() -> dict:
     out = {}
@@ -244,7 +234,6 @@ def sanity() -> dict:
     out["no_scout_no_change"] = dict(passed=True, note="fusion with zero readings returns uniform weights (unit test)")
     return out
 
-
 def main():
     t0 = time.time()
     rep = dict(generated_at=datetime.now().isoformat(timespec="seconds"),
@@ -262,7 +251,6 @@ def main():
     (ROOT / "qa" / "REPORT.json").write_text(json.dumps(rep, indent=1, default=float))
     (ROOT / "qa" / "REPORT.md").write_text(to_md(rep))
     print(to_md(rep))
-
 
 def to_md(r) -> str:
     L = [f"# Validation wall — {r['generated_at']}", "", "_Computed by qa/validate.py at run time. Not pre-written._", ""]
@@ -304,7 +292,6 @@ def to_md(r) -> str:
     L += ["", "## Sanity suite", ""] + [f"- {k}: {'PASS' if x.get('passed') else 'FAIL'} {{{', '.join(f'{a}={b}' for a, b in x.items() if a != 'passed')}}}"
                                          for k, x in r["sanity"].items()] if isinstance(r["sanity"], dict) and "status" not in r["sanity"] else ["", str(r["sanity"])]
     return "\n".join(L) + "\n"
-
 
 if __name__ == "__main__":
     main()

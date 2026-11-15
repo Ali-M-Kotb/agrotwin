@@ -1,4 +1,4 @@
-/* AgroTwin front end — AI-generated (Claude, Anthropic) under human review.
+/* AgroTwin front end
  * Plain JS, no build step, works offline (Leaflet + Plotly bundled). Talks to backend/app.py. */
 "use strict";
 const $ = (s, el = document) => el.querySelector(s);
@@ -48,11 +48,11 @@ function applyI18n() {
   document.documentElement.dir = S.lang === "ar" ? "rtl" : "ltr";
   $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
   $$("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
-  if (window.MapUI && MapUI.map) MapUI.relabel();
+  if (typeof MapUI !== "undefined" && MapUI.map) MapUI.relabel();
   $("#btn-digits").classList.toggle("hidden", S.lang !== "ar");
   $("#mode-badge").title = t("mode_hint");
-  if (window.Chat) Chat.labels();
-  if (window.PlanUI) PlanUI.labels();
+  if (typeof Chat !== "undefined") Chat.labels();
+  if (typeof PlanUI !== "undefined") PlanUI.labels();
 }
 
 // ---------------------------------------------------------------------------
@@ -330,7 +330,6 @@ function renderAhead() {
   }
   $("#ahead").innerHTML = out;
 }
-
 
 // ---------------------------------------------------------------------------
 // shared chart look (no default Plotly styling)
@@ -800,7 +799,7 @@ function renderCouncil() {
   if (!c) { box.innerHTML = ""; return; }
   box.innerHTML = ["agronomist", "economist", "skeptic"].map((a) => `<div class="advisor"><h3>${t("adv_" + a)}</h3>${
     (c.advisors[a] || []).map((cl) => `<p>${esc(digits(cl.text))}</p>`).join("")}</div>`).join("") +
-    `<span class="audit">${t("audit_ok", { n: digits(c.audit.claims), b: digits(c.audit.blocked_claims) })} · ${c.model === "templates" ? t("templates") : esc(c.model)}</span>`;
+    `<span class="audit">${t("audit_ok", { n: digits(c.audit.claims), b: digits(c.audit.blocked_claims) })} · ${c.model === "templates" ? t("templates") : (S.lang === "ar" ? "مراجعة الخطة" : "Plan review")}</span>`;
 }
 
 async function askCouncil() {
@@ -962,7 +961,7 @@ async function init() {
     i.addEventListener("input", () => { if (o) o.textContent = sliderOut(i.id); if (i.id.startsWith("w-") || i.id.startsWith("x-")) schedule(); });
   });
   ["ex-w", "ex-s", "cap-on", "cap-w", "cap-s"].forEach((id) => ($("#" + id).onchange = () => { $("#sw-w").value = $("#ex-w").value; $("#sw-s").value = $("#ex-s").value; schedule(); }));
-  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); renderPulse(); if (window.Chat) Chat.labels(); renderTM(); renderCanal(); renderInvest(); renderBacktest(); };
+  $("#btn-lang").onclick = () => { S.lang = S.lang === "en" ? "ar" : "en"; applyI18n(); buildInputs(); wizardBind(); renderFarms(); siteMeta(); renderDiag(); if (S.result) render(); renderAhead(); renderPulse(); if (typeof Chat !== "undefined") Chat.labels(); renderTM(); renderCanal(); renderInvest(); renderBacktest(); };
   $("#btn-digits").onclick = () => { S.arDigits = !S.arDigits; if (S.result) render(); siteMeta(); };
   $("#btn-card").onclick = fieldCard;
   $("#btn-dlg-close").onclick = () => $("#card-dlg").classList.add("hidden");

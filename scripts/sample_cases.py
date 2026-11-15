@@ -1,6 +1,5 @@
 """Generate docs/SAMPLE_CASES.md: realistic farmer scenarios run through the real engine.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
 For the team (pitch rehearsal, judge Q&A), not shown in the app. Re-run after any engine change:
 
     python scripts/sample_cases.py
@@ -43,7 +42,6 @@ CASES = [
          body=dict(lat=33.90, lon=-5.45, existing=["wheat", "fallow"])),
 ]
 
-
 def run_case(cs: dict) -> list[str]:
     r = c.post("/api/simulate", json=cs["body"]).json()
     top = next(x for x in r["rotations"] if x["rotation_id"] == r["order"][0])
@@ -65,7 +63,6 @@ def run_case(cs: dict) -> list[str]:
     L += [f"Talking point: {talking_point(cs, ex, top, r)}", ""]
     return L
 
-
 def talking_point(cs, ex, top, r):
     dw = ex["water_m3"]["median"] - top["water_m3"]["median"]
     if top["rotation_id"] == "existing":
@@ -73,7 +70,6 @@ def talking_point(cs, ex, top, r):
     if dw > 300:
         return f"For a 3-feddan farm that is about {f(dw * 3)} m³ of Nile water a year saved, with the profit range shown, not promised."
     return "The ranking moves when the farmer's priorities or the prices move — the sliders are the farmer's, the numbers are NASA's."
-
 
 def scout_case() -> list[str]:
     """Matrouh barley with a hidden past drought season replayed as robot readings."""
@@ -98,7 +94,6 @@ def scout_case() -> list[str]:
             "Talking point: 'We hid a real past season from the model and let the robot measure it. The range closed in "
             "on the truth. Our backtest says this holds about 3 times in 4, which is what an honest 80 % range should do.'", ""]
 
-
 def sighting_case() -> list[str]:
     body = dict(lat=31.25, lon=30.95, existing=["potato", "maize"])
     c.post("/api/robot/reset")
@@ -115,7 +110,6 @@ def sighting_case() -> list[str]:
             "Talking point: the robot's camera feeds the rotation itself: a disease seen today pushes the potato family "
             "(potato, tomato) off the field for two years, and the card says why.", ""]
 
-
 def main():
     bt = (ROOT / "qa" / "BACKTEST.md")
     L = ["# Sample cases (for the team, not the app)", "",
@@ -129,7 +123,6 @@ def main():
               "last year' by about half (CRPS) and contained the actual outcome in 67–78 % of cases. Details: qa/BACKTEST.md.", ""]
     (ROOT / "docs" / "SAMPLE_CASES.md").write_text("\n".join(L))
     print("\n".join(L))
-
 
 if __name__ == "__main__":
     main()

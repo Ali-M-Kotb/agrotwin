@@ -1,7 +1,5 @@
 """One tool-calling loop for every language-model provider AgroTwin can use.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Provider is chosen from the key in agrotwin/.env (git-ignored):
   sk-ant-…          → Anthropic Messages API (Claude Opus 5.5)
   anything else     → OpenAI-compatible Chat Completions with tool calling
@@ -21,14 +19,12 @@ NVIDIA_URL = "https://integrate.api.nvidia.com/v1"
 NVIDIA_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"   # best Egyptian Arabic on NVIDIA Build in our tests (≈6 s)
 LAST = {"error": None}
 
-
 def _key() -> str | None:
     for k in ("LLM_API_KEY", "OPENCODE_API_KEY", "ANTHROPIC_API_KEY"):
         v = (os.environ.get(k) or "").strip()
         if v:
             return v
     return None
-
 
 def provider() -> dict | None:
     key = _key()
@@ -43,13 +39,11 @@ def provider() -> dict | None:
     name = ("NVIDIA " + short) if "nvidia.com" in base else ("OpenCode " + short) if "opencode.ai" in base else short
     return dict(kind="openai", name=name, model=model, key=key, base=base.rstrip("/"))
 
-
 def status() -> dict:
     p = provider()
     if not p:
         return dict(active=False, provider=None, model=None, last_error=None)
     return dict(active=LAST["error"] is None, provider=p["name"], model=p["model"], last_error=LAST["error"])
-
 
 def run_tools(system: str, messages: list[dict], tools: list[dict], execute, max_rounds: int = 6, max_tokens: int = 1200):
     """messages: [{role: user|assistant, content: str}]. tools: Anthropic-style dicts (name, description, input_schema).
@@ -66,7 +60,6 @@ def run_tools(system: str, messages: list[dict], tools: list[dict], execute, max
         LAST["error"] = str(e)[:240]
         return None
 
-
 def _anthropic(p, system, messages, tools, execute, rounds, max_tokens):
     import anthropic
     client = anthropic.Anthropic(api_key=p["key"])
@@ -82,7 +75,6 @@ def _anthropic(p, system, messages, tools, execute, rounds, max_tokens):
         msgs.append(dict(role="user", content=[dict(type="tool_result", tool_use_id=u.id,
                                                     content=json.dumps(execute(u.name, u.input or {}), ensure_ascii=False, default=str)) for u in uses]))
     return None
-
 
 def _openai(p, system, messages, tools, execute, rounds, max_tokens):
     import requests
@@ -112,7 +104,6 @@ def _openai(p, system, messages, tools, execute, rounds, max_tokens):
             res = execute(c["function"]["name"], args)
             msgs.append(dict(role="tool", tool_call_id=c["id"], content=json.dumps(res, ensure_ascii=False, default=str)))
     return None
-
 
 def talk(system: str, messages: list[dict], max_tokens: int = 1200) -> str | None:
     """Plain conversation (no tools): the farmer's open questions, answered from the context the caller provides."""

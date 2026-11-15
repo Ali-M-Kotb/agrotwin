@@ -1,4 +1,4 @@
-/* AgroTwin map — AI-generated (Claude, Anthropic) under human review.
+/* AgroTwin map
  * Leaflet + NASA GIBS WMTS layers (no login), field-boundary drawing, inspector, saved farms,
  * offline place search. Exposes window.MapUI; app.js wires it to the rest of the product. */
 "use strict";

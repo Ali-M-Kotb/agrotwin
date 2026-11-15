@@ -1,4 +1,4 @@
-/* AgroTwin voice assistant — AI-generated (Claude, Anthropic) under human review.
+/* AgroTwin voice assistant
  * Talk → text (the browser's recogniser, or local faster-whisper on the laptop) → /api/chat, which calls
  * AgroTwin's own engines → the reply is read aloud in Egyptian Arabic (/api/speak) or the browser voice. */
 const Chat = (() => {
@@ -78,7 +78,7 @@ const Chat = (() => {
     document.querySelector("#chat .pending").remove();
     const ar = r.lang === "ar";
     const used = (r.tools || []).map((x) => (TOOL_NAMES[x.tool] || [x.tool, x.tool])[ar ? 1 : 0]);
-    const extra = `<div class="used">${used.length ? (ar ? "استخدمت: " : "used: ") + used.map(esc).join(" · ") : ""}${r.engine === "claude" ? " · Claude" : ""}</div>`;
+    const extra = `<div class="used">${used.length ? (ar ? "استخدمت: " : "used: ") + used.map(esc).join(" · ") : ""}</div>`;
     add("bot", r.reply, extra);
     C.history.push({ role: "user", text }, { role: "assistant", text: r.reply });
     if (r.ctx_update && (r.ctx_update.winter || r.ctx_update.summer)) {

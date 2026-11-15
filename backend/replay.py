@@ -1,7 +1,5 @@
 """Replay engine: candidate search, full replay, ranking.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 1. Quick pass  every crop alone through every window → median water, profit, loss share.
 2. Beam search over 3 years × (winter, summer) slots using the quick numbers, the farmer's
                weights and the soil rules → ~40 promising, calendar-feasible rotations.
@@ -27,7 +25,6 @@ from crops import CROPS, FALLOW, MM_TO_M3_PER_FEDDAN, family
 BEAM = 120
 POOL = 40
 
-
 @dataclass
 class Plan:
     existing: tuple[str, str] = ("wheat", "rice")          # (winter, summer) repeated 3 years
@@ -44,7 +41,6 @@ class Plan:
     salinity_ece: float = 0.0                            # dS/m (FAO-29)
     canal_short_prob: float | None = None                 # None = assumption:canal_short_prob
 
-
 def effective_overrides(plan: Plan) -> dict:
     from crops import RAINFED_COSTS
     ov = {}
@@ -54,18 +50,15 @@ def effective_overrides(plan: Plan) -> dict:
         ov.setdefault(c, {}).update(d)
     return ov
 
-
 def existing_rotation(plan: Plan) -> tuple[str, ...]:
     w, s = plan.existing
     return (w or FALLOW, s or FALLOW) * wb.YEARS
-
 
 def _pools(plan: Plan):
     ok = lambda c: c in CROPS and (plan.irrigated or CROPS[c]["rainfed_ok"])
     winter = [c for c in plan.candidates if ok(c) and CROPS[c]["season"] == "winter"] + [FALLOW]
     summer = [c for c in plan.candidates if ok(c) and CROPS[c]["season"] == "summer"] + [FALLOW]
     return winter, summer
-
 
 # ---------------------------------------------------------------------------
 # soil rules (transparent points, listed in the UI)
@@ -118,7 +111,6 @@ def soil_rules(rot: tuple[str, ...], plan: Plan, clay: float = 35) -> tuple[floa
         score -= 6
         why.append(dict(kind="heavy_clay", crop="potato", clay=clay, pts=-6))
     return float(np.clip(score, 0, 100)), why
-
 
 # ---------------------------------------------------------------------------
 # metrics for a simulated pool
@@ -183,7 +175,6 @@ def _metrics(sim, eco, r: int, plan: Plan, clay: float, weights: np.ndarray | No
         _profit_yr=profit_yr, _water_yr=water_yr, _season1=season1,
     )
 
-
 # ---------------------------------------------------------------------------
 # main entry
 # ---------------------------------------------------------------------------
@@ -205,7 +196,6 @@ def _quick(wx, plan: Plan, prices, cap_net):
         out[rot[j]] = dict(water=float(np.median(sim["irr_gross"][r, :, j])), profit=float(np.median(p)),
                            p10=float(np.percentile(p, 10)))
     return out
-
 
 def _beam(plan: Plan, quick: dict, clay: float) -> list[tuple[str, ...]]:
     winter, summer = _pools(plan)
@@ -248,7 +238,6 @@ def _beam(plan: Plan, quick: dict, clay: float) -> list[tuple[str, ...]]:
         if len(out) >= POOL:
             break
     return out
-
 
 def run(weather_wx: dict, plan: Plan, prices: dict, clay: float = 35,
         fusion_weights: np.ndarray | None = None) -> dict:

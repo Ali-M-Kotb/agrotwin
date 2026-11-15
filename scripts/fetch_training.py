@@ -2,7 +2,6 @@
 for ~45 cropland points across Egypt. Raw files go to data/training/raw/ (not committed);
 pulse_train.py turns them into the compact table that is committed.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
     python scripts/fetch_training.py
 """
 import sys
@@ -37,7 +36,6 @@ POINTS = [
     ("Matrouh coast", 31.20, 27.65), ("Siwa", 29.22, 25.50), ("Kharga", 25.30, 30.58),
 ]
 
-
 def one(p):
     name, lat, lon = p
     for attempt in range(3):
@@ -49,7 +47,6 @@ def one(p):
             time.sleep(10)
             err = e
     return f"{name} {lat},{lon}: FAILED {err}"
-
 
 if __name__ == "__main__":
     with ThreadPoolExecutor(max_workers=3) as pool:

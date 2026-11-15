@@ -1,4 +1,4 @@
-/* AgroTwin Plan Mode — AI-generated (Claude, Anthropic) under human review.
+/* AgroTwin Plan Mode
  * A conversation (voice or text) that builds and revises a three-year farm plan through /api/plan/chat,
  * with the plan drawn live beside it: rotation, schedule, ranges, trade-off chart, risks and field intelligence. */
 const PlanUI = (() => {
@@ -34,6 +34,10 @@ const PlanUI = (() => {
     q("#planmode .pm-sub").insertAdjacentHTML("afterend", `<div class="pm-ai"></div>`);
     api("/api/ai/status").then((a) => { P.ai = a; aiBadge(); }).catch(() => {});
     labels();
+    const header = document.querySelector("header.bar");
+    if (header) new ResizeObserver(() => {
+      q("#planmode").style.top = header.offsetHeight + "px";
+    }).observe(header);
   }
 
   function labels() {
@@ -48,22 +52,26 @@ const PlanUI = (() => {
     if (!q("#planmode .pm-log").children.length) msg("bot", t("pm_hello"));
     chips(); aiBadge();
     if (P.plan) render(P.plan);
+    const header = document.querySelector("header.bar");
+    if (header) q("#planmode").style.top = header.offsetHeight + "px";
   }
 
   function aiBadge() {
     const el = q("#planmode .pm-ai"); if (!el || !P.ai) return;
     const on = P.ai.active;
     el.className = "pm-ai " + (on ? "on" : "off");
-    el.title = P.ai.last_error || "";
-    el.textContent = on ? (AR() ? `الذكاء الاصطناعي: ${P.ai.provider} شغّال` : `AI: ${P.ai.provider} is answering`)
-      : P.ai.provider ? (AR() ? `${P.ai.provider} مش متاح دلوقتي، شغّالين بالوضع بدون نت` : `${P.ai.provider} unavailable, using offline mode`)
-      : (AR() ? "وضع بدون نت: بيفهم الكلام المعتاد بس" : "Offline mode: understands common phrases only");
+    el.title = "";
+    el.textContent = on ? (AR() ? "المحادثة متاحة" : "Conversation available")
+      : (AR() ? "وضع بدون نت: أسئلة وتعديلات أساسية" : "Offline: common questions and plan changes");
   }
 
   function chips() {
     const set = CHIPS[P.plan ? "done" : (P.next || "crops")] || CHIPS.done;
     q("#planmode .pm-chips").innerHTML = set.map((c) => `<button type="button">${esc(c[AR() ? 0 : 1])}</button>`).join("");
-    document.querySelectorAll("#planmode .pm-chips button").forEach((b) => (b.onclick = () => send(b.textContent)));
+    document.querySelectorAll("#planmode .pm-chips button").forEach((b) => {
+      b.onclick = () => send(!P.plan && (P.next || "crops") === "crops"
+        ? (AR() ? "أنا بزرع " : "I grow ") + b.textContent : b.textContent);
+    });
   }
 
   function msg(role, text, extra = "") {
@@ -75,7 +83,7 @@ const PlanUI = (() => {
   async function send(text) {
     build(); if (!P.open) toggle();
     msg("me", text);
-    msg("bot pending", AR() ? "بفكّر…" : "Thinking…");
+    msg("bot pending", AR() ? "براجع بيانات أرضك…" : "Checking your field…");
     let r;
     try {
       r = await api("/api/plan/chat", { method: "POST", body: JSON.stringify({ text, lang: S.lang, lat: S.site.lat, lon: S.site.lon, sid: P.sid }) });
@@ -83,7 +91,7 @@ const PlanUI = (() => {
     q("#planmode .pending").remove();
     P.sid = r.sid; P.next = r.next_question;
     try { localStorage.setItem("agrotwin.plan.sid", r.sid); } catch {}
-    const used = (r.tools || []).length ? `<div class="used">${AR() ? "استخدمت: محرّك الخطة (٣٢ سنة طقس ناسا · نبض الأرض · صور الأقمار)" : "used: plan engine (32 years of NASA weather · Field Pulse · satellite field index)"}${r.engine === "claude" && P.ai && P.ai.provider ? " · " + P.ai.provider : ""}</div>` : "";
+    const used = (r.tools || []).length ? `<div class="used">${AR() ? "استخدمت: محرّك الخطة (٣٢ سنة طقس ناسا · نبض الأرض · صور الأقمار)" : "used: plan engine (32 years of NASA weather · Field Pulse · satellite field index)"}</div>` : "";
     msg("bot", r.reply, used);
     if (r.plan) { P.plan = r.plan; render(r.plan); }
     api("/api/ai/status").then((a) => { P.ai = a; aiBadge(); }).catch(() => {});

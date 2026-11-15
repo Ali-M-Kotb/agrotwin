@@ -1,7 +1,5 @@
 """Plan Mode: a conversation (text or voice) that builds, explains and revises a three-year farm plan.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 The farmer talks; the agent fills a farm profile (crops now, area, salinity, canal reliability, priorities, crops to
 keep or avoid), calls the plan engine (planner.make_plan: NASA POWER replay × FAO-56 × Monte Carlo, Field Pulse,
 MODIS field index) and answers in Egyptian Arabic or English. Every revision ("keep rice", "less water",
@@ -9,7 +7,7 @@ MODIS field index) and answers in Egyptian Arabic or English. Every revision ("k
 
 Engines:
   rules  — fast slot-filling for Egyptian colloquial Arabic and English; no network, the stage default.
-  claude — Claude Opus 5.5 with tools (update_profile, make_plan, explain); every number in its reply must
+  llm    — a language model (backend/llm.py) answering open questions from the computed plan; every number in its reply must
            match a tool result or the rules engine answers (same Number Auditor as backend/chat.py).
 Sessions (profile, plan summary, last turns) persist in data/plans/ so a farmer can come back.
 """
@@ -51,11 +49,9 @@ def load(sid: str | None) -> dict:
             return json.loads(p.read_text())
     return dict(sid=str(uuid.uuid4())[:12], profile={}, asked=[], history=[], plan=None, created=str(date.today()))
 
-
 def save(s: dict):
     SESS.mkdir(parents=True, exist_ok=True)
     (SESS / f"{s['sid']}.json").write_text(json.dumps(s, ensure_ascii=False, default=str))
-
 
 # ---------------------------------------------------------------------------
 # understanding (rules)
@@ -63,7 +59,6 @@ def save(s: dict):
 
 _NUM_WORDS = {"نص": 0.5, "ربع": 0.25, "واحد": 1, "فدان واحد": 1, "اتنين": 2, "فدانين": 2, "تلاتة": 3, "تلات": 3, "اربعة": 4, "اربع": 4,
               "خمسة": 5, "خمس": 5, "ستة": 6, "عشرة": 10, "half": 0.5, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "ten": 10}
-
 
 def _number(t: str) -> float | None:
     m = re.search(r"(\d+(?:\.\d+)?)", t)
@@ -74,10 +69,8 @@ def _number(t: str) -> float | None:
             return v
     return None
 
-
 def _has(t: str, *words) -> bool:
     return any(ch.norm_ar(w) in t for w in words)
-
 
 def understand(text: str, s: dict) -> dict:
     """Return profile updates and flags from one utterance."""
@@ -169,7 +162,6 @@ def understand(text: str, s: dict) -> dict:
         flags.add("plan_now")
     return dict(update=up, flags=flags)
 
-
 # ---------------------------------------------------------------------------
 # replies (Egyptian Arabic / English)
 # ---------------------------------------------------------------------------
@@ -184,14 +176,12 @@ def _q(slot: str, ar: bool) -> str:
     )
     return Q[slot][0 if ar else 1]
 
-
 def _crops_spoken(seq, ar):
     names = []
     for c in seq[:2]:
         names.append(ch.AR_NAME.get(c, c) if ar else c)
     tail = (" كل سنة" if ar else ", every year") if list(seq) == list(seq[:2]) * 3 else (" وبعدين بنغيّر" if ar else ", then varied")
     return (" وبعده ".join(names) if ar else ", then ".join(names)) + tail
-
 
 def summary(plan: dict, ar: bool) -> str:
     c, cur, d = plan["chosen"], plan["current"], plan["delta"]
@@ -238,7 +228,6 @@ def summary(plan: dict, ar: bool) -> str:
     parts.append("Want to change anything?")
     return " ".join(parts)
 
-
 def explain(plan: dict, ar: bool) -> str:
     c, r = plan["chosen"], plan.get("runner_up")
     fi = plan.get("field_index", {})
@@ -257,13 +246,11 @@ def explain(plan: dict, ar: bool) -> str:
         out.append(f"Satellite greenness puts your field {'above' if fi['factor'] >= 1 else 'below'} the Delta average, so yields were scaled accordingly.")
     return " ".join(out)
 
-
 def schedule_text(plan: dict, ar: bool) -> str:
     rows = plan["schedule"][:4]
     if ar:
         return " ".join(f"{ch.AR_NAME.get(x['crop'], x['crop'])}: زراعة {ch._day(x['sow'], 'ar')}، حصاد {ch._day(x['harvest'], 'ar')}." for x in rows)
     return " ".join(f"{x['crop']}: sow {ch._day(x['sow'], 'en')}, harvest {ch._day(x['harvest'], 'en')}." for x in rows)
-
 
 # ---------------------------------------------------------------------------
 # turn
@@ -276,7 +263,6 @@ def _missing(profile: dict, asked: list) -> str | None:
         if not have[slot] and slot not in asked:
             return slot
     return None
-
 
 def _profile_text(p: dict, ar: bool) -> str:
     parts = []
@@ -308,7 +294,6 @@ def _profile_text(p: dict, ar: bool) -> str:
     if "canal_short_prob" in p:
         parts.append({0.05: "canal water rarely short", 0.25: "canal sometimes short in summer", 0.5: "canal often short in summer"}.get(p["canal_short_prob"], "canal reliability set"))
     return ("You told me: " + ", ".join(parts) + ".") if parts else "You haven't told me about your field yet."
-
 
 def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
     u = understand(text, s)
@@ -361,7 +346,6 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
     s["plan"] = plan
     return pre + summary(plan, ar), tools
 
-
 SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholder farmers in Egypt. Your reply is read aloud.
 
 LANGUAGE
@@ -396,17 +380,14 @@ TOOLS = [
          input_schema=dict(type="object", properties={})),
 ]
 
-
 def _slim(plan):
     return dict(chosen=plan["chosen"], current=plan["current"], delta=plan["delta"], farm_totals=plan["farm_totals"],
                 runner_up=plan.get("runner_up"), schedule=[{k: x[k] for k in ("crop", "season", "sow", "harvest", "water_m3_per_feddan", "yield_t_per_feddan")} for x in plan["schedule"]],
                 risks=[r["text"] for r in plan["risks"]], field_index=plan["field_index"].get("factor"), searched=plan["searched"])
 
-
 WINTER_KEYS = {"wheat", "barley", "berseem", "faba", "sugarbeet", "potato"}
 SUMMER_KEYS = {"maize", "sorghum", "rice", "cotton", "tomato", "soybean"}
 ALLOWED = {"winter", "summer", "area_feddan", "salinity_ece", "canal_short_prob", "exclude", "must_include", "priorities"}
-
 
 def _repair(a: dict) -> dict:
     """Fix common small-model slips: {"wheat": "winter"} → winter=wheat; crop in the wrong season; unknown keys dropped."""
@@ -435,8 +416,7 @@ def _repair(a: dict) -> dict:
             out.pop("area_feddan")
     return out
 
-
-def claude_turn(s: dict, text: str, ar: bool, make_plan):
+def llm_turn(s: dict, text: str, ar: bool, make_plan):
     """Language-model engine (Claude or any OpenAI-compatible provider, see backend/llm.py)."""
     import llm
     if not llm.provider():
@@ -472,7 +452,6 @@ TALK = """You are AgroTwin, a friendly farm-planning assistant for Egyptian smal
 - Modelled crops only: القمح، الشعير، البرسيم، الفول البلدي، بنجر السكر، البطاطس، الدرة الشامية، الدرة الرفيعة، الرز، القطن، الطماطم، فول الصويا.
 - If the farmer wants to change the plan, tell him to say it simply, e.g. «عايز أزرع رز» or «عايز أوفّر مية»."""
 
-
 def _facts(s: dict) -> dict:
     f = dict(profile={k: v for k, v in s["profile"].items()})
     p = s.get("plan")
@@ -497,7 +476,6 @@ def _facts(s: dict) -> dict:
                               "faba bean is a legume that leaves nitrogen for the next crop"))
     return f
 
-
 def _llm_answer(s: dict, text: str, ar: bool) -> str | None:
     import llm
     if not llm.provider():
@@ -512,9 +490,7 @@ def _llm_answer(s: dict, text: str, ar: bool) -> str | None:
         return None                                   # a number we cannot trace: do not say it
     return re.sub(r"[*#_`]", "", reply).strip()
 
-
 ACTION_FLAGS = {"crops", "area", "salinity", "canal", "priority", "exclude", "keep", "reset", "schedule", "plan_now", "unknown_crops", "recall"}
-
 
 def turn(sid: str | None, text: str, lang: str, make_plan) -> dict:
     s = load(sid)
@@ -535,4 +511,4 @@ def turn(sid: str | None, text: str, lang: str, make_plan) -> dict:
     s["history"] = s["history"][-20:]
     save(s)
     return dict(sid=s["sid"], reply=reply, lang="ar" if ar else "en", engine=engine, tools=tools,
-                profile=s["profile"], plan=s.get("plan"), next_question=_missing(s["profile"], s["asked"]))
+                profile=s["profile"], plan=s.get("plan"), next_question=(None if s.get("plan") else s["asked"][-1] if s["asked"] else _missing(s["profile"], [])))

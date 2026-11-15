@@ -1,7 +1,5 @@
 """Verdex Scout: run intake, calibration, simulator, farmer-owned storage.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 Modes travel with the data end to end:
   LIVE       the robot is posting now (scripts/robot_bridge.py → /api/scout/run or telemetry)
   REPLAY     a saved real run played back
@@ -27,16 +25,13 @@ ROOT = Path(__file__).resolve().parent.parent
 STORE = ROOT / "data" / "scout"
 SCHEMA = json.loads((ROOT / "contracts" / "scout_run.schema.json").read_text())
 
-
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
 
 def _site_dir(site_id: str) -> Path:
     d = STORE / site_id
     d.mkdir(parents=True, exist_ok=True)
     return d
-
 
 # ---------------------------------------------------------------------------
 # intake
@@ -49,7 +44,6 @@ def validate(run: dict) -> list[str]:
         errs.append("SIMULATED runs must name their truth_year")
     return errs
 
-
 def store_run(run: dict) -> dict:
     errs = validate(run)
     if errs:
@@ -57,7 +51,6 @@ def store_run(run: dict) -> dict:
     path = _site_dir(run["site_id"]) / f"run_{run['run_id']}.json"
     path.write_text(json.dumps(run))
     return dict(run_id=run["run_id"], mode=run["mode"], n_points=len(run["points"]))
-
 
 def list_runs(site_id: str) -> list[dict]:
     d = _site_dir(site_id)
@@ -69,17 +62,14 @@ def list_runs(site_id: str) -> list[dict]:
                         season_start=r.get("season_start")))
     return out
 
-
 def load_runs(site_id: str, run_ids: list[str]) -> list[dict]:
     d = _site_dir(site_id)
     return [json.loads((d / f"run_{rid}.json").read_text()) for rid in run_ids
             if (d / f"run_{rid}.json").exists()]
 
-
 def delete_runs(site_id: str):
     for p in _site_dir(site_id).glob("run_*.json"):
         p.unlink()
-
 
 def export(site_id: str) -> dict:
     d = _site_dir(site_id)
@@ -87,7 +77,6 @@ def export(site_id: str) -> dict:
                 note="Your farm's data. AgroTwin keeps it on this machine; nothing is pooled without consent.",
                 runs=[json.loads(p.read_text()) for p in sorted(d.glob("run_*.json"))],
                 calibrations=[json.loads(p.read_text()) for p in sorted(d.glob("cal_*.json"))])
-
 
 # ---------------------------------------------------------------------------
 # calibration: raw probe counts → volumetric water content
@@ -111,11 +100,9 @@ def calibrate(site_id: str, samples: list[dict], soil_class: str, mode: str = "L
     (_site_dir(site_id) / f"{cid}.json").write_text(json.dumps(cal))
     return cal
 
-
 def latest_calibration(site_id: str) -> dict | None:
     cals = sorted(_site_dir(site_id).glob("cal_*.json"), key=lambda p: p.stat().st_mtime)
     return json.loads(cals[-1].read_text()) if cals else None
-
 
 # ---------------------------------------------------------------------------
 # simulator: the twin experiment, live
@@ -154,7 +141,6 @@ def simulate_run(site_id: str, wet: np.ndarray, years: list[int], truth_year: in
                season_start=str(start), truth_year=truth_year, points=pts)
     store_run(run)
     return run, cal
-
 
 def telemetry_to_point(r: dict) -> dict:
     """A reading from the live robot (backend/robot.py format) → Scout run point."""

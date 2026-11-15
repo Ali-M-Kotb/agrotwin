@@ -1,7 +1,5 @@
 """Daily FAO-56 root-zone water balance, run for many rotations × many past years at once.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 FAO-56 chapter 8 (single crop coefficient):
     TAW = 1000 (θFC − θWP) Zr            RAW = p · TAW,  p = p_table + 0.04 (5 − ETc)
     Ks  = 1                 if Dr ≤ RAW
@@ -37,15 +35,12 @@ SLOTS = 2 * YEARS
 T_DAYS = 365 * YEARS + 75          # room for the last summer crop to finish
 SEASON_OF_SLOT = ["winter", "summer"] * YEARS
 
-
 # Sowing-date shift by season (days), used by the planner to stagger or adapt sowing inside the planting window.
 SOW_SHIFT = {"winter": 0, "summer": 0}
-
 
 def sow_offset(crop: str) -> int:
     m, d = CROPS[crop]["sow"]
     return (date(2001 if m >= 10 else 2002, m, d) - date(2001, 10, 1)).days + SOW_SHIFT.get(CROPS[crop]["season"], 0)
-
 
 def calendar(rotation: tuple[str, ...]) -> list[tuple[int, str, int, int]] | None:
     """[(slot, crop, start_day, end_day)] counted from Oct 1 of year 1, or None if infeasible."""
@@ -62,7 +57,6 @@ def calendar(rotation: tuple[str, ...]) -> list[tuple[int, str, int, int]] | Non
         out.append((j, crop, start, end))
         prev_end = end
     return out
-
 
 def _calendar_arrays(cal, zr_min: float, bare_zr: float):
     kc = np.zeros(T_DAYS)
@@ -91,7 +85,6 @@ def _calendar_arrays(cal, zr_min: float, bare_zr: float):
         sow[s] = True
     return kc, zr, pt, slot, crit, thr, flooded, sow
 
-
 def windows(weather: pd.DataFrame, first_year: int | None = None) -> list[int]:
     """Start years whose full window (spin-up + 3 years + tail) has weather."""
     first_year = first_year or A["replay_first_year"]
@@ -104,7 +97,6 @@ def windows(weather: pd.DataFrame, first_year: int | None = None) -> list[int]:
             ys.append(y)
     return ys
 
-
 def weather_matrices(weather: pd.DataFrame, years: list[int]) -> dict:
     spin = A["spinup_days"]
     idx0 = weather.index.get_indexer([pd.Timestamp(y, 10, 1) for y in years]) - spin
@@ -115,13 +107,11 @@ def weather_matrices(weather: pd.DataFrame, years: list[int]) -> dict:
     tmax = np.nan_to_num(get("T2M_MAX"), nan=25.0)
     return dict(et0=et0, rain=rain, tmax=tmax, years=list(years))
 
-
 def site_warming_trend(weather: pd.DataFrame) -> float:
     """°C per year: linear trend of annual mean Tmax over the full POWER record (complete years)."""
     ann = weather["T2M_MAX"].groupby(weather.index.year).agg(["mean", "count"])
     ann = ann[ann["count"] >= 360]["mean"]
     return float(np.polyfit(ann.index.values.astype(float), ann.values, 1)[0])
-
 
 def weather_matrices_adjusted(weather: pd.DataFrame, years: list[int], lat: float, elev: float,
                               target_year: int, trend: float | None = None) -> dict:
@@ -144,7 +134,6 @@ def weather_matrices_adjusted(weather: pd.DataFrame, years: list[int], lat: floa
         cols["tmax"].append(np.nan_to_num(sl["T2M_MAX"].to_numpy(float), nan=25.0))
     return dict(et0=np.stack(cols["et0"]), rain=np.stack(cols["rain"]), tmax=np.stack(cols["tmax"]),
                 years=list(years), adjusted_to=target_year, trend_per_decade=round(trend * 10, 3))
-
 
 def simulate(rotations: list[tuple[str, ...]], wx: dict, soil_class: str, irrigated: bool,
              cap_net_mm: dict | None = None, irrigation_days: np.ndarray | None = None,

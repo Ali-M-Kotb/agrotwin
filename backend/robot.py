@@ -35,7 +35,6 @@ ALIASES = {
     "anomaly": ("anomalyScore", "anomaly_score", "anomaly"),
 }
 
-
 def normalize(payload: dict) -> dict:
     out = {}
     for key, names in ALIASES.items():
@@ -49,7 +48,6 @@ def normalize(payload: dict) -> dict:
     if "lat" in payload and "lon" in payload:
         out["lat"], out["lon"] = float(payload["lat"]), float(payload["lon"])
     return out
-
 
 def satellite_wetness(weather: pd.DataFrame) -> tuple[float, str, str]:
     """Latest POWER root-zone wetness, guarded against data-stream breaks.
@@ -68,7 +66,6 @@ def satellite_wetness(weather: pd.DataFrame) -> tuple[float, str, str]:
     h10 = hist[hist.index.year >= hist.index[-1].year - 10]
     normal = float(h10[abs(h10.index.day_of_year - today.day_of_year) <= 7].median())
     return normal, f"10-yr normal for {today:%d %b}", "normal (recent values off-range)"
-
 
 class Robot:
     def __init__(self):

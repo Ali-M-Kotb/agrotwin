@@ -1,7 +1,5 @@
 """Two things a farm-twin usually cannot do.
 
-AI-generated (Claude, Anthropic) under human review — see docs/AI_USE.md.
-
 1. Time machine — "your field's last ten years, read from space".
    MODIS NDVI (250 m) shows, season by season, whether this field was green (cropped) or bare.
    Each detected season is replayed on that year's real NASA POWER weather for the farmer's own
@@ -29,7 +27,6 @@ from crops import CROPS, FALLOW, MM_TO_M3_PER_FEDDAN
 
 FEDDAN_HA = 0.42
 
-
 # ---------------------------------------------------------------------------
 # 1. Time machine
 # ---------------------------------------------------------------------------
@@ -48,7 +45,6 @@ def _season_flags(ndvi: pd.Series, y: int) -> dict:
                          cropped=bool(peak >= 0.45 and (peak - low) >= 0.12),
                          peak_date=str(seg.idxmax().date()))
     return out
-
 
 def time_machine(weather_raw: pd.DataFrame, ndvi: pd.Series, existing: tuple, suggested: tuple,
                  soil_class: str, irrigated: bool, prices: dict, overrides: dict) -> dict:
@@ -91,7 +87,6 @@ def time_machine(weather_raw: pd.DataFrame, ndvi: pd.Series, existing: tuple, su
                 source="nasa:MODIS MOD13Q1 (green or bare, per season) + nasa:POWER weather replayed through the FAO-56 model",
                 caveat="The satellite sees whether the field was green, not which crop; your crop names come from what you told us.")
 
-
 # ---------------------------------------------------------------------------
 # 2. Canal mode
 # ---------------------------------------------------------------------------
@@ -102,15 +97,12 @@ def daily_profile(rotation: tuple, wx: dict, soil_class: str, irrigated: bool) -
     gross = sim["irr_trace"][0] / 0.6          # net → gross with the irrigation-efficiency assumption
     return gross.mean(0)
 
-
 def weekly_peak(m3_per_day: np.ndarray) -> tuple[float, int]:
     wk = np.convolve(m3_per_day, np.ones(7), mode="valid")
     i = int(np.argmax(wk))
     return float(wk[i]), i
 
-
 SHIFTS = (-14, 0, 14)   # days: stagger summer sowing inside the planting window (assumption:canal_shift_days)
-
 
 def _shift_summer(prof: np.ndarray, rot: tuple, shift: int) -> np.ndarray:
     """Move the summer crop's irrigation by `shift` days (first-year summer slot only).
@@ -131,7 +123,6 @@ def _shift_summer(prof: np.ndarray, rot: tuple, shift: int) -> np.ndarray:
     n = min(len(seg), len(out) - dst)
     out[dst:dst + n] += seg[:n]
     return out
-
 
 def canal(farms: list[dict], site_runs: dict, tolerance: float = 10.0, options: int = 3) -> dict:
     """farms: [{id, name, area_feddan, wx, soil_class, irrigated}]. Current vs each-alone vs coordinated."""
@@ -205,7 +196,6 @@ def canal(farms: list[dict], site_runs: dict, tolerance: float = 10.0, options: 
         method="options: rotations within the tolerance of each farm's own best score × summer sowing moved −14/0/+14 days "
                "(inside the planting window); greedy search for the lowest canal peak 7-day demand",
         source="computed: replayed daily irrigation (FAO-56 on nasa:POWER, climate-adjusted) × farm area")
-
 
 DEMO_CANAL = [
     dict(id="demo_a", name="Abu Hassan", lat=31.25, lon=30.95, area_feddan=3.0, existing=["wheat", "rice"]),

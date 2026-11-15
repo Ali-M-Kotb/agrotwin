@@ -1,4 +1,4 @@
-"""AgroTwin tests. AI-generated (Claude, Anthropic) under human review.
+"""AgroTwin tests.
 
     make test   (or: python -m pytest -q)
 """
@@ -19,13 +19,11 @@ import scout  # noqa: E402
 import waterbalance as wb  # noqa: E402
 from crops import CROPS  # noqa: E402
 
-
 def flat_weather(et0=5.0, rain=0.0, tmax=25.0, years=range(1990, 2001)):
     idx = pd.date_range(f"{years[0]}-01-01", f"{years[-1]}-12-31")
     df = pd.DataFrame(index=idx)
     df["ET0"], df["PRECTOTCORR"], df["T2M_MAX"] = et0, rain, tmax
     return df
-
 
 # --- water balance -----------------------------------------------------------
 
@@ -41,7 +39,6 @@ def test_golden_case_irrigated_wheat_etc():
     assert sim["eta"][0, :, 0] == pytest.approx(800.125, abs=1e-6)
     assert sim["deficit_days"][0, :, 0].sum() == 0
 
-
 def test_mass_balance_closes_within_1mm():
     w = flat_weather(rain=1.5)
     w.loc[w.index.day == 10, "PRECTOTCORR"] = 40.0       # heavy days → runoff + percolation
@@ -51,20 +48,17 @@ def test_mass_balance_closes_within_1mm():
         res = sim["_in"] - sim["_ro"] - sim["_et"] - sim["_dp"] + (sim["_Dr1"] - sim["_Dr0"]) + sim["_clamp"]
         assert np.abs(res).max() < 1.0
 
-
 def test_fallow_has_zero_transpiration_and_counts_bare_days():
     w = flat_weather()
     wx = wb.weather_matrices(w, wb.windows(w))
     sim = wb.simulate([("fallow",) * 6], wx, "loam", irrigated=False)
     assert sim["transp_days"].sum() == 0 and sim["bare_days"].min() >= 365 * 3
 
-
 def test_rainfed_never_irrigates_and_stresses():
     w = flat_weather()
     wx = wb.weather_matrices(w, wb.windows(w))
     sim = wb.simulate([("barley", "fallow") * 3], wx, "loam", irrigated=False)
     assert sim["irr_net"].sum() == 0 and sim["deficit_days"][0, :, 0].min() > 0
-
 
 def test_identical_input_identical_output():
     w = flat_weather(rain=0.8)
@@ -73,13 +67,11 @@ def test_identical_input_identical_output():
     b = wb.simulate([("faba", "maize") * 3], wx, "clay", True)
     assert np.array_equal(a["eta"], b["eta"]) and np.array_equal(a["irr_gross"], b["irr_gross"])
 
-
 def test_calendar_rules():
     assert wb.calendar(("wheat", "maize") * 3) is not None
     assert wb.calendar(("wheat", "cotton") * 3) is None          # cotton sown before wheat harvest
     assert wb.calendar(("potato", "cotton", "wheat", "maize", "faba", "maize")) is not None   # cotton sown 25 Mar, after potato
     assert wb.calendar(("rice", "wheat") * 3) is None             # rice in a winter slot
-
 
 # --- economics & ranking -----------------------------------------------------
 
@@ -88,7 +80,6 @@ def delta():
     site = ds.load_site(31.25, 30.95, offline=True, wait_for_soil=False)
     wx = wb.weather_matrices(site["weather"], wb.windows(site["weather"]))
     return site, wx
-
 
 def test_three_rotations_under_two_seconds(delta):
     import time
@@ -102,20 +93,17 @@ def test_three_rotations_under_two_seconds(delta):
         assert len(r["barcode"]) == len(res["years"])
         assert r["profit"]["p10"] <= r["profit"]["median"] <= r["profit"]["p90"]
 
-
 def test_profit_falls_with_price(delta):
     site, wx = delta
     a = rp.run(wx, rp.Plan(existing=("wheat", "rice")), econ.load_prices(), 35)
     b = rp.run(wx, rp.Plan(existing=("wheat", "rice"), price_mult=0.7), econ.load_prices(), 35)
     assert b["rotations"][0]["profit"]["median"] < a["rotations"][0]["profit"]["median"]
 
-
 def test_legume_earns_nitrogen_credit(delta):
     site, wx = delta
     sim = wb.simulate([("faba", "maize") * 3, ("wheat", "maize") * 3], wx, "clay_loam", True)
     eco = econ.slot_economics(sim, econ.load_prices())
     assert eco["ncredit"][0, :, 1].min() > 0 and eco["ncredit"][1].sum() == 0
-
 
 def test_weights_change_ranking(delta):
     site, wx = delta
@@ -124,13 +112,11 @@ def test_weights_change_ranking(delta):
     best = lambda res: next(r for r in res["rotations"] if r["rotation_id"] == res["order"][0])
     assert best(w)["water_m3"]["median"] <= best(p)["water_m3"]["median"]
 
-
 def test_disease_sighting_demotes_host_family():
     plan = rp.Plan(existing=("wheat", "maize"))
     sick = rp.Plan(existing=("wheat", "maize"), disease_families={"Solanaceae": "Potato late blight"})
     rot = ("potato", "maize", "wheat", "soybean", "faba", "maize")
     assert rp.soil_rules(rot, sick)[0] < rp.soil_rules(rot, plan)[0]
-
 
 def test_water_cap_excludes_thirsty_rotation(delta):
     site, wx = delta
@@ -140,14 +126,12 @@ def test_water_cap_excludes_thirsty_rotation(delta):
         if "rice" in m["seq"]:
             assert m["excluded"]["is_excluded"]
 
-
 # --- fusion ------------------------------------------------------------------
 
 def test_no_readings_uniform_weights():
     wet = np.random.default_rng(0).random((20, 365))
     fw = fu.weights_from({}, wet, 0.1, 5)
     assert np.allclose(fw["w"], 1 / 20)
-
 
 def test_consistent_readings_concentrate_weights():
     rng = np.random.default_rng(1)
@@ -156,7 +140,6 @@ def test_consistent_readings_concentrate_weights():
     fw = fu.weights_from(obs, wet, 0.05, 5)
     assert fw["w"].argmax() == 3 and fw["ess"] >= fu.A["ess_min"] - 1e-9
 
-
 def test_doubling_sigma_never_narrows():
     rng = np.random.default_rng(2)
     wet = rng.random((25, 200))
@@ -164,12 +147,10 @@ def test_doubling_sigma_never_narrows():
     a, b = fu.weights_from(obs, wet, 0.1, 5), fu.weights_from(obs, wet, 0.2, 5)
     assert b["ess"] >= a["ess"] - 1e-9
 
-
 def test_fusion_refuses_without_calibration():
     with pytest.raises(fu.FusionRefused):
         fu.fuse([{"run_id": "x", "mode": "LIVE", "points": [{"t": "2026-11-01T00:00:00+00:00", "soil_raw": 40}]}],
                 None, ("barley", "fallow") * 3, None, "loam", False)
-
 
 # --- scout -------------------------------------------------------------------
 
@@ -181,11 +162,9 @@ def test_scout_run_contract():
     assert scout.validate({**good, "points": [dict(t="x", air_rh_pct=140)]})
     assert scout.validate({**good, "mode": "SIMULATED"})          # must name truth_year
 
-
 def test_calibration_needs_three_samples():
     with pytest.raises(ValueError):
         scout.calibrate("test", [dict(raw=10, vwc=0.1), dict(raw=60, vwc=0.3)], "loam")
-
 
 # --- Number Auditor: 10 bad sentences blocked, 10 good pass -------------------
 
@@ -222,18 +201,15 @@ BAD = [
     dict(text="It will certainly save water.", numbers=[]),
 ]
 
-
 def test_auditor_passes_all_good():
     for c in GOOD:
         ok, why = council.audit_claim(c, RESULT)
         assert ok, (c["text"], why)
 
-
 def test_auditor_blocks_all_bad():
     for c in BAD:
         ok, _ = council.audit_claim(c, RESULT)
         assert not ok, c["text"]
-
 
 # --- v1 contract (shared with Yaseen Abdelal's AgroTwin repo) ---------------
 
@@ -250,7 +226,6 @@ def test_v1_contract_valid_for_irrigated_and_rainfed():
             m = rot["metrics"]["profit_per_ha"]
             assert m["p10"] <= m["median"] <= m["p90"]
 
-
 def test_runoff_curve_number_behaviour():
     import waterbalance as wb
     w = flat_weather(rain=0.0)
@@ -259,7 +234,6 @@ def test_runoff_curve_number_behaviour():
     sand = wb.simulate([("fallow",) * 6], wx, "sand", False)
     clay = wb.simulate([("fallow",) * 6], wx, "clay", False)
     assert clay["_ro"].sum() > sand["_ro"].sum() > 0          # clay sheds more of a 60 mm storm
-
 
 # --- unique features ---------------------------------------------------------
 
@@ -272,7 +246,6 @@ def test_time_machine_ndvi_season_flags():
     assert fl["winter"]["cropped"] is True
     assert fl["summer"]["cropped"] is False
 
-
 def test_canal_mode_never_raises_peak_and_respects_tolerance():
     from fastapi.testclient import TestClient
     import app as api
@@ -284,7 +257,6 @@ def test_canal_mode_never_raises_peak_and_respects_tolerance():
     assert all(f["coordinated"]["gives_up"] <= 10 + 1e-6 for f in d["farms"])
     assert len(d["weekly_m3"]["coordinated"]) == len(d["weekly_m3"]["current"])
 
-
 # --- Field Pulse model and voice assistant ----------------------------------------
 
 def test_pulse_model_beats_persistence_and_is_calibrated():
@@ -294,7 +266,6 @@ def test_pulse_model_beats_persistence_and_is_calibrated():
     assert ts["skill_vs_persistence"] > 0.2
     assert 0.7 <= ts["coverage_80"] <= 0.9
 
-
 def test_pulse_endpoint_returns_forecast_range():
     from fastapi.testclient import TestClient
     import app as api
@@ -303,7 +274,6 @@ def test_pulse_endpoint_returns_forecast_range():
     for f in d["forecast"]:
         assert f["low"] <= f["mid"] <= f["high"]
 
-
 def test_chat_intents_egyptian_arabic_and_english():
     import chat
     assert chat.intents_in("أروي امتى؟") == ["irrigation"]
@@ -311,7 +281,6 @@ def test_chat_intents_egyptian_arabic_and_english():
     assert chat.intents_in("price of wheat") == ["price"]
     assert chat.crops_in("price of wheat") == ["wheat"]          # 'price' must not match 'rice'
     assert chat.crops_in("بزرع قمح ورز") == ["wheat", "rice"]
-
 
 def test_chat_numbers_come_from_tools():
     from fastapi.testclient import TestClient
@@ -323,7 +292,6 @@ def test_chat_numbers_come_from_tools():
     assert chat.audit("about 99999 EGP", [{"profit": 77485}], "") == [99999.0]
     assert chat.audit("about 77 thousand EGP", [{"profit": 77485}], "") == []
 
-
 # --- v0.6: uncertainty, salinity, planner, Plan Mode, Field Pulse v2 ---------------------
 
 def test_salinity_factor_matches_fao29():
@@ -332,7 +300,6 @@ def test_salinity_factor_matches_fao29():
     assert econ.salinity_factor("faba", 1.0) == 1.0                               # below threshold
     assert econ.salinity_factor("barley", 30) == 0.0
 
-
 def test_profit_ranges_include_price_and_canal_risk(delta):
     site, wx = delta
     res = rp.run(wx, rp.Plan(existing=("wheat", "rice")), econ.load_prices(), 35)
@@ -340,14 +307,12 @@ def test_profit_ranges_include_price_and_canal_risk(delta):
         assert r["profit"]["p90"] - r["profit"]["p10"] > 0.1 * abs(r["profit"]["median"])
         assert r["profit"]["p10"] <= r["profit_weather_only"]["p90"]
 
-
 def test_salinity_lowers_sensitive_crop_profit(delta):
     site, wx = delta
     pr = econ.load_prices()
     base = rp.run(wx, rp.Plan(existing=("faba", "maize")), pr, 35)["rotations"][0]["profit"]["median"]
     salty = rp.run(wx, rp.Plan(existing=("faba", "maize"), salinity_ece=5.0), pr, 35)["rotations"][0]["profit"]["median"]
     assert salty < base
-
 
 def test_planner_respects_constraints():
     from fastapi.testclient import TestClient
@@ -359,7 +324,6 @@ def test_planner_respects_constraints():
     assert p["farm_totals"]["area_feddan"] == 2
     assert p["chosen"]["profit"]["p10"] <= p["chosen"]["profit"]["median"] <= p["chosen"]["profit"]["p90"]
 
-
 def test_plan_mode_conversation_fills_profile_and_plans():
     import plan_agent
     s = plan_agent.load(None)
@@ -369,13 +333,11 @@ def test_plan_mode_conversation_fills_profile_and_plans():
     assert plan_agent.understand("مش عايز طماطم", s)["update"]["exclude"] == ["tomato"]
     assert plan_agent.understand("امتى أزرع؟", s)["flags"] >= {"schedule"}
 
-
 def test_outcomes_need_consent():
     from fastapi.testclient import TestClient
     import app as api
     r = TestClient(api.app).post("/api/outcomes", json=dict(lat=31.25, lon=30.95, season="2025/26 winter", crop="wheat", consent=False))
     assert r.status_code == 400
-
 
 def test_field_pulse_v2_independent_test():
     import json
@@ -385,7 +347,6 @@ def test_field_pulse_v2_independent_test():
     assert ind["skill_vs_persistence"] > 0.2 and 0.7 <= ind["coverage_80"] <= 0.9
     assert rep["field_split"]["16d"]["skill_vs_best_baseline"] > 0
 
-
 def test_gibs_colormap_decodes_ndvi():
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
     import gibs_fetch
@@ -393,7 +354,6 @@ def test_gibs_colormap_decodes_ndvi():
     assert len(lut) > 100
     vals = sorted(code / 200 - 0.2 for code in lut.values())
     assert vals[0] < 0.05 and vals[-1] > 0.95
-
 
 def test_prithvi_encoder_runs_if_downloaded():
     import prithvi
@@ -403,3 +363,21 @@ def test_prithvi_encoder_runs_if_downloaded():
     e = prithvi.embed(chip, [(2025, 100)], 31.25, 30.95)
     assert e["embedding"].shape == (1024,) and e["tokens"] == 196
     assert prithvi.detect(e["embedding"])["available"] in (True, False)
+
+
+def test_planner_suggestions_match_the_question_being_asked(monkeypatch):
+    import plan_agent
+    session = dict(sid="test-interview", profile={}, asked=[], history=[], plan=None)
+    monkeypatch.setattr(plan_agent, "load", lambda sid: session)
+    monkeypatch.setattr(plan_agent, "save", lambda s: None)
+    def no_plan_yet(profile):
+        raise AssertionError("The interview should collect the field details first")
+    result = plan_agent.turn(None, "I grow Wheat and rice", "en", no_plan_yet)
+    assert result["profile"]["winter"] == "wheat"
+    assert result["profile"]["summer"] == "rice"
+    assert "How many feddans" in result["reply"]
+    assert result["next_question"] == "area"
+    result = plan_agent.turn(result["sid"], "3 feddans", "en", no_plan_yet)
+    assert result["profile"]["area_feddan"] == 3
+    assert "soil salty" in result["reply"]
+    assert result["next_question"] == "salinity"
