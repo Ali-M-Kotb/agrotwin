@@ -31,6 +31,8 @@ const PlanUI = (() => {
     q("#planmode .pm-x").onclick = toggle;
     q("#planmode form").onsubmit = (e) => { e.preventDefault(); const v = q("#planmode input").value.trim(); if (v) { q("#planmode input").value = ""; send(v); } };
     q("#planmode .mic").onclick = () => Chat.listen(send, (v) => { q("#planmode input").value = v; });
+    q("#planmode .pm-sub").insertAdjacentHTML("afterend", `<div class="pm-ai"></div>`);
+    api("/api/ai/status").then((a) => { P.ai = a; aiBadge(); }).catch(() => {});
     labels();
   }
 
@@ -44,8 +46,15 @@ const PlanUI = (() => {
     q("#planmode input").placeholder = t("pm_ph");
     q("#planmode .pm-empty").innerHTML = t("pm_empty");
     if (!q("#planmode .pm-log").children.length) msg("bot", t("pm_hello"));
-    chips();
+    chips(); aiBadge();
     if (P.plan) render(P.plan);
+  }
+
+  function aiBadge() {
+    const el = q("#planmode .pm-ai"); if (!el || !P.ai) return;
+    el.className = "pm-ai " + (P.ai.claude ? "on" : "off");
+    el.textContent = P.ai.claude ? (AR() ? "الذكاء الاصطناعي: Claude شغّال" : "AI: Claude is answering")
+      : (AR() ? "وضع بدون نت: بيفهم الكلام المعتاد بس" : "Offline mode: understands common phrases only");
   }
 
   function chips() {

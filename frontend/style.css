@@ -393,3 +393,6 @@ body.planning .chat-fab { display: none; }
 .pm-two { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
 .pm-list { margin: 0; padding-inline-start: 18px; font-size: 13.5px; line-height: 1.55; } .pm-list li { margin-bottom: 5px; }
 @media (max-width: 900px) { .planmode { grid-template-columns: 1fr; grid-template-rows: 55% 45%; inset: 52px 0 0 0; } .pm-board { padding: 16px; border-top: 1px solid var(--rule, #d9d4c7); } .pm-figs { grid-template-columns: 1fr 1fr; } .pm-two { grid-template-columns: 1fr; } }
+
+.pm-ai { display: inline-block; margin-top: 6px; font-size: 11.5px; padding: 2px 8px; border-radius: 3px; }
+.pm-ai.on { background: #e7f0ea; color: var(--green, #2e5e3a); } .pm-ai.off { background: #f5e9e2; color: var(--clay, #b5562a); }

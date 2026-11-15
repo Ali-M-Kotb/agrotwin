@@ -29,6 +29,16 @@ ROOT = Path(__file__).resolve().parent.parent
 SESS = ROOT / "data" / "plans"
 MODEL = "claude-opus-5-5"
 SLOTS = ("crops", "area", "salinity", "canal", "priority")
+# Crops AgroTwin cannot model yet (no FAO-56 parameters / prices in the engine). Named back to the farmer, never guessed.
+UNKNOWN_CROPS = {"بصل": ("البصل", "onion"), "ثوم": ("التوم", "garlic"), "مانجو": ("المانجا", "mango"), "مانجا": ("المانجا", "mango"),
+                 "موالح": ("الموالح", "citrus"), "برتقال": ("البرتقال", "oranges"), "يوسفي": ("اليوسفي", "mandarins"), "ليمون": ("الليمون", "lemons"),
+                 "عنب": ("العنب", "grapes"), "بطيخ": ("البطيخ", "watermelon"), "خيار": ("الخيار", "cucumber"), "فلفل": ("الفلفل", "peppers"),
+                 "قصب": ("القصب", "sugarcane"), "نخل": ("النخل", "date palms"), "زيتون": ("الزيتون", "olives"), "سمسم": ("السمسم", "sesame"),
+                 "فول سوداني": ("الفول السوداني", "peanuts"), "كتان": ("الكتان", "flax"), "onion": ("البصل", "onion"), "garlic": ("التوم", "garlic"),
+                 "mango": ("المانجا", "mango"), "citrus": ("الموالح", "citrus"), "orange": ("البرتقال", "oranges"), "grape": ("العنب", "grapes"),
+                 "watermelon": ("البطيخ", "watermelon"), "sugarcane": ("القصب", "sugarcane"), "olive": ("الزيتون", "olives"), "date palm": ("النخل", "date palms")}
+KNOWN_AR = "قمح، شعير، برسيم، فول بلدي، بنجر، بطاطس، درة شامية، درة رفيعة، رز، قطن، طماطم، فول صويا"
+KNOWN_EN = "wheat, barley, berseem, faba bean, sugar beet, potato, maize, sorghum, rice, cotton, tomato, soybean"
 
 # ---------------------------------------------------------------------------
 # session store
@@ -74,6 +84,14 @@ def understand(text: str, s: dict) -> dict:
     t = " " + ch.norm_ar(text) + " "
     up, flags = {}, set()
     crops = ch.crops_in(text)
+    unknown = sorted({v for k, v in UNKNOWN_CROPS.items() if ch.norm_ar(k) in t})
+    if unknown:
+        up["unknown_crops"] = [list(u) for u in unknown]
+        flags.add("unknown_crops")
+    if _has(t, "عارف انا بزرع", "فاكر", "قلتلك", "قولتلك", "انا قلت", "انا بزرع ايه", "what do i grow", "do you know what", "what did i tell", "remember"):
+        flags.add("recall")
+    if _has(t, "السلام عليكم", "سلام عليكم", "ازيك", "صباح الخير", "مساء الخير", "اهلا", " hello", " hi ", "good morning"):
+        flags.add("greeting")
     neg = _has(t, " مش عايز", " مش هزرع", " بلاش", " من غير", " without ", " no ", " not ", " don't want", " avoid", " مش ")
     keep = _has(t, " عايز ازرع", " لازم", " عايز ", " keep ", " include ", " must ", " i want ")
     if crops and neg and not _has(t, "بزرع", "زارع", "i grow", "i plant"):
@@ -110,7 +128,12 @@ def understand(text: str, s: dict) -> dict:
             _has(t, "soil is fine", "soil is good", "soil is ok", "no salt", "not salty", "الارض كويسه", "الارض نضيفه", "مفيش ملوحه"):
         up["salinity_ece"] = 0.0
         flags.add("salinity")
-    if _has(t, "مية قليل", "المية بتقطع", "بتقطع", "مفيش مية", "المية مش بتوصل", "شح", "short", "shortage", "not enough water", "canal is dry",
+    asked_last = s.get("asked", [])[-1:]
+    if _has(t, "مبتقطعش", "مابتقطعش", "مش بتقطع", "عمرها ما", "مفيش انقطاع", "never short", "never runs short", "never cut") or \
+            ("canal" in asked_last and re.fullmatch(r"\s*(لا|لأ|لاء|no|nope|never|ابدا)\s*[.!؟?]?\s*", ch.norm_ar(text))):
+        up["canal_short_prob"] = 0.05
+        flags.add("canal")
+    elif _has(t, "مية قليل", "المية بتقطع", "بتقطع", "مفيش مية", "المية مش بتوصل", "شح", "short", "shortage", "not enough water", "canal is dry",
             "دايما", "على طول", "always", "often", "ساعات", "احيانا", "sometimes", "نادر", "rarely", "never", "ابدا", "بتوصل"):
         if _has(t, "دايما", "على طول", "always", "often", "كتير", "مفيش مية", "المية مش بتوصل"):
             up["canal_short_prob"] = 0.5
@@ -249,28 +272,88 @@ def _missing(profile: dict, asked: list) -> str | None:
     return None
 
 
+def _profile_text(p: dict, ar: bool) -> str:
+    parts = []
+    cr = [x for x in (p.get("winter"), p.get("summer")) if x]
+    unk = [u[0 if ar else 1] for u in p.get("unknown_crops") or []]
+    if ar:
+        if cr:
+            parts.append("بتزرع " + " و".join(ch.AR_NAME.get(c, c) for c in cr))
+        if unk:
+            parts.append("وقلتلي على " + " و".join(unk) + " (دول لسه مش في حساباتي)")
+        if "area_feddan" in p:
+            parts.append(f"على {p['area_feddan']:g} فدان")
+        if "salinity_ece" in p:
+            parts.append("الأرض مش مالحة" if not p["salinity_ece"] else f"فيها ملوحة حوالي {p['salinity_ece']:g} دسي سيمنز")
+        if "canal_short_prob" in p:
+            parts.append({0.05: "ومية الترعة نادرًا ما بتقطع", 0.25: "والمية بتقطع ساعات في الصيف", 0.5: "والمية بتقطع كتير في الصيف"}.get(p["canal_short_prob"], "ومية الترعة محسوبة"))
+        top = [k for k, v in (p.get("priorities") or {}).items() if v > 1]
+        if top:
+            parts.append("وأهم حاجة عندك " + " و".join({"profit": "المكسب", "water": "توفير المية", "soil": "صحة الأرض", "risk": "الأمان"}[k] for k in top))
+        return ("انت قلتلي: " + "، ".join(parts) + ".") if parts else "لسه ماقلتليش حاجة عن أرضك."
+    if cr:
+        parts.append("you grow " + " and ".join(cr))
+    if unk:
+        parts.append("you mentioned " + " and ".join(unk) + " (not in my crop models yet)")
+    if "area_feddan" in p:
+        parts.append(f"{p['area_feddan']:g} feddans")
+    if "salinity_ece" in p:
+        parts.append("soil not saline" if not p["salinity_ece"] else f"salinity about {p['salinity_ece']:g} dS/m")
+    if "canal_short_prob" in p:
+        parts.append({0.05: "canal water rarely short", 0.25: "canal sometimes short in summer", 0.5: "canal often short in summer"}.get(p["canal_short_prob"], "canal reliability set"))
+    return ("You told me: " + ", ".join(parts) + ".") if parts else "You haven't told me about your field yet."
+
+
 def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
     u = understand(text, s)
     tools = []
     if "reset" in u["flags"]:
         s.update(profile={}, asked=[], plan=None)
         return (_q("crops", ar), tools)
+    known_crops_now = any(k in u["update"] for k in ("winter", "summer"))
     s["profile"].update(u["update"])
+    pre = ""
+    if "greeting" in u["flags"]:
+        tn = ch.norm_ar(text)
+        pre = ("وعليكم السلام يا حاج، أهلًا بيك. " if "سلام" in tn else "الحمد لله تمام، أهلًا بيك يا حاج. " if "ازيك" in tn else "أهلًا بيك يا حاج. ") if ar else "Hello, welcome. "
+    if "unknown_crops" in u["flags"] and not known_crops_now:
+        names = [x[0 if ar else 1] for x in u["update"]["unknown_crops"]]
+        if "crops" in s["asked"]:
+            s["asked"].remove("crops")
+        if ar:
+            return (pre + f"{' و'.join(names)} لسه مش في الموديلات بتاعتي، فمقدرش أحسبهم صح ومش هخمّن. "
+                    f"أنا بحسب دلوقتي: {KNOWN_AR}. لو عندك أرض تانية أو موسم تاني بتزرع فيه حاجة من دول قولّي، "
+                    "أو قولّي «احسب على قمح ورز» كمثال."), tools
+        return (pre + f"{' and '.join(names)} are not in my crop models yet, so I won't guess. I can plan with: {KNOWN_EN}. "
+                "Tell me which of these you grow, or say “use wheat and rice” as an example."), tools
+    if "recall" in u["flags"] and not u["update"]:
+        return pre + _profile_text(s["profile"], ar) + (" تحب أغيّر حاجة؟" if ar else " Want to change anything?"), tools
     nxt = _missing(s["profile"], s["asked"])
     if s.get("plan") and "why" in u["flags"] and not u["update"]:
         return explain(s["plan"], ar), tools
     if s.get("plan") and "schedule" in u["flags"] and not u["update"]:
         return schedule_text(s["plan"], ar), tools
+    has_crops = "winter" in s["profile"] or "summer" in s["profile"]
+    if not has_crops:
+        if "crops" not in s["asked"]:
+            s["asked"].append("crops")
+        return pre + _q("crops", ar), tools
     if nxt and "plan_now" not in u["flags"] and not s.get("plan"):
         s["asked"].append(nxt)
-        pre = ""
         if "salinity_guess" in u["flags"]:
-            pre = ("هحسب الملوحة متوسطة (4 دسي سيمنز) لحد ما تعمل تحليل. " if ar else "I'll assume moderate salinity (4 dS/m) until you have a lab test. ")
+            pre += ("هحسب الملوحة متوسطة (4 دسي سيمنز) لحد ما تعمل تحليل. " if ar else "I'll assume moderate salinity (4 dS/m) until you have a lab test. ")
         return pre + _q(nxt, ar), tools
-    plan = make_plan(s["profile"])
+    if s.get("plan") and not u["update"] and not ({"plan_now"} & u["flags"]):
+        if pre:
+            return pre + ("خطتك جاهزة على اليمين. تحب أغيّر حاجة؟" if ar else "Your plan is ready on the right. Want to change anything?"), tools
+        return ("مفهمتش قصدك قوي. تقدر تقولّي مثلًا: «ليه الخطة دي؟»، «امتى أزرع؟»، «عايز أوفّر مية»، «مش عايز رز»، «عندي 5 فدان»، أو «انت فاكر أنا بزرع إيه؟». "
+                "ولو حطّينا مفتاح Claude هفهم أي كلام." if ar else
+                "I didn't quite get that. Try: “why this plan?”, “when do I sow?”, “save more water”, “no rice”, “I have 5 feddans”, or “what do I grow?”. "
+                "With a Claude key I can understand free conversation."), tools
+    plan = make_plan({k: v for k, v in s["profile"].items() if k != "unknown_crops"})
     tools.append(dict(tool="make_plan", args={k: v for k, v in s["profile"].items()}, source=plan.get("source")))
     s["plan"] = plan
-    return summary(plan, ar), tools
+    return pre + summary(plan, ar), tools
 
 
 SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholders in Egypt. Your reply is read aloud.
@@ -280,7 +363,10 @@ SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholde
 - When the profile is enough (or the farmer asks), call make_plan and present the plan in 3–4 short sentences: the rotation,
   first sowing date, profit range per feddan, water saved. Offer to change something.
 - When the farmer asks to change something (keep or avoid a crop, less water, more profit, area), update_profile then make_plan again.
-- Use only numbers from tool results, rounded the way people speak. Never promise outcomes. The decision is the farmer's."""
+- Use only numbers from tool results, rounded the way people speak. Never promise outcomes. The decision is the farmer's.
+- AgroTwin models only these crops: wheat, barley, berseem, faba bean, sugar beet, potato, maize, sorghum, rice, cotton, tomato, soybean.
+  If the farmer grows something else (onion, mango, citrus...), say so plainly and ask what else they grow; never substitute silently.
+- Answer questions about what the farmer already told you from the profile. Be warm and brief, like a good extension officer."""
 
 TOOLS = [
     dict(name="update_profile", description="Update the farm profile. Crop keys: " + ", ".join(CROPS) + ". canal_short_prob: share of summers with canal shortage (0.05 rarely, 0.25 sometimes, 0.5 often). salinity_ece in dS/m (4 if salty but untested). priorities: weights 1–2 for water, soil, profit, risk.",

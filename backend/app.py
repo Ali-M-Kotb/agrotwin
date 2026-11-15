@@ -48,6 +48,12 @@ from crops import CROPS, DISEASE_CLASSES, FALLOW, FAMILY_AR, FEDDAN_HA, family
 from robot import Robot
 
 ROOT = Path(__file__).resolve().parent.parent
+# Secrets (e.g. ANTHROPIC_API_KEY) come from agrotwin/.env, which git ignores. Never commit a key.
+if (ROOT / ".env").exists():
+    for _line in (ROOT / ".env").read_text().splitlines():
+        _k, _, _v = _line.strip().partition("=")
+        if _k and not _k.startswith("#") and _v and _k not in os.environ:
+            os.environ[_k.strip()] = _v.strip().strip('"').strip("'")
 OFFLINE = os.environ.get("VERDEX_OFFLINE") == "1"
 TOKEN = os.environ.get("AGROTWIN_TOKEN", "verdex-demo")
 SITES = {s["id"]: s for s in json.loads((ROOT / "data" / "sites.json").read_text())}
@@ -603,6 +609,14 @@ def outcomes(o: Outcome):
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     n = sum(1 for _ in open(d / "outcomes.jsonl"))
     return dict(stored=True, total=n, use="labels for the crop-type detector and Field Pulse yield link (stored locally, never uploaded)")
+
+
+@app.get("/api/ai/status")
+def ai_status():
+    key = bool(os.environ.get("ANTHROPIC_API_KEY"))
+    return dict(claude=key, model="claude-opus-5-5" if key else None,
+                mode="Claude runs the conversation and calls the AgroTwin engines" if key else
+                     "offline engine (keyword understanding); add ANTHROPIC_API_KEY to agrotwin/.env for full conversation")
 
 
 @app.get("/api/prithvi/status")
