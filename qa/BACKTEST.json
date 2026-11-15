@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T15:28:48",
+ "generated_at": "2026-11-15T09:16:08",
  "sites": [
   {
    "site": "delta_01",
@@ -528,65 +528,65 @@
     {
      "seq": [
       "faba",
-      "maize",
-      "potato",
+      "sorghum",
+      "faba",
       "maize",
       "faba",
       "maize"
      ],
-     "label": "faba \u2192 maize",
+     "label": "faba \u2192 sorghum",
      "seasons": [
       {
        "season": "2023/24",
        "profit": {
-        "actual": 77485.3,
+        "actual": 55259.55,
         "raw": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 28.2951
+         "crps": 0.0
         },
         "adjusted": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 31.439
+         "crps": 0.0
         },
         "last_year": {
-         "value": 77485.3,
+         "value": 55259.55,
          "abs_err": 0.0
         },
         "long_term_mean": {
-         "value": 77192.917,
-         "abs_err": 292.3827
+         "value": 55259.55,
+         "abs_err": 0.0
         },
         "n_prior": 31
        },
        "water": {
-        "actual": 7464.246,
+        "actual": 6430.153,
         "raw": {
-         "p10": 6668.995,
-         "median": 7193.158,
-         "p90": 7535.413,
+         "p10": 5582.545,
+         "median": 6457.218,
+         "p90": 6962.253,
          "in_range": true,
-         "crps": 205.6402
+         "crps": 113.4941
         },
         "adjusted": {
-         "p10": 6719.555,
-         "median": 7221.946,
-         "p90": 7706.544,
+         "p10": 5835.58,
+         "median": 6484.621,
+         "p90": 6937.501,
          "in_range": true,
-         "crps": 150.8852
+         "crps": 88.1767
         },
         "last_year": {
-         "value": 6668.995,
-         "abs_err": 795.2512
+         "value": 5559.031,
+         "abs_err": 871.1217
         },
         "long_term_mean": {
-         "value": 7099.581,
-         "abs_err": 364.6656
+         "value": 6327.463,
+         "abs_err": 102.6894
         },
         "n_prior": 31
        },
@@ -620,54 +620,54 @@
       {
        "season": "2024/25",
        "profit": {
-        "actual": 77485.3,
+        "actual": 55259.55,
         "raw": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 26.5543
+         "crps": 0.0
         },
         "adjusted": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 29.5048
+         "crps": 0.0
         },
         "last_year": {
-         "value": 77485.3,
+         "value": 55259.55,
          "abs_err": 0.0
         },
         "long_term_mean": {
-         "value": 77202.054,
-         "abs_err": 283.2457
+         "value": 55259.55,
+         "abs_err": 0.0
         },
         "n_prior": 32
        },
        "water": {
-        "actual": 7497.01,
+        "actual": 7084.376,
         "raw": {
-         "p10": 6669.984,
-         "median": 7189.912,
-         "p90": 7534.154,
-         "in_range": true,
-         "crps": 227.8327
+         "p10": 5600.091,
+         "median": 6430.705,
+         "p90": 6960.802,
+         "in_range": false,
+         "crps": 494.5139
         },
         "adjusted": {
-         "p10": 6736.333,
-         "median": 7209.676,
-         "p90": 7719.561,
-         "in_range": true,
-         "crps": 160.4583
+         "p10": 5854.573,
+         "median": 6462.216,
+         "p90": 6862.763,
+         "in_range": false,
+         "crps": 477.7791
         },
         "last_year": {
-         "value": 7186.666,
-         "abs_err": 310.3446
+         "value": 6155.363,
+         "abs_err": 929.0125
         },
         "long_term_mean": {
-         "value": 7102.302,
-         "abs_err": 394.7085
+         "value": 6322.085,
+         "abs_err": 762.2902
         },
         "n_prior": 32
        },
@@ -701,54 +701,54 @@
       {
        "season": "2025/26",
        "profit": {
-        "actual": 77485.3,
+        "actual": 55259.55,
         "raw": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 24.9693
+         "crps": 0.0
         },
         "adjusted": {
-         "p10": 77485.3,
-         "median": 77485.3,
-         "p90": 77485.3,
+         "p10": 55259.55,
+         "median": 55259.55,
+         "p90": 55259.55,
          "in_range": true,
-         "crps": 27.7437
+         "crps": 0.0
         },
         "last_year": {
-         "value": 77485.3,
+         "value": 55259.55,
          "abs_err": 0.0
         },
         "long_term_mean": {
-         "value": 77210.637,
-         "abs_err": 274.6625
+         "value": 55259.55,
+         "abs_err": 0.0
         },
         "n_prior": 33
        },
        "water": {
-        "actual": 7843.062,
+        "actual": 6807.731,
         "raw": {
-         "p10": 6670.974,
-         "median": 7193.158,
-         "p90": 7532.894,
-         "in_range": false,
-         "crps": 513.1057
+         "p10": 5617.636,
+         "median": 6430.153,
+         "p90": 6959.35,
+         "in_range": true,
+         "crps": 275.6845
         },
         "adjusted": {
-         "p10": 6776.125,
-         "median": 7222.853,
-         "p90": 7726.05,
-         "in_range": false,
-         "crps": 399.9415
+         "p10": 5873.676,
+         "median": 6469.398,
+         "p90": 6935.087,
+         "in_range": true,
+         "crps": 217.8475
         },
         "last_year": {
-         "value": 7464.246,
-         "abs_err": 378.8156
+         "value": 6430.153,
+         "abs_err": 377.5786
         },
         "long_term_mean": {
-         "value": 7113.27,
-         "abs_err": 729.7918
+         "value": 6325.36,
+         "abs_err": 482.3713
         },
         "n_prior": 33
        },
@@ -1948,23 +1948,23 @@
    "cases": 27,
    "coverage_raw": 0.704,
    "coverage_adjusted": 0.778,
-   "crps_raw": 4113.7101,
-   "crps_adjusted": 3996.4513,
+   "crps_raw": 4110.7538,
+   "crps_adjusted": 3993.1666,
    "mae_same_as_last_year": 7779.2391,
-   "mae_long_term_mean": 6768.19,
-   "skill_vs_last_year_raw": 0.471,
-   "skill_vs_last_year_adjusted": 0.486
+   "mae_long_term_mean": 6736.6977,
+   "skill_vs_last_year_raw": 0.472,
+   "skill_vs_last_year_adjusted": 0.487
   },
   "water": {
    "cases": 9,
    "coverage_raw": 0.667,
    "coverage_adjusted": 0.667,
-   "crps_raw": 321.9974,
-   "crps_adjusted": 228.1201,
-   "mae_same_as_last_year": 515.0476,
-   "mae_long_term_mean": 498.068,
-   "skill_vs_last_year_raw": 0.375,
-   "skill_vs_last_year_adjusted": 0.557
+   "crps_raw": 315.01,
+   "crps_adjusted": 236.1777,
+   "mae_same_as_last_year": 592.0811,
+   "mae_long_term_mean": 482.3108,
+   "skill_vs_last_year_raw": 0.468,
+   "skill_vs_last_year_adjusted": 0.601
   },
   "yield_frac": {
    "cases": 27,

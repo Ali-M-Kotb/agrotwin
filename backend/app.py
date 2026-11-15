@@ -31,6 +31,8 @@ import data_sources as ds
 import fieldcard
 import outlook
 import pulse
+import planner
+import plan_agent
 import chat
 import unique
 import disease
@@ -241,6 +243,8 @@ class SimRequest(BaseModel):
     use_scout: bool = True
     scout_run_ids: list[str] | None = None
     irrigation_dates: list[str] | None = None
+    salinity_ece: float = 0.0
+    canal_short_prob: float | None = None
 
 
 def _wx(s, rain_mult, temp_offset):
@@ -331,7 +335,8 @@ def simulate(req: SimRequest):
                    candidates=req.candidates, weights=req.weights, irrigated=irrigated,
                    water_cap_m3=req.water_cap_m3 if irrigated else None,
                    rain_mult=req.rain_mult, temp_offset=req.temp_offset, price_mult=req.price_mult,
-                   price_overrides=req.price_overrides, disease_families=sight["families"], soil_class=soil_class)
+                   price_overrides=req.price_overrides, disease_families=sight["families"], soil_class=soil_class,
+                   salinity_ece=req.salinity_ece, canal_short_prob=req.canal_short_prob)
     wx = _wx(s, req.rain_mult, req.temp_offset)
     prices = econ.load_prices()
     clay = s["soil"].get("clay", 35) or 35
@@ -496,6 +501,114 @@ def pulse_ep(lat: float, lon: float):
 def pulse_report():
     p = ROOT / "qa" / "PULSE.json"
     return json.loads(p.read_text()) if p.exists() else {}
+
+
+# ---------------------------------------------------------------------------
+# Plan Mode engine (backend/planner.py)
+# ---------------------------------------------------------------------------
+
+class PlanReq(BaseModel):
+    lat: float
+    lon: float
+    profile: dict = {}
+
+
+def make_plan_for(lat: float, lon: float, profile: dict) -> dict:
+    s = site(lat, lon)
+    meta = site_meta(s["lat"], s["lon"])
+    irrigated = meta.get("irrigated", True) if profile.get("irrigated") is None else bool(profile["irrigated"])
+    soil_class = soilmod.classify(s["soil"])
+    try:
+        ndvi = ds.modis_ndvi(s["lat"], s["lon"], offline=True)
+    except Exception:
+        ndvi = None
+    try:
+        ps = pulse.field_pulse(ndvi, s["weather"], s["lat"])
+        ps = {k: ps.get(k) for k in ("available", "latest_image", "latest_ndvi", "normal_now", "latest_check", "send_scout", "source")}
+    except Exception:
+        ps = None
+    out = planner.make_plan(s, _wx(s, 1.0, 0.0), profile, econ.load_prices(), soil_class, irrigated,
+                            s["soil"].get("clay", 35) or 35, ndvi, ps)
+    out["site"] = dict(name=meta.get("name"), name_ar=meta.get("name_ar"), lat=s["lat"], lon=s["lon"], irrigated=irrigated, soil_class=soil_class)
+    return _clean(out)
+
+
+@app.post("/api/plan")
+def plan_ep(req: PlanReq):
+    try:
+        return make_plan_for(req.lat, req.lon, req.profile)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+class PlanChatReq(BaseModel):
+    text: str
+    lang: str = "ar"
+    lat: float
+    lon: float
+    sid: str | None = None
+
+
+_plan_cache: dict = {}
+
+
+@app.post("/api/plan/chat")
+def plan_chat(req: PlanChatReq):
+    def mk(profile):
+        key = json.dumps([round(req.lat, 3), round(req.lon, 3), profile], sort_keys=True, default=str)
+        if key not in _plan_cache:
+            _plan_cache[key] = make_plan_for(req.lat, req.lon, profile)
+            if len(_plan_cache) > 64:
+                _plan_cache.pop(next(iter(_plan_cache)))
+        return _plan_cache[key]
+    return _clean(plan_agent.turn(req.sid, req.text.strip()[:500], req.lang, mk))
+
+
+# ---------------------------------------------------------------------------
+# Field alerts (Field Pulse → spoken alert) and the outcome log (labels for the next models)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/alerts")
+def alerts(lat: float, lon: float, lang: str = "ar"):
+    p = pulse_ep(lat, lon)
+    out = []
+    if p.get("available") and p.get("send_scout"):
+        c = p.get("latest_check") or {}
+        text = ("تنبيه من أجروتوين: آخر صورة قمر صناعي لأرضك أقل من اللي الجو يفسّره. لفّ على الأرض أو ابعت الروبوت يكشف على الورق والملوحة."
+                if lang == "ar" else "AgroTwin alert: the latest satellite image of your field is below what the weather explains. Walk the field or send the Scout to check leaves and salinity.")
+        out.append(dict(kind="field_pulse", date=c.get("date"), observed=c.get("observed"), expected=c.get("expected"), low=c.get("low"),
+                        text=text, speak=dict(endpoint="/api/speak", text=text, lang=lang), source=p.get("source")))
+    return dict(alerts=out, checked=p.get("latest_image"), note="Delivery by SMS/WhatsApp needs a messaging account; the text and voice note are ready to send.")
+
+
+class Outcome(BaseModel):
+    lat: float
+    lon: float
+    season: str
+    crop: str
+    sow_date: str | None = None
+    yield_t_per_feddan: float | None = None
+    notes: str | None = None
+    consent: bool = False
+
+
+@app.post("/api/outcomes")
+def outcomes(o: Outcome):
+    if not o.consent:
+        raise HTTPException(400, "consent required: outcomes are stored only with the farmer's permission")
+    d = ROOT / "data" / "outcomes"
+    d.mkdir(parents=True, exist_ok=True)
+    rec = o.model_dump() | dict(received=time.strftime("%Y-%m-%dT%H:%M:%S"))
+    with open(d / "outcomes.jsonl", "a") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    n = sum(1 for _ in open(d / "outcomes.jsonl"))
+    return dict(stored=True, total=n, use="labels for the crop-type detector and Field Pulse yield link (stored locally, never uploaded)")
+
+
+@app.get("/api/prithvi/status")
+def prithvi_status():
+    import prithvi
+    return prithvi.status()
 
 
 # ---------------------------------------------------------------------------

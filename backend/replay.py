@@ -41,6 +41,8 @@ class Plan:
     price_overrides: dict = field(default_factory=dict)
     disease_families: dict = field(default_factory=dict)  # family -> label (from Scout sightings)
     soil_class: str = "clay_loam"
+    salinity_ece: float = 0.0                            # dS/m (FAO-29)
+    canal_short_prob: float | None = None                 # None = assumption:canal_short_prob
 
 
 def effective_overrides(plan: Plan) -> dict:
@@ -127,6 +129,8 @@ def _metrics(sim, eco, r: int, plan: Plan, clay: float, weights: np.ndarray | No
     rot = sim["rotations"][r]
     water_yr = sim["irr_gross"][r].sum(1) * MM_TO_M3_PER_FEDDAN / wb.YEARS        # m3/fed/yr per window
     profit_yr = eco["profit"][r].sum(1) / wb.YEARS
+    p_short = plan.canal_short_prob if plan.canal_short_prob is not None else A["canal_short_prob"]
+    mc = econ.mc_profit_year(sim, eco, r, plan.irrigated, p_short)            # (windows, draws)
     cost_yr = eco["cost"][r].sum(1) / wb.YEARS
     season1 = eco["profit"][r, :, :2].sum(1)                                      # this coming year
     deficit = sim["deficit_days"][r].sum(1)
@@ -140,6 +144,7 @@ def _metrics(sim, eco, r: int, plan: Plan, clay: float, weights: np.ndarray | No
     bc = econ.barcode(profit_yr, cost_yr, years)
     w = np.full(len(years), 1 / len(years))
     red = np.array([b["cls"] == "red" for b in bc])
+    loss_mc = float((mc < 0).mean())
     worst = int(np.argmin(profit_yr))
     soil_pts, soil_why = soil_rules(rot, plan, clay)
     soil_why = [dict(w, source="computed:soil rules (points listed in METHODS.md)") for w in soil_why]
@@ -158,7 +163,10 @@ def _metrics(sim, eco, r: int, plan: Plan, clay: float, weights: np.ndarray | No
     return dict(
         seq=list(rot), slots=slots, years=[int(y) for y in years],
         water_m3=dict(p10=q(water_yr)[0], median=q(water_yr)[1], p90=q(water_yr)[2], unit="m3/feddan/yr", source="computed"),
-        profit=dict(p10=q(profit_yr)[0], median=q(profit_yr)[1], p90=q(profit_yr)[2], unit="EGP/feddan/yr", source="computed"),
+        profit=dict(p10=q(mc.ravel())[0], median=q(mc.ravel())[1], p90=q(mc.ravel())[2], unit="EGP/feddan/yr",
+                    source="computed: replayed weather × price variability × summer canal shortfalls (assumption:price_cv, canal_short_prob)"),
+        profit_weather_only=dict(p10=q(profit_yr)[0], median=q(profit_yr)[1], p90=q(profit_yr)[2], unit="EGP/feddan/yr", source="computed"),
+        loss_share_with_shocks=dict(value=loss_mc, source="computed"),
         season1_profit=dict(p10=qw(season1)[0], median=qw(season1)[1], p90=qw(season1)[2], unit="EGP/feddan",
                             source="computed" + (":weighted by Scout readings" if weights is not None else "")),
         season1_profit_unweighted=dict(p10=q(season1)[0], median=q(season1)[1], p90=q(season1)[2], unit="EGP/feddan",
@@ -189,7 +197,7 @@ def _quick(wx, plan: Plan, prices, cap_net):
         rot[0 if CROPS[c]["season"] == "winter" else 1] = c
         singles.append(tuple(rot))
     sim = wb.simulate(singles, wx, plan.soil_class, plan.irrigated, cap_net)
-    eco = econ.slot_economics(sim, prices, plan.price_mult, effective_overrides(plan))
+    eco = econ.slot_economics(sim, prices, plan.price_mult, effective_overrides(plan), plan.salinity_ece)
     out = {}
     for r, rot in enumerate(singles):
         j = 0 if rot[0] != FALLOW else 1
@@ -255,7 +263,7 @@ def run(weather_wx: dict, plan: Plan, prices: dict, clay: float = 35,
     pool = _beam(plan, quick, clay)
     rots = [existing] + [r for r in pool if r != existing]
     sim = wb.simulate(rots, weather_wx, plan.soil_class, plan.irrigated, cap_net)
-    eco = econ.slot_economics(sim, prices, plan.price_mult, effective_overrides(plan))
+    eco = econ.slot_economics(sim, prices, plan.price_mult, effective_overrides(plan), plan.salinity_ece)
     unmet = np.zeros(len(rots))
     if cap_net:
         free = wb.simulate(rots, weather_wx, plan.soil_class, plan.irrigated, None)

@@ -14,6 +14,7 @@ else from the crops.py placeholders tagged assumption:prices_default.
 from __future__ import annotations
 
 import csv
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -61,7 +62,7 @@ def load_prices() -> dict:
     return out
 
 
-def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: dict | None = None) -> dict:
+def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: dict | None = None, ece: float = 0.0) -> dict:
     """Per (rotation, window, slot): yield fraction, revenue, cost, profit (EGP / feddan)."""
     R, W = sim["etc"].shape[:2]
     yf = np.zeros((R, W, SLOTS))
@@ -80,7 +81,7 @@ def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: 
             etc = np.maximum(sim["etc"][r, :, j], 1e-6)
             ratio = np.clip(sim["eta"][r, :, j] / etc, 0, 1)
             heat = np.minimum(A["heat_loss_max"], A["heat_loss_per_day"] * sim["heat_days"][r, :, j])
-            f = np.clip(1 - c["ky"] * (1 - ratio), 0, 1) * (1 - heat)
+            f = np.clip(1 - c["ky"] * (1 - ratio), 0, 1) * (1 - heat) * salinity_factor(crop, ece)
             yf[r, :, j] = f
             rev[r, :, j] = pr["yield_t"] * f * pr["price"] * price_mult
             cost[r, :, j] = pr["cost"] + wc * sim["irr_gross"][r, :, j] * MM_TO_M3_PER_FEDDAN
@@ -90,6 +91,59 @@ def slot_economics(sim: dict, prices: dict, price_mult: float = 1.0, overrides: 
             prev_legume = crop if CROPS[crop]["n_credit"][1] > 0 else None
     profit = rev - cost + ncredit
     return dict(yield_frac=yf, revenue=rev, cost=cost, ncredit=ncredit, profit=profit)
+
+
+# FAO-29 (Ayers & Westcot, 1985, Table 4; after Maas & Hoffman, 1977): yield falls by b % per dS/m of soil
+# salinity ECe above the threshold a (dS/m).  Yr = 100 − b (ECe − a).
+SALT_TOLERANCE = {
+    "wheat": (6.0, 7.1), "barley": (8.0, 5.0), "berseem": (1.5, 5.7), "faba": (1.6, 9.6), "sugarbeet": (7.0, 5.9),
+    "potato": (1.7, 12.0), "maize": (1.7, 12.0), "sorghum": (6.8, 16.0), "rice": (3.0, 12.0), "cotton": (7.7, 5.2),
+    "tomato": (2.5, 9.9), "soybean": (5.0, 20.0),
+}
+SALT_SOURCE = "FAO-29 (Ayers & Westcot 1985) Table 4, Maas–Hoffman salt tolerance"
+
+
+def salinity_factor(crop: str, ece: float) -> float:
+    if not ece or crop not in SALT_TOLERANCE:
+        return 1.0
+    a, b = SALT_TOLERANCE[crop]
+    return float(min(1.0, max(0.0, 1 - b / 100 * max(0.0, ece - a))))
+
+
+def _price_draws(crop: str, k: int, seed: int = 7) -> np.ndarray:
+    cv = A["price_cv"].get(crop, A["price_cv"]["default"])
+    rng = np.random.default_rng(zlib.crc32(f"price|{crop}|{seed}".encode()))
+    s = np.sqrt(np.log(1 + cv ** 2))
+    return rng.lognormal(-s * s / 2, s, k)          # mean 1
+
+
+def mc_profit_year(sim: dict, eco: dict, r: int, irrigated: bool, p_short: float | None = None,
+                   supply: float | None = None, draws: int | None = None, seed: int = 11) -> np.ndarray:
+    """Profit per (window, draw), EGP / feddan / yr: replayed weather × price variability × summer canal shortfalls.
+    A short summer delivers only `supply` of the irrigation need; the unmet water comes off ETa and yield follows FAO-33."""
+    from waterbalance import SEASON_OF_SLOT, YEARS
+    k = int(draws or A["mc_draws"])
+    p_short = A["canal_short_prob"] if p_short is None else p_short
+    supply = A["canal_short_supply"] if supply is None else supply
+    W = sim["etc"].shape[1]
+    rng = np.random.default_rng(seed)
+    short = rng.random((W, k, YEARS)) < p_short                    # same draws for every rotation (fair comparison)
+    total = np.zeros((W, k))
+    for j, crop in enumerate(sim["rotations"][r]):
+        if crop == FALLOW:
+            continue
+        c = CROPS[crop]
+        rev = eco["revenue"][r, :, j][:, None] * _price_draws(crop, k)[None, :]
+        if irrigated and SEASON_OF_SLOT[j] == "summer" and p_short > 0:
+            etc = np.maximum(sim["etc"][r, :, j], 1e-6)
+            eta = sim["eta"][r, :, j]
+            d_et = (1 - supply) * sim["irr_net"][r, :, j]
+            f0 = np.clip(1 - c["ky"] * (1 - np.clip(eta / etc, 0, 1)), 1e-6, 1)
+            f1 = np.clip(1 - c["ky"] * (1 - np.clip((eta - d_et) / etc, 0, 1)), 0, 1)
+            cut = (f1 / f0)[:, None]
+            rev = np.where(short[:, :, j // 2], rev * cut, rev)
+        total += rev - eco["cost"][r, :, j][:, None] + eco["ncredit"][r, :, j][:, None]
+    return total / YEARS
 
 
 def barcode(window_profit: np.ndarray, window_cost: np.ndarray, years: list[int]) -> list[dict]:

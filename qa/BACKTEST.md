@@ -1,4 +1,4 @@
-# Backtest — last three seasons (2026-11-14T15:28:48)
+# Backtest — last three seasons (2026-11-15T09:16:08)
 
 _Computed by qa/backtest.py. Forecasts use only years before each test season; 'actual' is the season replayed on its real NASA POWER weather (not a measured harvest)._
 
@@ -6,8 +6,8 @@ _Computed by qa/backtest.py. Forecasts use only years before each test season; '
 
 | metric | cases | in 80% range (raw) | in 80% range (climate-adjusted) | CRPS raw | CRPS adjusted | error: same as last year | error: long-term average | skill vs last year (adjusted) |
 |---|---|---|---|---|---|---|---|---|
-| profit, EGP/feddan | 27 | 70% | 78% | 4113.71 | 3996.45 | 7779.24 | 6768.19 | +49% |
-| irrigation, m³/feddan | 9 | 67% | 67% | 321.997 | 228.12 | 515.048 | 498.068 | +56% |
+| profit, EGP/feddan | 27 | 70% | 78% | 4110.75 | 3993.17 | 7779.24 | 6736.7 | +49% |
+| irrigation, m³/feddan | 9 | 67% | 67% | 315.01 | 236.178 | 592.081 | 482.311 | +60% |
 | yield, share of potential | 27 | 70% | 74% | 0.0834 | 0.0803 | 0.1618 | 0.1336 | +50% |
 
 Skill = 1 − CRPS / (error of 'same as last year'). Positive means the replay beats repeating last season.
@@ -42,18 +42,18 @@ Skill = 1 − CRPS / (error of 'same as last year'). Positive means the replay b
 | 2025/26 | irrigation, m³/feddan | 7,843.06 | 6,776.12 – 7,726.05 | **no** | 7,464.25 |
 | 2025/26 | yield, share of potential | 1.00 | 1.00 – 1.00 | yes | 1.00 |
 
-**faba → maize → potato → maize → faba → maize**
+**faba → sorghum → faba → maize → faba → maize**
 
 | season | metric | actual | forecast 10–90% (adjusted) | inside? | same as last year |
 |---|---|---|---|---|---|
-| 2023/24 | profit, EGP/feddan | 77,485.30 | 77,485.30 – 77,485.30 | yes | 77,485.30 |
-| 2023/24 | irrigation, m³/feddan | 7,464.25 | 6,719.56 – 7,706.54 | yes | 6,668.99 |
+| 2023/24 | profit, EGP/feddan | 55,259.55 | 55,259.55 – 55,259.55 | yes | 55,259.55 |
+| 2023/24 | irrigation, m³/feddan | 6,430.15 | 5,835.58 – 6,937.50 | yes | 5,559.03 |
 | 2023/24 | yield, share of potential | 1.00 | 1.00 – 1.00 | yes | 1.00 |
-| 2024/25 | profit, EGP/feddan | 77,485.30 | 77,485.30 – 77,485.30 | yes | 77,485.30 |
-| 2024/25 | irrigation, m³/feddan | 7,497.01 | 6,736.33 – 7,719.56 | yes | 7,186.67 |
+| 2024/25 | profit, EGP/feddan | 55,259.55 | 55,259.55 – 55,259.55 | yes | 55,259.55 |
+| 2024/25 | irrigation, m³/feddan | 7,084.38 | 5,854.57 – 6,862.76 | **no** | 6,155.36 |
 | 2024/25 | yield, share of potential | 1.00 | 1.00 – 1.00 | yes | 1.00 |
-| 2025/26 | profit, EGP/feddan | 77,485.30 | 77,485.30 – 77,485.30 | yes | 77,485.30 |
-| 2025/26 | irrigation, m³/feddan | 7,843.06 | 6,776.12 – 7,726.05 | **no** | 7,464.25 |
+| 2025/26 | profit, EGP/feddan | 55,259.55 | 55,259.55 – 55,259.55 | yes | 55,259.55 |
+| 2025/26 | irrigation, m³/feddan | 6,807.73 | 5,873.68 – 6,935.09 | yes | 6,430.15 |
 | 2025/26 | yield, share of potential | 1.00 | 1.00 – 1.00 | yes | 1.00 |
 
 Independent satellite signal for the same winters (MODIS):

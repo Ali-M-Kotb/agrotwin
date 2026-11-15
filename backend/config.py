@@ -45,6 +45,13 @@ ASSUMPTIONS = {
     "vision_min_conf": (0.60, "leaf-model labels below this confidence become 'unknown'"),
     "vision_alert": ((0.20, 20), "disease share and minimum image count that raise a review flag"),
     # danger windows
+    # uncertainty beyond weather (Monte Carlo layer, replay.py / econ.mc_profit_year)
+    "mc_draws": (40, "price and canal-supply draws per replayed year (seeded, reproducible)"),
+    "price_cv": ({"wheat": 0.05, "rice": 0.20, "maize": 0.15, "cotton": 0.20, "tomato": 0.35, "potato": 0.30, "default": 0.15},
+                 "season-to-season coefficient of variation of farm-gate price (wheat is bought at a state-announced price)"),
+    "canal_short_prob": (0.20, "share of summers in which canal supply falls short at the field (farmer can change it in Plan Mode)"),
+    "canal_short_supply": (0.75, "in a short summer, share of the crop's irrigation need that actually arrives"),
+    "salinity_ece": (0.0, "soil salinity ECe, dS/m (0 = not saline; set from a lab test or the farmer's answer in Plan Mode)"),
     "danger_rule": ((2.0, 5), "|robust z| above 2.0 for 5+ consecutive days = danger window"),
 }
 

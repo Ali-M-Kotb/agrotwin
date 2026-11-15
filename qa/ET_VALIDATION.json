@@ -1,0 +1,135 @@
+{
+ "sites": [
+  {
+   "lat": 30.48,
+   "lon": 31.02,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.3348785932838012,
+   "r_monthly": 0.5267904554537897,
+   "ratio_model_to_mod16": 3.0517497491931382,
+   "annual_model_mm": 1189.3082030384196,
+   "annual_mod16_mm": 389.71354166666663
+  },
+  {
+   "lat": 30.62,
+   "lon": 30.88,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.3915223536822871,
+   "r_monthly": 0.4484822258757324,
+   "ratio_model_to_mod16": 3.036306574973355,
+   "annual_model_mm": 1256.7717083662412,
+   "annual_mod16_mm": 413.9146286231884
+  },
+  {
+   "lat": 30.702,
+   "lon": 31.204,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.2914745088949532,
+   "r_monthly": 0.3796890220461236,
+   "ratio_model_to_mod16": 2.9998754979842333,
+   "annual_model_mm": 1222.8976163861544,
+   "annual_mod16_mm": 407.6494565217391
+  },
+  {
+   "lat": 30.85,
+   "lon": 30.85,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.6689977826463117,
+   "r_monthly": 0.7434976251051014,
+   "ratio_model_to_mod16": 2.6915293392371944,
+   "annual_model_mm": 1105.120248673474,
+   "annual_mod16_mm": 410.5919384057971
+  },
+  {
+   "lat": 30.95,
+   "lon": 31.05,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.4757490841597726,
+   "r_monthly": 0.5746002182177042,
+   "ratio_model_to_mod16": 2.4979354546239523,
+   "annual_model_mm": 1265.048186801118,
+   "annual_mod16_mm": 506.43750000000006
+  },
+  {
+   "lat": 30.98,
+   "lon": 30.4,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.5222682376923452,
+   "r_monthly": 0.6111252102513083,
+   "ratio_model_to_mod16": 2.46023711287162,
+   "annual_model_mm": 1212.8512128949715,
+   "annual_mod16_mm": 492.9814311594203
+  },
+  {
+   "lat": 31.05,
+   "lon": 30.7,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.5815684033971427,
+   "r_monthly": 0.6733357549505264,
+   "ratio_model_to_mod16": 2.6055828713372087,
+   "annual_model_mm": 1155.8037559263528,
+   "annual_mod16_mm": 443.5874094202899
+  },
+  {
+   "lat": 31.2,
+   "lon": 31.499,
+   "rainfed": false,
+   "n": 50,
+   "r_8day": 0.3042584957789935,
+   "r_monthly": 0.4014844783683039,
+   "ratio_model_to_mod16": 2.639819579731454,
+   "annual_model_mm": 1466.4989711282146,
+   "annual_mod16_mm": 555.5300000000001
+  },
+  {
+   "lat": 31.221,
+   "lon": 31.014,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.677402123644508,
+   "r_monthly": 0.7514763754263074,
+   "ratio_model_to_mod16": 2.3067339411845036,
+   "annual_model_mm": 1206.6537782933644,
+   "annual_mod16_mm": 523.1005434782609
+  },
+  {
+   "lat": 31.25,
+   "lon": 30.95,
+   "rainfed": false,
+   "n": 276,
+   "r_8day": 0.7018393987824091,
+   "r_monthly": 0.776382670820347,
+   "ratio_model_to_mod16": 2.6801698815951918,
+   "annual_model_mm": 1149.8566060697285,
+   "annual_mod16_mm": 429.02377717391306
+  },
+  {
+   "lat": 33.9,
+   "lon": -5.45,
+   "rainfed": true,
+   "n": 276,
+   "r_8day": 0.782057835378651,
+   "r_monthly": 0.878921893288132,
+   "ratio_model_to_mod16": 1.225996101839094,
+   "annual_model_mm": 353.8969897900681,
+   "annual_mod16_mm": 288.66077898550725
+  }
+ ],
+ "irrigated": {
+  "n": 10,
+  "median_r_monthly": 0.5928627142345062,
+  "median_ratio": 2.659994730663323
+ },
+ "rainfed": {
+  "n": 1,
+  "median_r_monthly": 0.878921893288132,
+  "median_ratio": 1.225996101839094
+ }
+}

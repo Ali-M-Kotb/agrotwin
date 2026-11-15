@@ -21,7 +21,7 @@ const Chat = (() => {
       </aside>`);
     $c("#chat-fab").onclick = toggle;
     $c("#chat .cx").onclick = toggle;
-    $c("#chat .mic").onclick = talk;
+    $c("#chat .mic").onclick = () => talk();
     $c("#chat form").onsubmit = (e) => { e.preventDefault(); const v = $c("#chat input").value.trim(); if (v) { $c("#chat input").value = ""; ask(v); } };
     labels();
   }
@@ -105,7 +105,9 @@ const Chat = (() => {
   }
 
   // ---- listening: browser recogniser first, local whisper as the fallback ---------------
-  function talk() {
+  function talk(cb, setInput) {
+    const done = typeof cb === "function" ? cb : ask;
+    C.inputEl = setInput || ((v) => { $c("#chat input").value = v; });
     if (C.listening) return stop();
     if (S.audio && !S.audio.paused) S.audio.pause();
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -118,23 +120,24 @@ const Chat = (() => {
       rec.onresult = (e) => {
         let interim = "";
         for (const r of e.results) (r.isFinal ? (final = r[0].transcript) : (interim += r[0].transcript));
-        $c("#chat input").value = final || interim;
+        C.inputEl(final || interim);
       };
       rec.onerror = (e) => {
         if (["network", "not-allowed", "service-not-allowed", "language-not-supported"].includes(e.error)) {
-          C.noBrowserSR = true; listening(false); record();          // fall back to the laptop's own recogniser
+          C.noBrowserSR = true; listening(false); record(done);          // fall back to the laptop's own recogniser
         }
       };
       rec.onend = () => {
         listening(false);
-        const v = (final || $c("#chat input").value).trim();
-        if (v && !C.noBrowserSR) { $c("#chat input").value = ""; ask(v); }
+        const v = (final || "").trim();
+        if (v && !C.noBrowserSR) { C.inputEl(""); done(v); }
       };
       C.rec = rec; rec.start(); listening(true);
-    } else record();
+    } else record(done);
   }
 
-  async function record() {
+  async function record(done) {
+    done = done || ask;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const chunks = [];
@@ -150,7 +153,7 @@ const Chat = (() => {
           const r = await fetch(`/api/stt?lang=${S.lang}`, { method: "POST", body: fd });
           if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || r.statusText);
           const j = await r.json();
-          if (j.text) ask(j.text);
+          if (j.text) done(j.text);
         } catch (e) { add("bot", (S.lang === "ar" ? "مقدرتش أسمع: " : "Couldn't hear: ") + e.message); }
         labels();
       };
@@ -165,9 +168,9 @@ const Chat = (() => {
   }
   function listening(on) {
     C.listening = on;
-    $c("#chat .mic").classList.toggle("on", on);
-    $c("#chat input").placeholder = on ? t("chat_listening") : t("chat_ph");
+    document.querySelectorAll(".mic").forEach((m) => m.classList.toggle("on", on));
+    if ($c("#chat input")) $c("#chat input").placeholder = on ? t("chat_listening") : t("chat_ph");
   }
 
-  return { init: el, labels, ask, toggle };
+  return { init: el, labels, ask, toggle, listen: talk, say };
 })();

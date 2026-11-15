@@ -108,7 +108,9 @@
   <h2 id="pulse"><span class="n">06</span>Our own model: Field Pulse</h2>
   <p>Connecting to NASA's data is the easy part. Field Pulse is a model we trained ourselves, and it answers a question
   no single dataset can: <b>is this field as green as the weather says it should be?</b></p>
-  <p>For every 16-day MODIS image of a field since 2015 we gave the model three kinds of input: the field's own recent
+  <p>It is trained on <b>about 1,200 real Nile Delta cropland pixels</b>: every 16-day MODIS image since 2018, read from NASA's
+  GIBS service by decoding NASA's official colour map back into NDVI (checked against the original MODIS values: error 0.002),
+  plus 12 fields from NASA's ORNL archive back to 2015. For each image we gave the model three kinds of input: the field's own recent
   greenness and its usual season; the last two months of NASA POWER weather; and a <b>physics estimate</b>, where the same
   water-tank bookkeeping as section 02 is run with a crop size read from the satellite, giving the crop's water demand and
   how stressed it would be on rain alone. A gradient-boosted tree model then learns how greenness changes 16 and 32
@@ -117,9 +119,12 @@
   <p><b>Why a farmer cares.</b> When a new image comes in below the model's range, the weather and the season don't explain
   the drop, so something on the field might: pests, salinity, a missed irrigation. That is where the Verdex robot should
   go first. Satellites cover every field cheaply; the robot only visits the ones Field Pulse flags.</p>
-  <p class="cap">Tested two ways: trained before July 2023 and scored on the three seasons since, and each field predicted
-  by a model that never saw it. Ranges are calibrated with split-conformal prediction. Training data: <span id="pl-train">—</span>.
-  Full table: <code>qa/PULSE.md</code>. Limits: a dozen fields so far, mostly in the Delta; greenness is not yield.</p>
+  <p class="cap">Tested three ways: trained before July 2023 and scored on the three seasons since; places held out in 7.7 km
+  blocks; and, independently, on 12 fields from a different NASA archive that were never used in training
+  (<span id="pl-ind">—</span>). Ranges are calibrated with split-conformal prediction. Training data: <span id="pl-train">—</span>.
+  Full table: <code>qa/PULSE.md</code>. Limits: core Delta only so far; greenness is not yield.</p>
+  <p><b>It changes the plan.</b> The field's satellite greenness, compared with 6.8 million Delta pixel-seasons, scales the
+  yields the planner expects for that field, and a Field Pulse warning is raised in the plan and as a spoken alert.</p>
 
   <h2><span class="n">07</span>Ask it out loud</h2>
   <p>A farmer can tap the microphone and ask in Egyptian Arabic: «أزرع إيه السنة الجاية؟», «أروي امتى؟», «أرضي عاملة إيه؟».
@@ -130,7 +135,20 @@
   Claude chooses which engines to call, and a checker refuses any number in its answer that no engine produced; if it
   finds one, the rule-based answer is used instead. Under each answer, the app lists the engines it used.</p>
 
-  <h2><span class="n">08</span>Things a farm twin usually can't do</h2>
+  <h2><span class="n">08</span>Plan Mode: plan by talking</h2>
+  <p>Press <b>Plan with AI</b> and talk. The assistant asks a few questions (crops, area, salinity, how often canal water
+  runs short, what matters most), then searches every candidate rotation × summer sowing date (−14, 0, +14 days) × water
+  strategy (full or 85% summer irrigation) through the same physics, with price swings, canal shortfalls and FAO salt
+  tolerance included, and draws the plan: crops, sowing and harvest dates, water, yields, profit ranges and every option
+  it tried on a water-versus-profit chart. Say “keep rice”, “less water” or “I have 3 feddans” and it re-plans in about two
+  seconds. It remembers the farm. With a Claude key, Claude runs the conversation and calls the plan engine; a checker
+  rejects any number the engine did not produce. Without one, a fast rule engine for Egyptian Arabic and English runs offline.</p>
+  <p class="cap">We also tested whether last summer's NASA POWER heat and soil wetness predict the coming season well enough to
+  favour some past years over others. They did not (−0.5% skill), so all past years keep equal weight. Our water engine was
+  checked against NASA's independent MODIS ET product: it follows the seasonal timing (monthly r = 0.59 irrigated, 0.88
+  rain-fed) but runs higher than MODIS over irrigated fields, a known limitation of that product in deserts; both are reported.</p>
+
+  <h2><span class="n">09</span>Things a farm twin usually can't do</h2>
   <p><b>Your field's past, read from orbit.</b> MODIS shows which seasons your field was green. AgroTwin replays each of
   them on that year's weather and tells you what the suggested rotation would have saved and earned since 2015, without
   asking you a single question about your history.</p>
@@ -140,7 +158,7 @@
   <p><b>Next 16 days.</b> The same water bookkeeping continues on the weather forecast, so the advice ends with a date:
   "irrigate around Sunday, about 220 m³ per feddan".</p>
 
-  <h2><span class="n">09</span>Honesty rules</h2>
+  <h2><span class="n">10</span>Honesty rules</h2>
   <ul>
     <li>Every number on screen can be tapped to see where it came from: NASA, computed, the robot, a quoted source, or a named assumption.</li>
     <li>A badge always says whether robot data is live, a replay, or simulated.</li>
@@ -170,7 +188,8 @@
       n[0].textContent = pct(ts.skill_vs_persistence);
       n[1].textContent = pct(ts.coverage_80);
       n[2].textContent = pct(ab["without the water-balance inputs"].mae / ab["full model"].mae - 1);
-      document.getElementById("pl-train").textContent = `${p.fields.length} fields, ${p.samples.toLocaleString("en")} forecast samples`;
+      document.getElementById("pl-train").textContent = `${(p.gibs_pixels || 0).toLocaleString("en")} Delta pixels + ${p.fields.length} fields, ${p.samples.toLocaleString("en")} forecast samples`;
+      if (p.independent) document.getElementById("pl-ind").textContent = `${pct(p.independent["16d"].skill_vs_persistence)} better than “no change”, ${pct(p.independent["16d"].coverage_80)} of outcomes in the 80% range`;
     }
   } catch {}
   try {

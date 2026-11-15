@@ -1,9 +1,9 @@
 /* AgroTwin service worker — AI-generated (Claude) under human review.
  * App shell cached for offline use in the field; API calls go to the network first and fall
  * back to the last good answer, so a farmer with a weak signal still sees their plan. */
-const SHELL = "agrotwin-shell-v4";
+const SHELL = "agrotwin-shell-v5";
 const API = "agrotwin-api-v3";
-const ASSETS = ["/", "/static/style.css", "/static/app.js", "/static/map.js", "/static/chat.js", "/static/icon.svg",
+const ASSETS = ["/", "/static/style.css", "/static/app.js", "/static/map.js", "/static/chat.js", "/static/plan.js", "/static/icon.svg",
   "/static/i18n/en.json", "/static/i18n/ar.json", "/static/vendor/leaflet.js", "/static/vendor/leaflet.css",
   "/static/vendor/plotly.min.js", "/static/vendor/legends/layers.json"];
 

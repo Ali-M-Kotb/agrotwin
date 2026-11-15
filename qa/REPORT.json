@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-14T14:05:08",
+ "generated_at": "2026-11-15T09:16:08",
  "generated_by": "qa/validate.py (AI-assisted code, results computed at run time)",
  "twin_experiment": [
   {
@@ -349,7 +349,7 @@
  },
  "provenance": {
   "status": "run",
-  "numbers_checked": 1201,
+  "numbers_checked": 1853,
   "untagged": 0,
   "examples": [],
   "passed": true
@@ -361,8 +361,8 @@
    "passed": true
   },
   "profit_falls_with_price": {
-   "base": 57419,
-   "low": 26093,
+   "base": 48589,
+   "low": 19912,
    "passed": true
   },
   "fallow_has_no_transpiration": {
@@ -379,5 +379,5 @@
    "note": "fusion with zero readings returns uniform weights (unit test)"
   }
  },
- "elapsed_s": 3.8
+ "elapsed_s": 5.3
 }

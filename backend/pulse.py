@@ -76,58 +76,80 @@ def _bucket(weather: pd.DataFrame, kc_daily: pd.Series) -> pd.DataFrame:
     return pd.DataFrame({"ks": ks_out, "etc": etc_out}, index=weather.index)
 
 
+def _window(cum: np.ndarray, end: np.ndarray, n: int) -> np.ndarray:
+    """Sum of the n days ending at index `end` (inclusive), from a cumulative-sum array."""
+    lo = np.clip(end - n, -1, None)
+    return cum[end] - np.where(lo >= 0, cum[np.maximum(lo, 0)], 0.0)
+
+
 def build_rows(ndvi: pd.Series, weather: pd.DataFrame, lat: float, loyo: bool = True,
                with_target: bool = True) -> pd.DataFrame:
+    """Vectorised feature builder: one row per (composite, horizon). Same features as v1."""
     s = _composites(ndvi)
     cdf, by_doy = _climatology(s, loyo)
     clim_all = by_doy
-    w = weather.loc[weather.index >= s.index[0] - pd.Timedelta(days=120)]
+    w = weather.loc[weather.index >= s.index[0] - pd.Timedelta(days=120)].copy()
+    if len(w) < 200:
+        return pd.DataFrame()
     kc = (KC_A * s + KC_B).clip(0.15, 1.2)
     kc_daily = kc.resample("D").interpolate()
     phys = _bucket(w, kc_daily)
     tnorm = weather["T2M_MAX"].groupby(weather.index.day_of_year).mean()
     rain_annual = float(weather["PRECTOTCORR"].resample("YE").sum().iloc[-11:-1].mean())
-    vals, idx = s.values, s.index
-    rows = []
-    for i in range(3, len(s)):
-        t = idx[i]
-        end = t + pd.Timedelta(days=15)
-        if end > w.index[-1] or np.isnan(vals[i]):
+    didx = w.index
+    rain = w["PRECTOTCORR"].fillna(0).to_numpy(); et0 = w["ET0"].fillna(0).to_numpy()
+    tmax = w["T2M_MAX"].ffill().bfill().to_numpy(); gw = w["GWETROOT"].ffill().bfill().to_numpy()
+    tanom = tmax - tnorm.reindex(didx.day_of_year).to_numpy()
+    heat = (tmax > 35).astype(float)
+    ks, etc = phys["ks"].to_numpy(), phys["etc"].to_numpy()
+    C = {k: np.cumsum(v) for k, v in dict(rain=rain, et0=et0, tmax=tmax, gw=gw, tanom=tanom, heat=heat, etc=etc, ks=ks, def_=et0 - rain).items()}
+    vals, idx = s.to_numpy(), s.index
+    t_end = idx + pd.Timedelta(days=15)
+    pos = didx.get_indexer(t_end)
+    ok = (pos >= 60) & np.isfinite(vals)
+    ok[:3] = False
+    for k in (1, 2, 3):
+        ok[k:] &= np.isfinite(vals[:-k])
+    ii = np.where(ok)[0]
+    if not len(ii):
+        return pd.DataFrame()
+    e = pos[ii]
+    n = np.stack([vals[ii - k] for k in range(4)], 1)
+    ks60 = np.array([ks[max(0, x - 59):x + 1].min() for x in e])
+    c0 = cdf["clim"].to_numpy()[ii] if loyo else clim_all.reindex(idx[ii].day_of_year).to_numpy()
+    base = dict(
+        date=idx[ii], n0=n[:, 0], n1=n[:, 1], n2=n[:, 2], n3=n[:, 3], slope1=n[:, 0] - n[:, 1], slope2=n[:, 1] - n[:, 2],
+        c0=c0, cmax=float(clim_all.max()), camp=float(clim_all.max() - clim_all.min()),
+        rain16=_window(C["rain"], e, 16), rain60=_window(C["rain"], e, 60), et0_16=_window(C["et0"], e, 16),
+        tmax16=_window(C["tmax"], e, 16) / 16, tmax_anom=_window(C["tanom"], e, 16) / 16, heat16=_window(C["heat"], e, 16),
+        gwet=_window(C["gw"], e, 16) / 16, deficit30=_window(C["def_"], e, 30), etc16=_window(C["etc"], e, 16),
+        ks16=_window(C["ks"], e, 16) / 16, ks_min60=ks60, rain_annual=rain_annual, lat=lat)
+    base["a0"] = base["n0"] - base["c0"]
+    frames = []
+    for h in HORIZONS:
+        tgt_i = ii + h
+        has = tgt_i < len(s)
+        if with_target:
+            keep = has & np.isfinite(np.where(has, vals[np.minimum(tgt_i, len(s) - 1)], np.nan))
+        else:
+            keep = np.ones(len(ii), bool)
+        if not keep.any():
             continue
-        n = [vals[i - k] for k in range(4)]
-        if any(np.isnan(n)):
-            continue
-        win16, win60, win30 = w.loc[t:end], w.loc[end - pd.Timedelta(days=59):end], w.loc[end - pd.Timedelta(days=29):end]
-        ph16, ph60 = phys.loc[t:end], phys.loc[end - pd.Timedelta(days=59):end]
-        c0 = cdf["clim"].iloc[i] if loyo else clim_all.get(t.day_of_year, np.nan)
-        common = dict(
-            date=t, n0=n[0], n1=n[1], n2=n[2], n3=n[3], slope1=n[0] - n[1], slope2=n[1] - n[2],
-            c0=c0, cmax=float(clim_all.max()), camp=float(clim_all.max() - clim_all.min()),
-            rain16=win16["PRECTOTCORR"].sum(), rain60=win60["PRECTOTCORR"].sum(), et0_16=win16["ET0"].sum(),
-            tmax16=win16["T2M_MAX"].mean(),
-            tmax_anom=win16["T2M_MAX"].mean() - tnorm.reindex(win16.index.day_of_year).mean(),
-            heat16=float((win16["T2M_MAX"] > 35).sum()), gwet=win16["GWETROOT"].mean(),
-            deficit30=(win30["ET0"] - win30["PRECTOTCORR"]).sum(), etc16=ph16["etc"].sum(),
-            ks16=ph16["ks"].mean(), ks_min60=ph60["ks"].min(), rain_annual=rain_annual, lat=lat)
-        common["a0"] = common["n0"] - c0
-        for h in HORIZONS:
-            if with_target and i + h >= len(s):
-                continue
-            tgt_date = idx[i + h] if i + h < len(s) else t + pd.Timedelta(days=16 * h)
-            if loyo and i + h < len(s):
-                ch = cdf["clim"].iloc[i + h]
-            else:
-                ch = float(np.interp(tgt_date.day_of_year, clim_all.index, clim_all.values, period=366))
-            r = dict(common, h=h, target_date=tgt_date, ch=ch, cdelta=ch - c0,
-                     sin_t=np.sin(2 * np.pi * tgt_date.day_of_year / 365.25),
-                     cos_t=np.cos(2 * np.pi * tgt_date.day_of_year / 365.25))
-            if with_target:
-                y = vals[i + h]
-                if np.isnan(y):
-                    continue
-                r["y"] = y
-            rows.append(r)
-    return pd.DataFrame(rows)
+        tdate = pd.DatetimeIndex([idx[t] if t < len(s) else idx[i] + pd.Timedelta(days=16 * h) for t, i in zip(tgt_i, ii)])
+        if loyo:
+            ch = np.where(has, cdf["clim"].to_numpy()[np.minimum(tgt_i, len(s) - 1)], np.nan)
+            miss = ~has | ~np.isfinite(ch)
+            ch[miss] = np.interp(tdate.day_of_year[miss], clim_all.index, clim_all.values, period=366)
+        else:
+            ch = np.interp(tdate.day_of_year, clim_all.index, clim_all.values, period=366)
+        f = pd.DataFrame({k: (v[keep] if isinstance(v, np.ndarray) else (v[keep] if hasattr(v, "__len__") and not isinstance(v, str) else v)) for k, v in base.items()})
+        f["h"] = h; f["target_date"] = tdate[keep]; f["ch"] = ch[keep]; f["cdelta"] = f["ch"] - f["c0"]
+        f["sin_t"] = np.sin(2 * np.pi * tdate[keep].day_of_year / 365.25); f["cos_t"] = np.cos(2 * np.pi * tdate[keep].day_of_year / 365.25)
+        if with_target:
+            f["y"] = vals[tgt_i[keep]]
+        frames.append(f)
+    out = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    return out.dropna(subset=[c for c in FEATURES if c in out.columns]) if len(out) else out
 
 
 # ---------------------------------------------------------------------------

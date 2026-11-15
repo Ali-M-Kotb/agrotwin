@@ -33,6 +33,7 @@
     <button data-mode="simple" data-i18n="mode_simple"></button>
     <button data-mode="advanced" data-i18n="mode_advanced"></button>
   </nav>
+  <button id="btn-plan" class="planbtn"><svg><use href="#i-mic"/></svg><span data-i18n="pm_button"></span></button>
   <nav class="seg lens adv" role="tablist" aria-label="Reader">
     <button data-lens="farmer" data-i18n="lens_farmer" role="tab"></button>
     <button data-lens="investor" data-i18n="lens_investor" role="tab"></button>
@@ -280,6 +281,7 @@
 <script src="/static/map.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/chat.js"></script>
-<script>Chat.init();</script>
+<script src="/static/plan.js"></script>
+<script>Chat.init(); document.getElementById("btn-plan").onclick = () => PlanUI.toggle();</script>
 </body>
 </html>

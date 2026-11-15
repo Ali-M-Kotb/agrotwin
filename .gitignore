@@ -16,3 +16,7 @@ data/cache/fusion_sigma_*
 data/cache/openmeteo_*
 data/audio/
 data/training/raw/
+data/plans/
+data/outcomes/
+data/training/gibs/
+data/models/

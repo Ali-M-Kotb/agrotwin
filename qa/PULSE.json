@@ -49,96 +49,140 @@
    "lon": -5.45
   }
  ],
- "samples": 6420,
+ "gibs_pixels": 1200,
+ "samples": 482744,
+ "samples_gibs": 476324,
+ "samples_ornl": 6420,
  "horizons_days": [
   16,
   32
  ],
+ "data": "MODIS MOD13Q1 NDVI decoded from NASA GIBS tiles (3 core-Delta tiles, 2018\u20132026) + ORNL DAAC MOD13Q1 at 12 fields (2015\u20132026); NASA POWER daily weather",
  "time_split": {
   "16d": {
+   "n": 83995,
+   "mae_model": 0.04317887317403861,
+   "coverage_80": 0.8004524078814215,
+   "below_p10": 0.07984999107089708,
+   "mae_baselines": {
+    "persistence": 0.07666641473770142,
+    "seasonal_normal": 0.062115009014913035,
+    "normal_plus_anomaly": 0.05466996694160996
+   },
+   "skill_vs_best_baseline": 0.21019024540191078,
+   "skill_vs_persistence": 0.43679545571856515,
+   "big_moves": {
+    "n": 24028,
+    "mae_model": 0.06226468377040086,
+    "mae_persistence": 0.1642017662525177
+   }
+  },
+  "32d": {
+   "n": 83995,
+   "mae_model": 0.05762572875915424,
+   "coverage_80": 0.7903327579022561,
+   "below_p10": 0.08076671230430382,
+   "mae_baselines": {
+    "persistence": 0.11422889679670334,
+    "seasonal_normal": 0.06211869227008158,
+    "normal_plus_anomaly": 0.059369480832937936
+   },
+   "skill_vs_best_baseline": 0.029371186160285,
+   "skill_vs_persistence": 0.49552407162162726,
+   "big_moves": {
+    "n": 37711,
+    "mae_model": 0.06967637271043219,
+    "mae_persistence": 0.1997770369052887
+   }
+  },
+  "train_rows": 293937,
+  "test_rows": 167990
+ },
+ "independent": {
+  "16d": {
    "n": 840,
-   "mae_model": 0.042624359416053165,
-   "coverage_80": 0.805952380952381,
-   "below_p10": 0.08214285714285714,
+   "mae_model": 0.04103075161789802,
+   "coverage_80": 0.8154761904761905,
+   "below_p10": 0.0880952380952381,
    "mae_baselines": {
     "persistence": 0.07680511904761905,
     "seasonal_normal": 0.0524229329004329,
-    "normal_plus_anomaly": 0.04613321117483245
+    "normal_plus_anomaly": 0.04608315415982972
    },
-   "skill_vs_best_baseline": 0.07605912680740301,
-   "skill_vs_persistence": 0.4450323110673635,
+   "skill_vs_best_baseline": 0.10963664779560234,
+   "skill_vs_persistence": 0.46578102961523926,
    "big_moves": {
     "n": 239,
-    "mae_model": 0.05781542600537017,
+    "mae_model": 0.05514577773006032,
     "mae_persistence": 0.17243682008368202
    }
   },
   "32d": {
    "n": 840,
-   "mae_model": 0.05050301882020008,
-   "coverage_80": 0.7892857142857143,
-   "below_p10": 0.09642857142857143,
+   "mae_model": 0.05191846463208793,
+   "coverage_80": 0.8238095238095238,
+   "below_p10": 0.07976190476190476,
    "mae_baselines": {
     "persistence": 0.1261622619047619,
     "seasonal_normal": 0.0524229329004329,
-    "normal_plus_anomaly": 0.05125703160648617
+    "normal_plus_anomaly": 0.05120483923571469
    },
-   "skill_vs_best_baseline": 0.014710426309405666,
-   "skill_vs_persistence": 0.599697896520561,
+   "skill_vs_best_baseline": -0.013936678779287837,
+   "skill_vs_persistence": 0.5884786476697728,
    "big_moves": {
     "n": 416,
-    "mae_model": 0.06213498280957753,
+    "mae_model": 0.061400671854860936,
     "mae_persistence": 0.21059567307692306
    }
-  },
-  "train_rows": 4596,
-  "test_rows": 1680
+  }
  },
  "ablation_16d": {
   "full model": {
-   "mae": 0.042624359416053165,
-   "big_moves_mae": 0.05781542600537017
+   "mae": 0.04317887317403861,
+   "big_moves_mae": 0.06226468377040086
   },
   "without the water-balance inputs": {
-   "mae": 0.04698685566151063,
-   "big_moves_mae": 0.06443680911009447
+   "mae": 0.05484210376760451,
+   "big_moves_mae": 0.07942092437478288
   },
   "without any weather (satellite history only)": {
-   "mae": 0.04532713595255424,
-   "big_moves_mae": 0.06269201471115507
+   "mae": 0.053579175752360264,
+   "big_moves_mae": 0.07849456841500951
   }
  },
  "field_split": {
   "16d": {
-   "n": 3216,
-   "mae_model": 0.04043392967737122,
-   "coverage_80": 0.8519900497512438,
+   "n": 238763,
+   "mae_model": 0.03818170394799265,
+   "coverage_80": 0.847116177967273,
    "mae_baselines": {
-    "persistence": 0.07247129975124378,
-    "seasonal_normal": 0.04952332259158752,
-    "normal_plus_anomaly": 0.044362972802903196
+    "persistence": 0.07471550014518985,
+    "seasonal_normal": 0.059273431668475846,
+    "normal_plus_anomaly": 0.052839526609015336
    },
-   "skill_vs_best_baseline": 0.08856582138866154,
-   "skill_vs_persistence": 0.4420697598061599
+   "skill_vs_best_baseline": 0.27740261129670707,
+   "skill_vs_persistence": 0.48897211590906053
   },
   "32d": {
-   "n": 3204,
-   "mae_model": 0.047886984381209655,
-   "coverage_80": 0.8289637952559301,
+   "n": 237561,
+   "mae_model": 0.05277847663582111,
+   "coverage_80": 0.827109668674572,
    "mae_baselines": {
-    "persistence": 0.1185151061173533,
-    "seasonal_normal": 0.04962285098172739,
-    "normal_plus_anomaly": 0.048698182806069315
+    "persistence": 0.11173704793289693,
+    "seasonal_normal": 0.05931247432814256,
+    "normal_plus_anomaly": 0.057073890746404815
    },
-   "skill_vs_best_baseline": 0.016657673410321983,
-   "skill_vs_persistence": 0.5959419355892732
+   "skill_vs_best_baseline": 0.07526057982746304,
+   "skill_vs_persistence": 0.5276546354838645
   }
  },
  "summary": {
   "mae_16d": 0.043,
-  "coverage_80_16d": 0.81,
-  "skill_vs_persistence_16d": 0.45,
-  "skill_vs_best_baseline_16d": 0.08,
-  "test": "last three seasons (Oct 2023 \u2192), never seen in training"
+  "coverage_80_16d": 0.8,
+  "skill_vs_persistence_16d": 0.44,
+  "skill_vs_best_baseline_16d": 0.21,
+  "independent_skill_vs_persistence_16d": 0.47,
+  "independent_coverage_80_16d": 0.82,
+  "test": "seasons Oct 2023 \u2192 never seen in training; independent = 12 ORNL fields never used in training"
  }
 }

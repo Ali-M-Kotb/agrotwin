@@ -100,78 +100,129 @@ def score(models, tr, te):
     return out
 
 
-def main():
-    t0 = time.time()
-    px = pixels()
-    frames = []
-    for gi, (lat, lon, (ndvi, w)) in enumerate(px):
-        d = pulse.build_rows(ndvi, w, lat, loyo=True, with_target=True)
-        d["field"] = gi
-        frames.append(d)
-    df = pd.concat(frames, ignore_index=True).dropna(subset=pulse.FEATURES + ["y"])
-    print(f"{len(px)} fields, {len(df)} samples ({time.time() - t0:.0f} s)")
+TILE_DIR = ROOT / "data" / "training" / "gibs"
+GRID = ROOT / "data" / "training" / "raw"
 
-    report = dict(fields=[dict(lat=a, lon=b) for a, b, _ in px], samples=int(len(df)), horizons_days=[16, 32])
-    # A. time split
-    tr = df[df["target_date"] < "2023-07-01"]
-    te = df[df["target_date"] >= "2023-10-01"]
+
+def gibs_pixels(n_per_tile=400, seed=0):
+    """Cropland pixels sampled from the GIBS MODIS NDVI cubes (scripts/gibs_fetch.py)."""
+    rng = np.random.default_rng(seed)
+    cells = {}
+    for f in sorted(GRID.glob("power_*.json")):
+        lat, lon = map(float, f.stem.split("_")[1:])
+        old = ds.CACHE; ds.CACHE = GRID
+        try:
+            w, elev = ds.power_daily(lat, lon, offline=True)
+        finally:
+            ds.CACHE = old
+        cells[(lat, lon)] = ds.add_et0(w, lat, elev)
+    out = []
+    for f in sorted(TILE_DIR.glob("ndvi_r*_c*.npz")):
+        z = np.load(f)
+        cube = z["ndvi"].astype(np.float32)
+        cube = np.where(cube > 0, cube / 200 - 0.2, np.nan)
+        dates = pd.to_datetime(z["dates"])
+        lat0, lon0, px = float(z["lat0"]), float(z["lon0"]), float(z["px"])
+        valid = np.isfinite(cube).mean(0) >= 0.9
+        mx, mn = np.nanmax(cube, 0), np.nanpercentile(cube, 10, axis=0)
+        crop = valid & (mx >= 0.55) & (mx - mn >= 0.2)
+        ii, jj = np.where(crop)
+        pick = rng.choice(len(ii), size=min(n_per_tile, len(ii)), replace=False)
+        for k in pick:
+            i, j = ii[k], jj[k]
+            lat, lon = lat0 - (i + 0.5) * px, lon0 + (j + 0.5) * px
+            cell = min(cells, key=lambda c: (c[0] - lat) ** 2 + ((c[1] - lon) * 0.86) ** 2)
+            out.append(dict(group=f"{f.stem}", block=f"{f.stem}_{i // 32}_{j // 32}", lat=lat, lon=lon,
+                            ndvi=pd.Series(cube[:, i, j], index=dates), weather=cells[cell]))
+    return out
+
+
+def _rows(px, source):
+    frames = []
+    for k, p in enumerate(px):
+        d = pulse.build_rows(p["ndvi"], p["weather"], p["lat"], loyo=True, with_target=True)
+        if len(d):
+            d["field"] = f"{source}{k}"; d["block"] = p.get("block", f"{source}{k}"); d["source"] = source
+            frames.append(d)
+    return pd.concat(frames, ignore_index=True).dropna(subset=pulse.FEATURES + ["y"])
+
+
+def _agg(rs):
+    n = np.array([r["n"] for r in rs])
+    wavg = lambda key: float(np.average([r[key] for r in rs], weights=n))
+    mae_b = {b: float(np.average([r["mae_baselines"][b] for r in rs], weights=n)) for b in rs[0]["mae_baselines"]}
+    mae_m = wavg("mae_model")
+    return dict(n=int(n.sum()), mae_model=mae_m, coverage_80=wavg("coverage_80"), mae_baselines=mae_b,
+                skill_vs_best_baseline=1 - mae_m / min(mae_b.values()), skill_vs_persistence=1 - mae_m / mae_b["persistence"])
+
+
+def main():
+    from sklearn.model_selection import GroupKFold
+    t0 = time.time()
+    gp = gibs_pixels()
+    G = _rows(gp, "g")
+    op = pixels()
+    O = _rows([dict(lat=a, lon=b, ndvi=nw[0], weather=nw[1]) for a, b, nw in op], "o")
+    print(f"GIBS: {len(gp)} pixels, {len(G)} samples; ORNL: {len(op)} fields, {len(O)} samples ({time.time() - t0:.0f} s)", flush=True)
+    report = dict(fields=[dict(lat=a, lon=b) for a, b, _ in op], gibs_pixels=len(gp), samples=int(len(G) + len(O)),
+                  samples_gibs=int(len(G)), samples_ornl=int(len(O)), horizons_days=[16, 32],
+                  data="MODIS MOD13Q1 NDVI decoded from NASA GIBS tiles (3 core-Delta tiles, 2018–2026) + ORNL DAAC MOD13Q1 at 12 fields (2015–2026); NASA POWER daily weather")
+    # A. time split on GIBS pixels
+    tr, te = G[G["target_date"] < "2023-07-01"], G[G["target_date"] >= "2023-10-01"]
     mA = fit(tr)
     report["time_split"] = {f"{16 * h}d": score(mA, tr[tr.h == h], te[te.h == h]) for h in pulse.HORIZONS}
     report["time_split"]["train_rows"], report["time_split"]["test_rows"] = int(len(tr)), int(len(te))
-    # ablations: what the physics inputs and the weather add
+    print("A done", round(time.time() - t0), flush=True)
+    # C. independent test: model A on the 12 ORNL fields (unseen places, independent data path), seasons ≥ Oct 2023
+    teO = O[O["target_date"] >= "2023-10-01"]
+    report["independent"] = {f"{16 * h}d": score(mA, tr[tr.h == h], teO[teO.h == h]) for h in pulse.HORIZONS}
+    # ablation
     no_phys = [f for f in pulse.FEATURES if f not in PHYSICS]
     no_wx = [f for f in no_phys if f not in ("rain16", "rain60", "et0_16", "tmax16", "tmax_anom", "heat16", "gwet")]
-    report["ablation_16d"] = {}
-    for name, feats in (("full model", pulse.FEATURES), ("without the water-balance inputs", no_phys),
-                        ("without any weather (satellite history only)", no_wx)):
+    rA = report["time_split"]["16d"]
+    report["ablation_16d"] = {"full model": dict(mae=rA["mae_model"], big_moves_mae=rA["big_moves"]["mae_model"])}
+    for name, feats in (("without the water-balance inputs", no_phys), ("without any weather (satellite history only)", no_wx)):
         m = fit(tr, feats)
         r = score(m, tr[tr.h == 1], te[te.h == 1])
         report["ablation_16d"][name] = dict(mae=r["mae_model"], big_moves_mae=r["big_moves"]["mae_model"])
-    # B. leave one field out
+    print("ablation done", round(time.time() - t0), flush=True)
+    # B. spatial-block cross-validation (32 × 32-pixel blocks ≈ 7.7 km, so neighbours never cross train/test)
     res = {h: [] for h in pulse.HORIZONS}
-    for g in sorted(df["field"].unique()):
-        trg, teg = df[df.field != g], df[df.field == g]
+    for trn, tst in GroupKFold(n_splits=5).split(G, groups=G["block"]):
+        trg, teg = G.iloc[trn], G.iloc[tst]
         m = fit(trg)
         for h in pulse.HORIZONS:
-            r = score(m, trg[trg.h == h], teg[teg.h == h])
-            res[h].append(r)
-    report["field_split"] = {}
-    for h in pulse.HORIZONS:
-        rs = res[h]
-        n = np.array([r["n"] for r in rs])
-        wavg = lambda key: float(np.average([r[key] for r in rs], weights=n))
-        mae_b = {b: float(np.average([r["mae_baselines"][b] for r in rs], weights=n)) for b in rs[0]["mae_baselines"]}
-        mae_m = wavg("mae_model")
-        report["field_split"][f"{16 * h}d"] = dict(
-            n=int(n.sum()), mae_model=mae_m, coverage_80=wavg("coverage_80"), mae_baselines=mae_b,
-            skill_vs_best_baseline=1 - mae_m / min(mae_b.values()),
-            skill_vs_persistence=1 - mae_m / mae_b["persistence"])
-    # final model on everything
-    final = fit(df)
-    imp_note = "gradient-boosted trees; inputs listed in backend/pulse.py"
-    ts = report["time_split"]["16d"]
+            res[h].append(score(m, trg[trg.h == h], teg[teg.h == h]))
+    report["field_split"] = {f"{16 * h}d": _agg(res[h]) for h in pulse.HORIZONS}
+    print("B done", round(time.time() - t0), flush=True)
+    final = fit(pd.concat([G, O], ignore_index=True))
+    ts, ind = report["time_split"]["16d"], report["independent"]["16d"]
     summary = dict(mae_16d=round(ts["mae_model"], 3), coverage_80_16d=round(ts["coverage_80"], 2),
                    skill_vs_persistence_16d=round(ts["skill_vs_persistence"], 2),
                    skill_vs_best_baseline_16d=round(ts["skill_vs_best_baseline"], 2),
-                   test="last three seasons (Oct 2023 →), never seen in training")
+                   independent_skill_vs_persistence_16d=round(ind["skill_vs_persistence"], 2),
+                   independent_coverage_80_16d=round(ind["coverage_80"], 2),
+                   test="seasons Oct 2023 → never seen in training; independent = 12 ORNL fields never used in training")
     with open(pulse.MODEL_PATH, "wb") as f:
         pickle.dump(dict(models={q: final[q] for q in pulse.QUANTILES}, widen=final["widen"], features=pulse.FEATURES, summary=summary,
-                         trained_on=dict(fields=len(px), samples=int(len(df)), until=str(df["target_date"].max().date())),
-                         note=imp_note), f)
+                         trained_on=dict(fields=len(gp) + len(op), pixels=len(gp), samples=int(len(G) + len(O)),
+                                         until=str(G["target_date"].max().date())), version=2,
+                         note="gradient-boosted quantile trees + CQR; trained on GIBS-decoded MODIS NDVI and ORNL MOD13Q1 with NASA POWER"), f)
     report["summary"] = summary
     (ROOT / "qa" / "PULSE.json").write_text(json.dumps(report, indent=1, default=str))
     write_md(report)
-    print(json.dumps(summary, indent=1))
+    print(json.dumps(summary, indent=1), round(time.time() - t0), "s")
 
 
 def write_md(r):
     L = ["# Field Pulse — test report", "",
          "_Generated by `python qa/pulse_train.py` (AI-written script, Claude, under human review). Numbers are computed, never typed._", "",
-         f"Training data: **{len(r['fields'])} fields**, **{r['samples']:,} forecast samples** "
-         "(MODIS MOD13Q1 NDVI 2015 → 2026 at 250 m, NASA POWER daily weather).", "",
+         f"Training data: **{r['gibs_pixels']:,} cropland pixels** (MODIS MOD13Q1 NDVI decoded from NASA GIBS, core Nile Delta, 2018–2026) "
+         f"and **{len(r['fields'])} fields** from the ORNL DAAC (2015–2026); **{r['samples']:,} forecast samples**; NASA POWER daily weather.", "",
          "Error is mean absolute error in NDVI units (0–1). Skill = 1 − model error / baseline error; above 0 means better.", ""]
     for name, key in (("A. Time split: trained before Jul 2023, tested on Oct 2023 → now", "time_split"),
-                      ("B. Field split: each field predicted by a model that never saw it", "field_split")):
+                      ("B. Spatial-block cross-validation: 5 folds of 7.7 km blocks, places never seen in training", "field_split"),
+                      ("C. Independent test: model A on 12 ORNL fields never used in training (seasons Oct 2023 →)", "independent")):
         L += [f"## {name}", "", "| horizon | samples | model error | persistence | seasonal normal | normal + anomaly | skill vs persistence | skill vs best baseline | 80% range coverage |",
               "|---|---|---|---|---|---|---|---|---|"]
         for hz in ("16d", "32d"):
@@ -190,7 +241,8 @@ def write_md(r):
     for k, v in r["ablation_16d"].items():
         L.append(f"| {k} | {v['mae']:.4f} | {v['big_moves_mae']:.4f} |")
     L += ["", "The 80% ranges are widened by split-conformal calibration (CQR) on the last 20% of training dates.", ""]
-    L += ["## Limits", "", "- A dozen fields, mostly in the Nile Delta. More pixels are one command away (`scripts/fetch_training.py`) when the ORNL service is reachable.",
+    L += ["## Limits", "", "- Training pixels cover the core Nile Delta (30.4–31.5 °N); Upper Egypt and new lands need more tiles (`scripts/gibs_fetch.py`).",
+          "- GIBS NDVI is decoded from the official colour map (0.005 bins); checked against ORNL MOD13Q1: mean error 0.002 where pixels align (one-pixel ≈ 240 m location offsets elsewhere).",
           "- NDVI is greenness, not yield or crop type.", "- The physics inputs use a generic root zone (100 mm) and a linear NDVI→Kc rule (assumptions, editable in backend/pulse.py)."]
     (ROOT / "qa" / "PULSE.md").write_text("\n".join(L) + "\n")
 

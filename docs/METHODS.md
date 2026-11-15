@@ -86,6 +86,15 @@ router for Egyptian colloquial Arabic and English (or Claude with tool use, when
 wrap existing endpoints. Every number in a Claude reply must match a tool result (±3%, or the same value in thousands)
 or the rules engine answers instead. Text → speech with ar-EG neural voices (edge-tts).
 
+**Uncertainty beyond weather (v0.6).** Each replayed year is crossed with 40 seeded draws of farm-gate price (log-normal,
+per-crop CV; wheat 5 % because it is bought at a state price) and of summer canal supply (a short summer in 20 % of years by
+default, delivering 75 % of the irrigation need; the unmet water comes off ETa and yield follows FAO-33). Soil salinity uses
+FAO-29 Maas–Hoffman salt tolerance (yield −b % per dS/m above threshold a).
+
+**Plan Mode.** Profile → replay → search over the top rotations × summer sowing −14/0/+14 days × full or 85 % summer irrigation
+(exact FAO-56 engine, ≈2 s) → score by the farmer's priorities → schedule with dates, water, yields and ranges. Field yields are
+scaled by the field's MODIS peak NDVI relative to the Delta peer median (clipped 0.8–1.1, assumption:ndvi_yield_scaling).
+
 **Known limits.** History is not a forecast. Prices are partly assumptions. Planting dates are typical, not
 local. The probe reads one spot. SMAP and IMERG are wired but not yet fetched (login). Costs exclude land rent.
 The leaf model knows 8 classes.

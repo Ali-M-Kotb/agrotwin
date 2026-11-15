@@ -1,6 +1,6 @@
 # Status snapshot
 
-> Updated: 2026-11-14 · Version **0.5.0** · Tests: `make test` → 31 passed
+> Updated: 2026-11-14 · Version **0.6.0** · Tests: `make test` → 39 passed
 
 ## One line
 
@@ -15,6 +15,9 @@ Scout posts a real run. Deck and video are not started.
 | Replay + ranking (32 years, 3 rotations, ranges) | done |
 | Backtest, last 3 seasons, 3 sites (`qa/BACKTEST.md`) | done: about 50% better than "same as last year" |
 | Field Pulse model (`qa/PULSE.md`) | done: 45% better than persistence at 16 days, 81% coverage; 12 fields only |
+| Plan Mode (`/api/plan`, `/api/plan/chat`) | done: rules engine offline; Claude engine needs a key |
+| Uncertainty: price, canal shortfall, FAO-29 salinity | done |
+| Field Pulse v2 (1,200 GIBS pixels, independent test) | done |
 | Voice assistant (`/api/chat`, `/api/stt`, `/api/speak`) | done: rules engine offline; Claude engine needs `ANTHROPIC_API_KEY` (not tested live) |
 | Time machine, canal mode, stress test | done |
 | Lenses (farmer, investor, scientist) differ | done |

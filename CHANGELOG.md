@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.0 — 15 Nov 2026: AI-driven planning on NASA-trained models
+- **Plan Mode** (`backend/plan_agent.py`, `backend/planner.py`, `frontend/plan.js`, `/api/plan`, `/api/plan/chat`): talk or type;
+  the agent interviews the farmer (crops, area, salinity, canal reliability, priorities), remembers the farm, and builds a
+  three-year plan by searching rotations × summer sowing (−14/0/+14 d) × water strategy (full / 85 %) through the FAO-56
+  engine with price and canal-shortfall Monte Carlo. "Keep rice", "less water", "I have 3 feddans" re-plan in ≈2 s.
+  Claude tool-use engine behind the Number Auditor when a key is set; offline Egyptian-Arabic/English rule engine otherwise.
+- **Field Pulse v2**: trained on ≈1,200 Nile Delta cropland pixels (MODIS NDVI decoded from NASA GIBS with NASA's colour map,
+  error 0.002 vs ORNL MOD13Q1) + 12 ORNL fields, 482,744 samples. Unseen seasons: +44 % vs persistence, +21 % vs best
+  baseline, 80 % coverage; 7.7 km spatial blocks: +49 % / +28 %; independent ORNL fields: +47 %, 82 % coverage; physics
+  inputs worth 27 %. Vectorised feature builder (15× faster).
+- **Field productivity index**: each field's MODIS peak greenness vs 6.8 M Delta pixel-seasons scales its expected yields.
+- **Honest ranges**: profit now includes price variability (per-crop CV), summer canal shortfalls, and FAO-29 salt
+  tolerance (Maas–Hoffman); irrigated ranges are no longer flat. New inputs `salinity_ece`, `canal_short_prob`.
+- **Independent evidence**: `qa/et_validation.py` (water engine vs MODIS MOD16 ET) and `qa/analog_skill.py` (pre-season
+  analog weighting tested; no skill, so equal weights kept).
+- Field alerts (`/api/alerts`, spoken) and consent-based outcome log (`/api/outcomes`) to collect labels for the next models.
+- `scripts/gibs_fetch.py`, `scripts/fetch_power_grid.py`, `scripts/ndvi_peers.py`.
+- **Prithvi-EO-2.0-300M-TL** (NASA–IBM foundation model, Apache-2.0) downloaded to data/models/prithvi (1.33 GB, git-ignored);
+  `backend/prithvi.py` loads the encoder and turns multi-date HLS chips into field embeddings; crop-type head waits for
+  HLS imagery and labelled fields; `scripts/prithvi_check.py`; `/api/prithvi/status`.
+- Considered and not built: a machine-learned emulator of the water balance; the exact engine already searches a plan in ≈2 s.
+
 ## 0.5.0 — 14 Nov 2026: our own model, voice assistant, agent board
 - **Field Pulse** (`backend/pulse.py`, `qa/pulse_train.py`, `/api/pulse`): a hybrid physics + machine-learning model
   trained on MODIS NDVI and NASA POWER. Gradient-boosted quantile trees; inputs include an FAO-56 bucket driven by an NDVI

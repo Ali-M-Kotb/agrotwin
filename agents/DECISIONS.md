@@ -22,3 +22,15 @@ Speech recognition runs locally (faster-whisper small) so farmers' voices never 
 
 ## DEC-006 · Egyptian voice = Microsoft Edge neural voices via edge-tts (14 Nov)
 Free and no key, and the only free ar-EG neural voices we found. Non-NASA, disclosed; MP3s cached; the browser voice is the fallback.
+
+## DEC-007 · No ML emulator of the water balance (15 Nov)
+The exact FAO-56 engine searches a full plan (≈28 options) in about 2 s. A learned surrogate would add error without a
+user-visible benefit; AI effort went to models with real labels (Field Pulse v2) and to Plan Mode.
+
+## DEC-008 · MODIS via GIBS colour-map decoding (15 Nov)
+ORNL's MODIS service was unreachable. NASA GIBS tiles decode exactly through NASA's published colour map (0.005 NDVI bins);
+verified against ORNL values (error 0.002). Kept total download under 100 MB (3 tiles, 2018–2026).
+
+## DEC-009 · Equal weights for past years (15 Nov)
+Pre-season analog weighting (NASA POWER Aug–Sep heat and soil wetness) showed no skill (−0.5% CRPS) in leave-one-year-out tests,
+so all 32 years keep equal weight. SEAS5 stays context-only (no hindcasts for bias correction).

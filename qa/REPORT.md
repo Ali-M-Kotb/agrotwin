@@ -1,4 +1,4 @@
-# Validation wall — 2026-11-14T14:05:08
+# Validation wall — 2026-11-15T09:16:08
 
 _Computed by qa/validate.py at run time. Not pre-written._
 
@@ -58,12 +58,12 @@ _Computed by qa/validate.py at run time. Not pre-written._
 
 ## Provenance audit
 
-- numbers checked: 1201, untagged: 0 → PASS
+- numbers checked: 1853, untagged: 0 → PASS
 
 ## Sanity suite
 
 - rain_x0.7_changes_water_need: PASS {base=9750, dry=9838}
-- profit_falls_with_price: PASS {base=57419, low=26093}
+- profit_falls_with_price: PASS {base=48589, low=19912}
 - fallow_has_no_transpiration: PASS {transp_days=0.0, bare_days_median=1170.0}
 - water_balance_closes_mm: PASS {max_residual=1.2105871860512707e-11}
 - no_scout_no_change: PASS {note=fusion with zero readings returns uniform weights (unit test)}

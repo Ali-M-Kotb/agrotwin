@@ -29,6 +29,9 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
   - **My farms**: saved fields with boundaries and a history of saved plans.
   - Every panel: lenses, Scout fusion, validation wall, Council, diagnosis.
 - **Next 16 days**: the same water balance continued on the 16-day forecast → "irrigate around Sunday, about 220 m³/feddan".
+- **Plan Mode (Plan with AI)**: talk to it in Egyptian Arabic or English; it interviews you, remembers the farm, and
+  builds a three-year plan (crops, sowing and harvest dates, water, yields, profit ranges, every option on a water–profit
+  chart) from 32 years of NASA weather, our trained satellite model and your field's satellite record. Revise by voice.
 - **Field Pulse, our own model**: trained on 11 years of MODIS + NASA POWER; forecasts field greenness 16/32 days ahead
   and flags images the weather doesn't explain, which tells the robot where to look (`qa/PULSE.md`).
 - **Voice assistant**: tap the mic and ask in Egyptian Arabic («أروي امتى؟»). It calls AgroTwin's own engines and
@@ -48,6 +51,8 @@ lenses in Arabic or English, and a Field Card prints or goes out on WhatsApp.
 - `python qa/backtest.py` → qa/BACKTEST.md: the last three seasons (2023/24–2025/26) at three sites, forecast
   from earlier years only. The replay beats "same as last year" by about 50 % (CRPS) for profit, irrigation and
   yield, and climate-adjusting past years improves it further (irrigation error −29 %, profit coverage 70 → 78 %).
+- `python qa/et_validation.py` → qa/ET_VALIDATION.md: water engine vs NASA MODIS MOD16 ET (independent).
+- `python qa/analog_skill.py` → qa/ANALOG.md: is the coming season predictable from the pre-season state? (No; equal weights kept.)
 - `python qa/pulse_train.py` → qa/PULSE.md: Field Pulse tested on held-out seasons and held-out fields against three baselines.
 - `python scripts/sample_cases.py` → docs/SAMPLE_CASES.md: nine worked farmer scenarios for rehearsal.
 

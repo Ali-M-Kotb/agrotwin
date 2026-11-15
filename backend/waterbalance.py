@@ -38,9 +38,13 @@ T_DAYS = 365 * YEARS + 75          # room for the last summer crop to finish
 SEASON_OF_SLOT = ["winter", "summer"] * YEARS
 
 
+# Sowing-date shift by season (days), used by the planner to stagger or adapt sowing inside the planting window.
+SOW_SHIFT = {"winter": 0, "summer": 0}
+
+
 def sow_offset(crop: str) -> int:
     m, d = CROPS[crop]["sow"]
-    return (date(2001 if m >= 10 else 2002, m, d) - date(2001, 10, 1)).days
+    return (date(2001 if m >= 10 else 2002, m, d) - date(2001, 10, 1)).days + SOW_SHIFT.get(CROPS[crop]["season"], 0)
 
 
 def calendar(rotation: tuple[str, ...]) -> list[tuple[int, str, int, int]] | None:

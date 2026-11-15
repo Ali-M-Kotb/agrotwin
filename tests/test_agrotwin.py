@@ -322,3 +322,84 @@ def test_chat_numbers_come_from_tools():
     # the auditor rejects a number no tool produced
     assert chat.audit("about 99999 EGP", [{"profit": 77485}], "") == [99999.0]
     assert chat.audit("about 77 thousand EGP", [{"profit": 77485}], "") == []
+
+
+# --- v0.6: uncertainty, salinity, planner, Plan Mode, Field Pulse v2 ---------------------
+
+def test_salinity_factor_matches_fao29():
+    import econ
+    assert econ.salinity_factor("wheat", 8.0) == pytest.approx(1 - 0.071 * 2.0)   # a = 6.0, b = 7.1 %/dS/m
+    assert econ.salinity_factor("faba", 1.0) == 1.0                               # below threshold
+    assert econ.salinity_factor("barley", 30) == 0.0
+
+
+def test_profit_ranges_include_price_and_canal_risk(delta):
+    site, wx = delta
+    res = rp.run(wx, rp.Plan(existing=("wheat", "rice")), econ.load_prices(), 35)
+    for r in res["rotations"]:
+        assert r["profit"]["p90"] - r["profit"]["p10"] > 0.1 * abs(r["profit"]["median"])
+        assert r["profit"]["p10"] <= r["profit_weather_only"]["p90"]
+
+
+def test_salinity_lowers_sensitive_crop_profit(delta):
+    site, wx = delta
+    pr = econ.load_prices()
+    base = rp.run(wx, rp.Plan(existing=("faba", "maize")), pr, 35)["rotations"][0]["profit"]["median"]
+    salty = rp.run(wx, rp.Plan(existing=("faba", "maize"), salinity_ece=5.0), pr, 35)["rotations"][0]["profit"]["median"]
+    assert salty < base
+
+
+def test_planner_respects_constraints():
+    from fastapi.testclient import TestClient
+    import app as api
+    c = TestClient(api.app)
+    p = c.post("/api/plan", json=dict(lat=31.25, lon=30.95, profile=dict(area_feddan=2, must_include=["rice"], exclude=["potato"]))).json()
+    assert "rice" in p["chosen"]["seq"] and "potato" not in p["chosen"]["seq"]
+    assert len(p["schedule"]) >= 4 and p["searched"] >= 6
+    assert p["farm_totals"]["area_feddan"] == 2
+    assert p["chosen"]["profit"]["p10"] <= p["chosen"]["profit"]["median"] <= p["chosen"]["profit"]["p90"]
+
+
+def test_plan_mode_conversation_fills_profile_and_plans():
+    import plan_agent
+    s = plan_agent.load(None)
+    u = plan_agent.understand("بزرع قمح ورز وعندي 3 فدان", s)
+    assert u["update"]["winter"] == "wheat" and u["update"]["summer"] == "rice" and u["update"]["area_feddan"] == 3
+    assert plan_agent.understand("المية بتقطع دايمًا في الصيف", s)["update"]["canal_short_prob"] == 0.5
+    assert plan_agent.understand("مش عايز طماطم", s)["update"]["exclude"] == ["tomato"]
+    assert plan_agent.understand("امتى أزرع؟", s)["flags"] >= {"schedule"}
+
+
+def test_outcomes_need_consent():
+    from fastapi.testclient import TestClient
+    import app as api
+    r = TestClient(api.app).post("/api/outcomes", json=dict(lat=31.25, lon=30.95, season="2025/26 winter", crop="wheat", consent=False))
+    assert r.status_code == 400
+
+
+def test_field_pulse_v2_independent_test():
+    import json
+    rep = json.loads((Path(__file__).resolve().parent.parent / "qa" / "PULSE.json").read_text())
+    assert rep["gibs_pixels"] >= 500
+    ind = rep["independent"]["16d"]
+    assert ind["skill_vs_persistence"] > 0.2 and 0.7 <= ind["coverage_80"] <= 0.9
+    assert rep["field_split"]["16d"]["skill_vs_best_baseline"] > 0
+
+
+def test_gibs_colormap_decodes_ndvi():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+    import gibs_fetch
+    lut = gibs_fetch.lut()
+    assert len(lut) > 100
+    vals = sorted(code / 200 - 0.2 for code in lut.values())
+    assert vals[0] < 0.05 and vals[-1] > 0.95
+
+
+def test_prithvi_encoder_runs_if_downloaded():
+    import prithvi
+    if not prithvi.status()["weights_present"]:
+        pytest.skip("Prithvi weights not downloaded (data/models/prithvi)")
+    chip = np.random.default_rng(0).normal(1500, 600, (1, 6, 224, 224)).astype(np.float32)
+    e = prithvi.embed(chip, [(2025, 100)], 31.25, 30.95)
+    assert e["embedding"].shape == (1024,) and e["tokens"] == 196
+    assert prithvi.detect(e["embedding"])["available"] in (True, False)
