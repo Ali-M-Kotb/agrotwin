@@ -52,8 +52,11 @@ const PlanUI = (() => {
 
   function aiBadge() {
     const el = q("#planmode .pm-ai"); if (!el || !P.ai) return;
-    el.className = "pm-ai " + (P.ai.claude ? "on" : "off");
-    el.textContent = P.ai.claude ? (AR() ? "الذكاء الاصطناعي: Claude شغّال" : "AI: Claude is answering")
+    const on = P.ai.active;
+    el.className = "pm-ai " + (on ? "on" : "off");
+    el.title = P.ai.last_error || "";
+    el.textContent = on ? (AR() ? `الذكاء الاصطناعي: ${P.ai.provider} شغّال` : `AI: ${P.ai.provider} is answering`)
+      : P.ai.provider ? (AR() ? `${P.ai.provider} مش متاح دلوقتي، شغّالين بالوضع بدون نت` : `${P.ai.provider} unavailable, using offline mode`)
       : (AR() ? "وضع بدون نت: بيفهم الكلام المعتاد بس" : "Offline mode: understands common phrases only");
   }
 
@@ -80,9 +83,10 @@ const PlanUI = (() => {
     q("#planmode .pending").remove();
     P.sid = r.sid; P.next = r.next_question;
     try { localStorage.setItem("agrotwin.plan.sid", r.sid); } catch {}
-    const used = (r.tools || []).length ? `<div class="used">${AR() ? "استخدمت: محرّك الخطة (٣٢ سنة طقس ناسا · نبض الأرض · صور الأقمار)" : "used: plan engine (32 years of NASA weather · Field Pulse · satellite field index)"}${r.engine === "claude" ? " · Claude" : ""}</div>` : "";
+    const used = (r.tools || []).length ? `<div class="used">${AR() ? "استخدمت: محرّك الخطة (٣٢ سنة طقس ناسا · نبض الأرض · صور الأقمار)" : "used: plan engine (32 years of NASA weather · Field Pulse · satellite field index)"}${r.engine === "claude" && P.ai && P.ai.provider ? " · " + P.ai.provider : ""}</div>` : "";
     msg("bot", r.reply, used);
     if (r.plan) { P.plan = r.plan; render(r.plan); }
+    api("/api/ai/status").then((a) => { P.ai = a; aiBadge(); }).catch(() => {});
     chips();
     Chat.say(r.reply, r.lang === "ar");
   }

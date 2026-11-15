@@ -1,6 +1,6 @@
 # CONTINUE.md — pick up AgroTwin where we left off
 
-_Last updated 15 Nov 2026, version 0.6.0. For the rules, read `AGENTS.md`; for the live board, `agents/TASKS.md`._
+_Last updated 15 Nov 2026, version 0.6.1. For the rules, read `AGENTS.md`; for the live board, `agents/TASKS.md`._
 
 ## What AgroTwin is, in one paragraph
 

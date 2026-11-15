@@ -613,10 +613,13 @@ def outcomes(o: Outcome):
 
 @app.get("/api/ai/status")
 def ai_status():
-    key = bool(os.environ.get("ANTHROPIC_API_KEY"))
-    return dict(claude=key, model="claude-opus-5-5" if key else None,
-                mode="Claude runs the conversation and calls the AgroTwin engines" if key else
-                     "offline engine (keyword understanding); add ANTHROPIC_API_KEY to agrotwin/.env for full conversation")
+    import llm
+    st = llm.status()
+    st["mode"] = (f"{st['provider']} runs the conversation and calls the AgroTwin engines" if st["active"] else
+                  (f"offline engine: {st['provider']} unavailable ({st['last_error']})" if st["provider"] else
+                   "offline engine (keyword understanding); add an API key to agrotwin/.env for full conversation"))
+    st["claude"] = st["active"]          # backwards compatible field
+    return st
 
 
 @app.get("/api/prithvi/status")

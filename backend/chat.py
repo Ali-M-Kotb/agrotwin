@@ -382,36 +382,56 @@ def audit(reply: str, tool_results: list, user_text: str) -> list[float]:
 
 
 def claude_answer(text: str, lang: str, box: Toolbox, history: list) -> tuple[str | None, list]:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    """Language-model engine (Claude or any OpenAI-compatible provider, see backend/llm.py)."""
+    import llm
+    if not llm.provider():
         return None, []
-    try:
-        import anthropic
-    except ImportError:
-        return None, []
-    client = anthropic.Anthropic()
     ctx = f"Field: lat {box.ctx['lat']:.3f}, lon {box.ctx['lon']:.3f}; current crops: winter {box.ctx.get('winter')}, summer {box.ctx.get('summer')}. Today {date.today()}."
     messages = [dict(role=m["role"], content=m["text"]) for m in history[-6:] if m.get("text")]
     messages.append(dict(role="user", content=f"[{ctx}]\n{text}"))
     results = []
-    try:
-        for _ in range(5):
-            resp = client.messages.create(model=MODEL, max_tokens=1024, system=SYSTEM, tools=TOOLS, messages=messages)
-            if resp.stop_reason == "refusal":
-                return None, results
-            uses = [b for b in resp.content if b.type == "tool_use"]
-            if resp.stop_reason != "tool_use" or not uses:
-                reply = " ".join(b.text for b in resp.content if b.type == "text").strip()
-                return reply or None, results
-            messages.append(dict(role="assistant", content=resp.content))
-            out = []
-            for u in uses:
-                r = box.run(u.name, u.input)
-                results.append(r)
-                out.append(dict(type="tool_result", tool_use_id=u.id, content=json.dumps(r, ensure_ascii=False, default=str)))
-            messages.append(dict(role="user", content=out))
-    except Exception:  # noqa: BLE001 — any API problem falls back to the rules engine
-        return None, results
-    return None, results
+
+    def execute(name, args):
+        r = box.run(name, args)
+        results.append(r)
+        return r
+    return llm.run_tools(SYSTEM, messages, TOOLS, execute, max_rounds=5, max_tokens=1024), results
+
+TALK = """You are AgroTwin, a friendly assistant for Egyptian smallholder farmers. Your reply is read aloud.
+- Farmer writes Arabic → answer ONLY in Egyptian colloquial Arabic, no English words, address him as "يا حاج". English → plain English.
+- 1 to 3 short sentences, no lists, no markdown, no emoji.
+- Answer ONLY from the FACTS (computed by AgroTwin from NASA data for this field). If the answer is not there, say you don't know and
+  suggest the local agricultural extension officer. Use only numbers from the FACTS. Never promise outcomes."""
+
+
+def _llm_talk(text: str, lang: str, box: "Toolbox", history: list, asked_crops: list | None = None):
+    import llm
+    if not llm.provider():
+        return None, []
+    facts = dict(field=box.ctx)
+    for name in ("recommend_rotation", "irrigation_plan", "field_pulse"):
+        r = box.run(name, {})
+        if "error" not in r:
+            facts[name] = r
+    for crop in (asked_crops or [])[:2]:
+        # pair the crop with a partner that fits the calendar (cotton is sown in late March, so it cannot follow wheat)
+        partners = ([box.ctx.get("summer"), "maize", "rice", "sorghum", "soybean", "fallow"] if crop in WINTER
+                    else [box.ctx.get("winter"), "potato", "sugarbeet", "berseem", "faba", "barley", "wheat", "fallow"])
+        for other in [x for x in partners if x]:
+            w, sm = (crop, other) if crop in WINTER else (other, crop)
+            r = box.run("recommend_rotation", {"winter": w, "summer": sm})
+            if "error" not in r:
+                facts[f"if_you_grow_{crop}"] = dict(rotation=r["current"], best_alternative=r["suggestion"], unit=r["unit"],
+                                                    note=f"{crop} computed in the rotation {w} → {sm}")
+                break
+    msgs = [dict(role=m["role"], content=m["text"]) for m in history[-6:] if m.get("text")]
+    reply_lang = "Egyptian colloquial Arabic" if any("\u0600" <= c <= "\u06ff" for c in text) else "English"
+    msgs.append(dict(role="user", content=f"FACTS: {json.dumps(facts, ensure_ascii=False, default=str)[:9000]}\n\nReply language: {reply_lang}\nFarmer: {text}"))
+    reply = llm.talk(TALK, msgs)
+    if not reply:
+        return None, []
+    bad = audit(reply, [facts], text)
+    return (None, bad) if bad else (re.sub(r"[*#_`]", "", reply).strip(), [])
 
 
 # ---------------------------------------------------------------------------
@@ -434,15 +454,18 @@ def answer(text: str, lang: str, ctx: dict, history: list, api: dict) -> dict:
         if s:
             update["summer"] = ctx["summer"] = s
     box = Toolbox(api, ctx)
-    reply, results = claude_answer(text, lang, box, history)
-    engine, blocked = "claude", []
-    if reply:
-        blocked = audit(reply, results, text)
-        if blocked:
-            reply = None
+    # Hybrid: questions the keyword router understands go to the exact engines (fast, audited by construction);
+    # anything else is answered by the language model from this field's computed facts, then audited.
+    engine, blocked, reply = "rules", [], None
+    t_ = " " + norm_ar(text) + " "
+    asked_crops = crops_in(text) if (("?" in text or "؟" in text or any(w in t_ for w in (
+        "ينفع", "ايه رايك", "رايك", "كويس", "good idea", "should i", "is it", "what about", "how about", "worth"))) and
+        not any(w in t_ for w in ("بزرع", "زارع", "i grow", "i plant"))) else []
+    if (not intents_in(text) and not crops_in(text)) or asked_crops:
+        reply, blocked = _llm_talk(text, lang, box, history, asked_crops)
+        if reply:
+            engine = "llm"
     if not reply:
-        engine = "rules"
-        box.calls = [c for c in box.calls]  # keep calls already made
         reply = rules_answer(text, lang, box)
     return dict(reply=reply, lang=lang, engine=engine, tools=box.calls, ctx_update=update,
                 blocked_numbers=blocked,

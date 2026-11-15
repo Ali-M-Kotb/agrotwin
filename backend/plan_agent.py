@@ -70,7 +70,7 @@ def _number(t: str) -> float | None:
     if m:
         return float(m.group(1))
     for w, v in sorted(_NUM_WORDS.items(), key=lambda kv: -len(kv[0])):
-        if re.search(r"(^|\s)" + re.escape(w) + r"(\s|$)", t):
+        if re.search(r"(^|\s)" + re.escape(ch.norm_ar(w)) + r"(\s|$)", t):
             return v
     return None
 
@@ -100,6 +100,8 @@ def understand(text: str, s: dict) -> dict:
     elif crops and keep and not _has(t, "بزرع", "زارع", "i grow", "i plant", "my crops"):
         up["must_include"] = sorted(set((s["profile"].get("must_include") or []) + crops))
         flags.add("keep")
+    elif crops and not (_has(t, "بزرع", "زارع", "زرعت", "بنزرع", "عندي", "i grow", "i plant", "my crops", "we grow") or "crops" in s.get("asked", [])[-1:]):
+        flags.add("mention")                       # a crop named in a question ("why no rice?") is not the farmer's rotation
     elif crops:
         w = next((c for c in crops if CROPS[c]["season"] == "winter"), None)
         sm = next((c for c in crops if CROPS[c]["season"] == "summer"), None)
@@ -143,14 +145,18 @@ def understand(text: str, s: dict) -> dict:
             up["canal_short_prob"] = 0.25
         flags.add("canal")
     pri = dict(s["profile"].get("priorities") or {"water": 1, "soil": 1, "profit": 1, "risk": 1})
-    if _has(t, "مكسب", "فلوس", "ربح", "اكسب", "profit", "money", "earn", "income"):
-        pri["profit"] = 2; flags.add("priority")
-    if _has(t, "وفر مية", "اوفر مية", "مية اقل", "توفير المية", "save water", "saving water", "less water", "water saving", "care about water"):
-        pri["water"] = 2; flags.add("priority")
-    if _has(t, "صحة الارض", "صحة التربة", "خصوبة", "soil health", "rebuild soil", "soil fertility"):
-        pri["soil"] = 2; flags.add("priority")
-    if _has(t, "مخاطرة", "امان", "مضمون", "خساره", "خسارة", "risk", "safe", "loss"):
-        pri["risk"] = 2; flags.add("priority")
+    stated = "priority" in s.get("asked", [])[-1:] or _has(t, "اهم حاجه", "اهم حاجة", "اولويتي", "عايز اكسب اكتر", "اكسب اكتر", "مكسب اكتر",
+                                                         "عايز اوفر", "اوفر مية", "وفر مية", "more profit", "save more", "save water", "less water",
+                                                         "most important", "priority", "i care about", "less risk", "safer")
+    if stated:
+        if _has(t, "مكسب", "فلوس", "ربح", "اكسب", "profit", "money", "earn", "income"):
+            pri["profit"] = 2; flags.add("priority")
+        if _has(t, "وفر مية", "اوفر مية", "مية اقل", "توفير المية", "توفير المياه", "save water", "saving water", "less water", "water saving", "care about water"):
+            pri["water"] = 2; flags.add("priority")
+        if _has(t, "صحة الارض", "صحة التربة", "خصوبة", "soil health", "rebuild soil", "soil fertility"):
+            pri["soil"] = 2; flags.add("priority")
+        if _has(t, "مخاطرة", "امان", "مضمون", "خساره", "risk", "safe", "loss"):
+            pri["risk"] = 2; flags.add("priority")
     if "priority" in flags:
         up["priorities"] = pri
     if _has(t, "ابدا من الاول", "من جديد", "reset", "start over"):
@@ -347,31 +353,42 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
         if pre:
             return pre + ("خطتك جاهزة على اليمين. تحب أغيّر حاجة؟" if ar else "Your plan is ready on the right. Want to change anything?"), tools
         return ("مفهمتش قصدك قوي. تقدر تقولّي مثلًا: «ليه الخطة دي؟»، «امتى أزرع؟»، «عايز أوفّر مية»، «مش عايز رز»، «عندي 5 فدان»، أو «انت فاكر أنا بزرع إيه؟». "
-                "ولو حطّينا مفتاح Claude هفهم أي كلام." if ar else
+                "" if ar else
                 "I didn't quite get that. Try: “why this plan?”, “when do I sow?”, “save more water”, “no rice”, “I have 5 feddans”, or “what do I grow?”. "
-                "With a Claude key I can understand free conversation."), tools
+                ""), tools
     plan = make_plan({k: v for k, v in s["profile"].items() if k != "unknown_crops"})
     tools.append(dict(tool="make_plan", args={k: v for k, v in s["profile"].items()}, source=plan.get("source")))
     s["plan"] = plan
     return pre + summary(plan, ar), tools
 
 
-SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholders in Egypt. Your reply is read aloud.
-- Speak the farmer's language: Egyptian colloquial Arabic (address the farmer as "يا حاج") or plain English.
-- Interview briefly (one question at a time) to fill the profile: current winter/summer crops, area in feddans, soil salinity,
-  how often canal water runs short in summer, and priorities. Use update_profile whenever the farmer gives information.
-- When the profile is enough (or the farmer asks), call make_plan and present the plan in 3–4 short sentences: the rotation,
-  first sowing date, profit range per feddan, water saved. Offer to change something.
-- When the farmer asks to change something (keep or avoid a crop, less water, more profit, area), update_profile then make_plan again.
-- Use only numbers from tool results, rounded the way people speak. Never promise outcomes. The decision is the farmer's.
-- AgroTwin models only these crops: wheat, barley, berseem, faba bean, sugar beet, potato, maize, sorghum, rice, cotton, tomato, soybean.
-  If the farmer grows something else (onion, mango, citrus...), say so plainly and ask what else they grow; never substitute silently.
-- Answer questions about what the farmer already told you from the profile. Be warm and brief, like a good extension officer."""
+SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholder farmers in Egypt. Your reply is read aloud.
+
+LANGUAGE
+- If the farmer writes Arabic, answer ONLY in Egyptian colloquial Arabic (عامية مصرية). Never mix English words into Arabic. Address the farmer as "يا حاج".
+- If the farmer writes English, answer in plain English.
+- 1 to 3 short sentences. No lists, no markdown, no bold, no emoji.
+
+CROPS (the only crops AgroTwin can model; use these exact Arabic names)
+winter: wheat=القمح, barley=الشعير, berseem=البرسيم, faba=الفول البلدي, sugarbeet=بنجر السكر, potato=البطاطس
+summer: maize=الدرة الشامية, sorghum=الدرة الرفيعة, rice=الرز, cotton=القطن, tomato=الطماطم, soybean=فول الصويا
+Any other crop (onion, garlic, mango, citrus, grapes, oats...) is NOT modelled: say so plainly and never suggest it.
+
+WHAT TO DO
+- Whenever the farmer states facts (crops, area in feddans, salinity, canal water, what matters), call update_profile with the crop KEYS above.
+  salinity_ece: 0 if not salty, 4 if salty but untested. canal_short_prob: 0.05 rarely short, 0.25 sometimes, 0.5 often.
+  priorities: set the farmer's main concern to 2, others 1 (water, soil, profit, risk).
+- Ask for missing information one short question at a time: crops now, area, salinity, canal water, what matters most.
+- When you know the crops and the farmer wants a plan, or after ANY change request (keep/avoid a crop, save water, more profit, new area),
+  call update_profile and then make_plan in the same turn. Do not describe a plan yourself; the app shows it.
+- Never invent numbers. Never promise outcomes. The decision is the farmer's."""
 
 TOOLS = [
     dict(name="update_profile", description="Update the farm profile. Crop keys: " + ", ".join(CROPS) + ". canal_short_prob: share of summers with canal shortage (0.05 rarely, 0.25 sometimes, 0.5 often). salinity_ece in dS/m (4 if salty but untested). priorities: weights 1–2 for water, soil, profit, risk.",
          input_schema=dict(type="object", properties=dict(
-             winter=dict(type="string"), summer=dict(type="string"), area_feddan=dict(type="number"), salinity_ece=dict(type="number"),
+             winter=dict(type="string", enum=["wheat", "barley", "berseem", "faba", "sugarbeet", "potato", "fallow"], description="current winter crop key"),
+             summer=dict(type="string", enum=["maize", "sorghum", "rice", "cotton", "tomato", "soybean", "fallow"], description="current summer crop key"),
+             area_feddan=dict(type="number"), salinity_ece=dict(type="number"),
              canal_short_prob=dict(type="number"), exclude=dict(type="array", items=dict(type="string")),
              must_include=dict(type="array", items=dict(type="string")),
              priorities=dict(type="object", properties=dict(water=dict(type="number"), soil=dict(type="number"), profit=dict(type="number"), risk=dict(type="number")))))),
@@ -386,58 +403,134 @@ def _slim(plan):
                 risks=[r["text"] for r in plan["risks"]], field_index=plan["field_index"].get("factor"), searched=plan["searched"])
 
 
+WINTER_KEYS = {"wheat", "barley", "berseem", "faba", "sugarbeet", "potato"}
+SUMMER_KEYS = {"maize", "sorghum", "rice", "cotton", "tomato", "soybean"}
+ALLOWED = {"winter", "summer", "area_feddan", "salinity_ece", "canal_short_prob", "exclude", "must_include", "priorities"}
+
+
+def _repair(a: dict) -> dict:
+    """Fix common small-model slips: {"wheat": "winter"} → winter=wheat; crop in the wrong season; unknown keys dropped."""
+    out = {}
+    for season in ("winter", "summer"):
+        v = a.get(season)
+        if isinstance(v, str) and v not in CROPS and v != "fallow":
+            hits = ch.crops_in(v)
+            a[season] = hits[0] if hits else v
+    for k, v in a.items():
+        if k in CROPS and v in ("winter", "summer"):
+            out[v] = k
+        elif k in ALLOWED:
+            out[k] = v
+    for season, keys in (("winter", WINTER_KEYS), ("summer", SUMMER_KEYS)):
+        v = out.get(season)
+        if isinstance(v, str) and v not in keys and v != "fallow":
+            other = "summer" if season == "winter" else "winter"
+            if v in (SUMMER_KEYS if season == "winter" else WINTER_KEYS) and other not in out:
+                out[other] = v
+            out.pop(season, None)
+    if "area_feddan" in out:
+        try:
+            out["area_feddan"] = float(out["area_feddan"])
+        except (TypeError, ValueError):
+            out.pop("area_feddan")
+    return out
+
+
 def claude_turn(s: dict, text: str, ar: bool, make_plan):
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    """Language-model engine (Claude or any OpenAI-compatible provider, see backend/llm.py)."""
+    import llm
+    if not llm.provider():
         return None, [], []
-    try:
-        import anthropic
-    except ImportError:
-        return None, [], []
-    client = anthropic.Anthropic()
     msgs = [dict(role=m["role"], content=m["text"]) for m in s["history"][-8:]]
     msgs.append(dict(role="user", content=f"[profile so far: {json.dumps(s['profile'], ensure_ascii=False)}; today {date.today()}]\n{text}"))
     results, tools = [], []
-    try:
-        for _ in range(6):
-            resp = client.messages.create(model=MODEL, max_tokens=1200, system=SYSTEM, tools=TOOLS, messages=msgs)
-            if resp.stop_reason == "refusal":
-                return None, results, tools
-            uses = [b for b in resp.content if b.type == "tool_use"]
-            if resp.stop_reason != "tool_use" or not uses:
-                return (" ".join(b.text for b in resp.content if b.type == "text").strip() or None), results, tools
-            msgs.append(dict(role="assistant", content=resp.content))
-            outs = []
-            for u in uses:
-                if u.name == "update_profile":
-                    s["profile"].update({k: v for k, v in (u.input or {}).items() if v is not None})
-                    r = dict(ok=True, profile=s["profile"])
-                elif u.name == "make_plan":
-                    plan = make_plan(s["profile"]); s["plan"] = plan
-                    r = _slim(plan)
-                else:
-                    r = dict(error="unknown tool")
-                results.append(r); tools.append(dict(tool=u.name, args=u.input, source="AgroTwin plan engine"))
-                outs.append(dict(type="tool_result", tool_use_id=u.id, content=json.dumps(r, ensure_ascii=False, default=str)))
-            msgs.append(dict(role="user", content=outs))
-    except Exception:  # noqa: BLE001
-        return None, results, tools
-    return None, results, tools
+
+    def execute(name, args):
+        if name == "update_profile":
+            args = _repair(args or {})
+            s["profile"].update({k: v for k, v in args.items() if v is not None})
+            r = dict(ok=True, profile=s["profile"])
+        elif name == "make_plan":
+            plan = make_plan({k: v for k, v in s["profile"].items() if k != "unknown_crops"}); s["plan"] = plan
+            r = _slim(plan)
+        else:
+            r = dict(error="unknown tool")
+        results.append(r); tools.append(dict(tool=name, args=args, source="AgroTwin plan engine"))
+        return r
+    reply = llm.run_tools(SYSTEM, msgs, TOOLS, execute, max_rounds=6, max_tokens=700)
+    if any(t["tool"] == "make_plan" for t in tools) and s.get("plan"):
+        reply = summary(s["plan"], ar)          # audited numbers and exact crop names, in the farmer's language
+    return reply, results, tools
+
+TALK = """You are AgroTwin, a friendly farm-planning assistant for Egyptian smallholders. Your reply is read aloud.
+- Farmer writes Arabic → answer ONLY in Egyptian colloquial Arabic (عامية مصرية), no English words, address him as "يا حاج".
+  Farmer writes English → plain English.
+- 1 to 3 short sentences, no lists, no markdown, no emoji.
+- Answer ONLY from the FACTS below (the farmer's profile and the plan AgroTwin computed from NASA data). If the answer is
+  not in the facts, say you don't know and suggest asking the local agricultural extension officer. Do not invent agronomy.
+- Use only numbers that appear in the FACTS. Never promise outcomes; the decision is the farmer's.
+- Modelled crops only: القمح، الشعير، البرسيم، الفول البلدي، بنجر السكر، البطاطس، الدرة الشامية، الدرة الرفيعة، الرز، القطن، الطماطم، فول الصويا.
+- If the farmer wants to change the plan, tell him to say it simply, e.g. «عايز أزرع رز» or «عايز أوفّر مية»."""
+
+
+def _facts(s: dict) -> dict:
+    f = dict(profile={k: v for k, v in s["profile"].items()})
+    p = s.get("plan")
+    if p:
+        f["plan"] = dict(chosen_rotation=p["chosen"]["seq"], summer_sowing_shift_days=p["chosen"]["shift_days"],
+                         summer_irrigation=("85% of need" if p["chosen"]["strategy"] == "deficit" else "full"),
+                         profit_egp_per_feddan_per_year=dict(low=round(p["chosen"]["profit"]["p10"]), typical=round(p["chosen"]["profit"]["median"]), high=round(p["chosen"]["profit"]["p90"])),
+                         water_m3_per_feddan_per_year=round(p["chosen"]["water"]["median"]),
+                         farm_area_feddan=p["farm_totals"]["area_feddan"],
+                         whole_farm_profit_egp_per_year=dict(low=round(p["chosen"]["profit"]["p10"] * p["farm_totals"]["area_feddan"]),
+                                                             typical=p["farm_totals"]["profit_egp_median"],
+                                                             high=round(p["chosen"]["profit"]["p90"] * p["farm_totals"]["area_feddan"])),
+                         whole_farm_change_vs_current_egp_per_year=p["farm_totals"]["profit_change_egp"],
+                         whole_farm_water_m3_per_year=p["farm_totals"]["water_m3_median"],
+                         current_rotation=p["current"]["seq"], current_profit_typical=round(p["current"]["profit"]["median"]),
+                         current_water=round(p["current"]["water"]["median"]), change_vs_current=p["delta"],
+                         runner_up=(p["runner_up"] or {}).get("seq"), options_tested=p["searched"],
+                         schedule=[{k: x[k] for k in ("year", "season", "crop", "sow", "harvest")} for x in p["schedule"]],
+                         risks=[r["text"] for r in p["risks"]], field_greenness_vs_delta=p["field_index"].get("factor"),
+                         why=("replayed 32 years of NASA POWER weather for this field with price and canal-shortfall risk; the plan "
+                              "scored best on the farmer's priorities; rice uses the most water and suffers most in short summers; "
+                              "faba bean is a legume that leaves nitrogen for the next crop"))
+    return f
+
+
+def _llm_answer(s: dict, text: str, ar: bool) -> str | None:
+    import llm
+    if not llm.provider():
+        return None
+    facts = _facts(s)
+    msgs = [dict(role=m["role"], content=m["text"]) for m in s["history"][-6:]]
+    msgs.append(dict(role="user", content=f"FACTS: {json.dumps(facts, ensure_ascii=False, default=str)}\n\nReply language: {'Egyptian colloquial Arabic' if ar else 'English'}\nFarmer: {text}"))
+    reply = llm.talk(TALK, msgs)
+    if not reply:
+        return None
+    if ch.audit(reply, [facts], text):
+        return None                                   # a number we cannot trace: do not say it
+    return re.sub(r"[*#_`]", "", reply).strip()
+
+
+ACTION_FLAGS = {"crops", "area", "salinity", "canal", "priority", "exclude", "keep", "reset", "schedule", "plan_now", "unknown_crops", "recall"}
 
 
 def turn(sid: str | None, text: str, lang: str, make_plan) -> dict:
     s = load(sid)
     has_ar = any("؀" <= c <= "ۿ" for c in text)
     ar = has_ar or (lang == "ar" and not re.search(r"[A-Za-z]{3,}", text))
-    reply, results, tools = claude_turn(s, text, ar, make_plan)
-    engine = "claude"
-    if reply:
-        bad = ch.audit(reply, results + [s["profile"]], text)
-        if bad:
-            reply = None
+    # Hybrid: the deterministic engine handles anything that changes the farm profile or the plan (exact, fast);
+    # the language model answers open questions and conversation from the profile + computed plan (audited).
+    u = understand(text, s)
+    actionable = bool(u["update"]) or bool(u["flags"] & ACTION_FLAGS)
+    tools, engine, reply = [], "rules", None
+    if not actionable and ("greeting" not in u["flags"] or len(text.split()) > 4):
+        reply = _llm_answer(s, text, ar)
+        if reply:
+            engine = "llm"
     if not reply:
-        engine = "rules"
-        reply, t2 = rules_turn(s, text, ar, make_plan)
-        tools += t2
+        reply, tools = rules_turn(s, text, ar, make_plan)
     s["history"] += [dict(role="user", text=text), dict(role="assistant", text=reply)]
     s["history"] = s["history"][-20:]
     save(s)

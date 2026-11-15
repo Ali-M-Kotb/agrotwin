@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.1 — 15 Nov 2026: real conversation (hybrid language-model chat)
+- `backend/llm.py`: one interface for any provider, chosen from the key in `.env` (git-ignored): Anthropic (Claude),
+  NVIDIA Build (`nvapi-…`, default `nvidia/nemotron-3-ultra-550b-a55b`), OpenCode or any OpenAI-compatible API
+  (`LLM_BASE_URL`, `LLM_MODEL`). Last provider error shown in the UI.
+- Hybrid chat in Plan Mode and the quick assistant: anything that changes the farm or asks a known question goes to the
+  exact engines (instant, audited); open questions go to the language model, answering only from the field's computed
+  facts (profile, plan, whole-farm totals, crop-specific rotations) with the Number Auditor on every reply.
+- Model choice tested on NVIDIA Build: Nemotron-3 Ultra gave natural Egyptian Arabic in ≈6 s; faster models garbled tool
+  calls or dialect. OpenCode's free Big Pickle is blocked outside OpenCode (HTTP 429/403).
+- Offline engine: number words normalised («خمسة فدان»), a crop named in a question is not taken as the farmer's rotation,
+  priorities only when stated.
+
 ## 0.6.0 — 15 Nov 2026: AI-driven planning on NASA-trained models
 - **Plan Mode** (`backend/plan_agent.py`, `backend/planner.py`, `frontend/plan.js`, `/api/plan`, `/api/plan/chat`): talk or type;
   the agent interviews the farmer (crops, area, salinity, canal reliability, priorities), remembers the farm, and builds a
