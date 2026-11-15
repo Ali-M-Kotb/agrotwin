@@ -24,7 +24,8 @@ import chat as ch
 from crops import CROPS
 
 ROOT = Path(__file__).resolve().parent.parent
-SESS = ROOT / "data" / "plans"
+from paths import DATA
+SESS = DATA / "plans"
 MODEL = "claude-opus-5-5"
 SLOTS = ("crops", "area", "salinity", "canal", "priority")
 # Crops AgroTwin cannot model yet (no FAO-56 parameters / prices in the engine). Named back to the farmer, never guessed.

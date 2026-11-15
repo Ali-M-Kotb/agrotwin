@@ -46,6 +46,7 @@ from crops import CROPS, DISEASE_CLASSES, FALLOW, FAMILY_AR, FEDDAN_HA, family
 from robot import Robot
 
 ROOT = Path(__file__).resolve().parent.parent
+from paths import DATA
 # Secrets (e.g. ANTHROPIC_API_KEY) come from agrotwin/.env, which git ignores. Never commit a key.
 if (ROOT / ".env").exists():
     for _line in (ROOT / ".env").read_text().splitlines():
@@ -54,7 +55,7 @@ if (ROOT / ".env").exists():
             os.environ[_k.strip()] = _v.strip().strip('"').strip("'")
 OFFLINE = os.environ.get("VERDEX_OFFLINE") == "1"
 TOKEN = os.environ.get("AGROTWIN_TOKEN", "verdex-demo")
-SITES = {s["id"]: s for s in json.loads((ROOT / "data" / "sites.json").read_text())}
+SITES = {s["id"]: s for s in json.loads((DATA / "sites.json").read_text())}
 
 app = FastAPI(title="AgroTwin")
 robot = Robot()
@@ -570,7 +571,7 @@ class Outcome(BaseModel):
 def outcomes(o: Outcome):
     if not o.consent:
         raise HTTPException(400, "consent required: outcomes are stored only with the farmer's permission")
-    d = ROOT / "data" / "outcomes"
+    d = DATA / "outcomes"
     d.mkdir(parents=True, exist_ok=True)
     rec = o.model_dump() | dict(received=time.strftime("%Y-%m-%dT%H:%M:%S"))
     with open(d / "outcomes.jsonl", "a") as f:
@@ -695,7 +696,7 @@ async def speak(req: SpeakReq):
         raise HTTPException(400, "unknown voice")
     text = req.text.strip()[:900]
     h = hashlib.sha1(f"{voice}|{text}".encode()).hexdigest()[:16]
-    path = ROOT / "data" / "audio" / f"{h}.mp3"
+    path = DATA / "audio" / f"{h}.mp3"
     if not path.exists():
         if OFFLINE:
             raise HTTPException(503, "offline and not cached")
@@ -770,7 +771,7 @@ def point(lat: float, lon: float):
 # My farms: saved fields, boundaries and plan history (stays on this machine)
 # ---------------------------------------------------------------------------
 
-FARMS = ROOT / "data" / "farms" / "farms.json"
+FARMS = DATA / "farms" / "farms.json"
 
 def _farms() -> list:
     return json.loads(FARMS.read_text()) if FARMS.exists() else []
@@ -1035,7 +1036,7 @@ def methods_page():
 
 @app.get("/demo/{site_id}")
 def demo(site_id: str):
-    p = ROOT / "data" / "demo" / f"{site_id}.json"
+    p = DATA / "demo" / f"{site_id}.json"
     if not p.exists():
         raise HTTPException(404, "no precomputed demo for this site (run scripts/build_demo.py)")
     return json.loads(p.read_text())

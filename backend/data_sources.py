@@ -28,7 +28,8 @@ import pandas as pd
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent
-CACHE = ROOT / "data" / "cache"
+from paths import DATA
+CACHE = DATA / "cache"
 CACHE.mkdir(parents=True, exist_ok=True)
 
 UA = {"User-Agent": "verdex-planner/1.0 (NASA Space Apps prototype)"}

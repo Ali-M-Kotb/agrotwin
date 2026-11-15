@@ -22,7 +22,8 @@ import numpy as np
 from soil import SOIL_CLASSES
 
 ROOT = Path(__file__).resolve().parent.parent
-STORE = ROOT / "data" / "scout"
+from paths import DATA
+STORE = DATA / "scout"
 SCHEMA = json.loads((ROOT / "contracts" / "scout_run.schema.json").read_text())
 
 def _now() -> str:

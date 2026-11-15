@@ -130,3 +130,13 @@ scripts/   precache.py · fetch_earthdata.py · robot_bridge.py
 Connect the real robot: `python scripts/robot_bridge.py mqtt` (the ESP32 already publishes
 `farm/telemetry`), or POST a Scout run to `/api/scout/run` with `Authorization: Bearer $AGROTWIN_TOKEN`.
 Fusion refuses to run until the probe is calibrated (`POST /api/scout/calibrate`, 3+ oven-dried samples).
+
+## Deploy on Vercel
+
+The repo deploys as one Vercel Python function (`index.py` → `backend/app.py`; settings in `vercel.json`).
+
+1. On vercel.com: **Add New → Project → Import** this GitHub repository. Leave the build settings as detected.
+2. Under **Settings → Environment Variables**, add `LLM_API_KEY` (an NVIDIA `nvapi-…`, Anthropic `sk-ant-…` or OpenAI-compatible key). Optional: `LLM_MODEL`, `LLM_BASE_URL`.
+3. Deploy. Every push to `main` redeploys.
+
+On Vercel the code folder is read-only, so new downloads, saved farms and chat sessions are kept in `/tmp` for the life of a server instance (`backend/paths.py`). Without a key, chat falls back to the offline rule engine. Speech recognition and the leaf-disease model need the laptop install.
