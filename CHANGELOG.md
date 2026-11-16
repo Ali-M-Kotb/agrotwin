@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.3 — 16 Nov 2026: location first in Plan Mode, fresh start on every visit
+- Plan Mode asks where the field is before anything else and never builds a plan without a confirmed location.
+- New "use my location" button (GPS, with the nearest governorate named), governorate buttons, typed governorate names and pick-on-the-map.
+- Changing the field location clears the old plan; crops named before the location are remembered.
+- Every page load starts fresh: no saved chat session, Simple/Advanced choice or robot demo data carries over.
+- Script and style links carry the version so browsers load new code after a deploy; the offline shell always revalidates.
+- Tests: the interview order now starts with the location, plus a test that no plan is built before it.
+
 ## 0.6.2 — 15 Nov 2026: interface and presentation polish
 - Centralised development disclosure in docs/AI_USE.md and retained generated result metadata.
 - Removed repetitive source headers and provider branding from the interface.

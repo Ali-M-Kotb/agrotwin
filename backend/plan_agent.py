@@ -84,7 +84,7 @@ def understand(text: str, s: dict) -> dict:
         flags.add("unknown_crops")
     if _has(t, "عارف انا بزرع", "فاكر", "قلتلك", "قولتلك", "انا قلت", "انا بزرع ايه", "what do i grow", "do you know what", "what did i tell", "remember"):
         flags.add("recall")
-    if _has(t, "السلام عليكم", "سلام عليكم", "ازيك", "صباح الخير", "مساء الخير", "اهلا", " hello", " hi ", "good morning"):
+    if _has(t, "السلام عليكم", "سلام عليكم", "ازيك", "عامل ايه", "اخبارك", "صباح الخير", "مساء الخير", "اهلا", " hello", " hi ", "good morning", "how are you"):
         flags.add("greeting")
     neg = _has(t, " مش عايز", " مش هزرع", " بلاش", " من غير", " without ", " no ", " not ", " don't want", " avoid", " مش ")
     keep = _has(t, " عايز ازرع", " لازم", " عايز ", " keep ", " include ", " must ", " i want ")
@@ -169,6 +169,8 @@ def understand(text: str, s: dict) -> dict:
 
 def _q(slot: str, ar: bool) -> str:
     Q = dict(
+        location=("أرضك فين يا حاج؟ دوس على «موقعي الحالي» لو إنت في الأرض دلوقتي، أو اكتب اسم المحافظة، أو اختار أرضك على الخريطة.",
+                  "Where is your field? Tap “Use my location” if you are standing in it, type your governorate, or pick it on the map."),
         crops=("بتزرع إيه دلوقتي في الشتا وفي الصيف؟ مثلًا: قمح ورز.", "What do you grow now in winter and summer? For example: wheat and rice."),
         area=("مساحة الأرض كام فدان؟", "How many feddans is the field?"),
         salinity=("الأرض فيها ملوحة؟ لو عملت تحليل قولّي الرقم، ولو مش عارف قول مش عارف.", "Is the soil salty? If you have a lab test tell me the EC number; otherwise say you don't know."),
@@ -307,7 +309,9 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
     pre = ""
     if "greeting" in u["flags"]:
         tn = ch.norm_ar(text)
-        pre = ("وعليكم السلام يا حاج، أهلًا بيك. " if "سلام" in tn else "الحمد لله تمام، أهلًا بيك يا حاج. " if "ازيك" in tn else "أهلًا بيك يا حاج. ") if ar else "Hello, welcome. "
+        how = any(w in tn for w in ("ازيك", "عامل ايه", "اخبارك"))
+        pre = ("وعليكم السلام يا حاج، أهلًا بيك. " if "سلام" in tn else "الحمد لله تمام، أهلًا بيك يا حاج. " if how else "أهلًا بيك يا حاج. ") if ar \
+            else ("I'm well, thanks. Welcome. " if "how are you" in tn else "Hello, welcome. ")
     if "unknown_crops" in u["flags"] and not known_crops_now:
         names = [x[0 if ar else 1] for x in u["update"]["unknown_crops"]]
         if "crops" in s["asked"]:
@@ -325,6 +329,13 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
         return explain(s["plan"], ar), tools
     if s.get("plan") and "schedule" in u["flags"] and not u["update"]:
         return schedule_text(s["plan"], ar), tools
+    if not s.get("located"):
+        if known_crops_now:
+            cr = [c for c in (s["profile"].get("winter"), s["profile"].get("summer")) if c]
+            pre += (f"تمام، {' و'.join(ch.AR_NAME.get(c, c) for c in cr)}. " if ar else f"Got it: {' and '.join(cr)}. ")
+        if "location" not in s["asked"]:
+            s["asked"].append("location")
+        return pre + _q("location", ar), tools
     has_crops = "winter" in s["profile"] or "summer" in s["profile"]
     if not has_crops:
         if "crops" not in s["asked"]:
@@ -493,14 +504,20 @@ def _llm_answer(s: dict, text: str, ar: bool) -> str | None:
 
 ACTION_FLAGS = {"crops", "area", "salinity", "canal", "priority", "exclude", "keep", "reset", "schedule", "plan_now", "unknown_crops", "recall"}
 
-def turn(sid: str | None, text: str, lang: str, make_plan) -> dict:
+def turn(sid: str | None, text: str, lang: str, make_plan, located: bool = False, place: str | None = None,
+         lat: float | None = None, lon: float | None = None) -> dict:
     s = load(sid)
+    if located:
+        moved = s.get("loc") != [round(lat or 0, 3), round(lon or 0, 3)]
+        s.update(located=True, place=place, loc=[round(lat or 0, 3), round(lon or 0, 3)])
+        if moved:
+            s["plan"] = None                          # a plan belongs to one field; a new field needs a new plan
     has_ar = any("؀" <= c <= "ۿ" for c in text)
     ar = has_ar or (lang == "ar" and not re.search(r"[A-Za-z]{3,}", text))
     # Hybrid: the deterministic engine handles anything that changes the farm profile or the plan (exact, fast);
     # the language model answers open questions and conversation from the profile + computed plan (audited).
     u = understand(text, s)
-    actionable = bool(u["update"]) or bool(u["flags"] & ACTION_FLAGS)
+    actionable = bool(u["update"]) or bool(u["flags"] & ACTION_FLAGS) or located or not s.get("located")
     tools, engine, reply = [], "rules", None
     if not actionable and ("greeting" not in u["flags"] or len(text.split()) > 4):
         reply = _llm_answer(s, text, ar)
@@ -508,8 +525,11 @@ def turn(sid: str | None, text: str, lang: str, make_plan) -> dict:
             engine = "llm"
     if not reply:
         reply, tools = rules_turn(s, text, ar, make_plan)
+        if located and s.get("asked", [])[-1:] != ["location"]:
+            where = place or (f"{lat:.3f}, {lon:.3f}" if lat is not None else "")
+            reply = (f"تمام، سجّلت مكان أرضك: {where}. " if ar else f"Got it, field location: {where}. ") + reply
     s["history"] += [dict(role="user", text=text), dict(role="assistant", text=reply)]
     s["history"] = s["history"][-20:]
     save(s)
     return dict(sid=s["sid"], reply=reply, lang="ar" if ar else "en", engine=engine, tools=tools,
-                profile=s["profile"], plan=s.get("plan"), next_question=(None if s.get("plan") else s["asked"][-1] if s["asked"] else _missing(s["profile"], [])))
+                profile=s["profile"], plan=s.get("plan"), next_question=(None if s.get("plan") else "location" if not s.get("located") else s["asked"][-1] if s["asked"] else _missing(s["profile"], [])))

@@ -296,6 +296,12 @@
     if (M.overlayKey !== "none") setOverlay(M.overlayKey);
     if (M.field) document.getElementById("draw-area").textContent = areaText(M.field.area_ha);
   };
+  M.places = PLACES;
+  M.findPlace = (text) => {
+    const n = (x) => x.toLowerCase().replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/^(محافظه|محافظة)\s*/, "").trim();
+    const v = n(text); if (v.length < 3) return null;
+    return PLACES.find((p) => n(p[0]) === v || n(p[1]) === v || n(p[1]).startsWith(v) || v.includes(n(p[1])) || n(p[0]).startsWith(v)) || null;
+  };
   M.setField = setField;
   M.showFarms = showFarms;
   M.getField = () => M.field;

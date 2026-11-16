@@ -117,7 +117,7 @@ function body(extra = {}) {
 // map + site
 // ---------------------------------------------------------------------------
 async function initMap() {
-  await MapUI.init({ lang: () => S.lang, onPick: (p) => selectSite(p), onFarmOpen: openFarm });
+  await MapUI.init({ lang: () => S.lang, onPick: (p) => { selectSite(p); if (typeof PlanUI !== "undefined") PlanUI.pickedOnMap(p); }, onFarmOpen: openFarm });
   S.map = MapUI.map;
 }
 
@@ -129,7 +129,7 @@ function setMode(m) {
   document.body.dataset.mode = m;
   $$(".modes button").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
   if (m === "simple") setLens("farmer");
-  try { localStorage.setItem("agrotwin.mode", m); } catch {}
+  try { localStorage.removeItem("agrotwin.mode"); } catch {}   // nothing carries over between visits
   setTimeout(() => { if (S.map) S.map.invalidateSize(); window.dispatchEvent(new Event("resize")); }, 60);
   if (S.result) renderHero();
 }
@@ -940,9 +940,8 @@ async function init() {
   applyI18n();
   buildInputs();
   await initMap();
-  let saved = null;
-  try { saved = localStorage.getItem("agrotwin.mode"); } catch {}
-  S.mode = q.get("mode") || saved || "simple";
+  S.mode = q.get("mode") || "simple";                       // every visit starts fresh
+  api("/api/robot/reset", { method: "POST" }).catch(() => {}); // the robot demo starts clean on each load
   $$(".modes button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
   wizardBind();
   $("#btn-farm-save").onclick = saveFarm;

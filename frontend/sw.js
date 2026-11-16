@@ -1,7 +1,7 @@
 /* AgroTwin service worker
  * App shell cached for offline use in the field; API calls go to the network first and fall
  * back to the last good answer, so a farmer with a weak signal still sees their plan. */
-const SHELL = "agrotwin-shell-v6";
+const SHELL = "agrotwin-shell-v7";
 const API = "agrotwin-api-v3";
 const ASSETS = ["/", "/static/style.css", "/static/app.js", "/static/map.js", "/static/chat.js", "/static/plan.js", "/static/icon.svg",
   "/static/i18n/en.json", "/static/i18n/ar.json", "/static/vendor/leaflet.js", "/static/vendor/leaflet.css",
@@ -23,7 +23,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   // App shell: network first so updates show at once; cached copy when the field has no signal.
-  e.respondWith(fetch(e.request).then((r) => {
+  e.respondWith(fetch(e.request, { cache: "no-cache" }).then((r) => {
     if (r.ok && e.request.method === "GET") { const copy = r.clone(); caches.open(SHELL).then((c) => c.put(e.request, copy)); }
     return r;
   }).catch(() => caches.match(e.request)));

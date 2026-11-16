@@ -527,6 +527,8 @@ class PlanChatReq(BaseModel):
     lat: float
     lon: float
     sid: str | None = None
+    located: bool = False          # the farmer confirmed the field location (GPS, governorate or map pick) with this message
+    place: str | None = None
 
 _plan_cache: dict = {}
 
@@ -539,7 +541,8 @@ def plan_chat(req: PlanChatReq):
             if len(_plan_cache) > 64:
                 _plan_cache.pop(next(iter(_plan_cache)))
         return _plan_cache[key]
-    return _clean(plan_agent.turn(req.sid, req.text.strip()[:500], req.lang, mk))
+    return _clean(plan_agent.turn(req.sid, req.text.strip()[:500], req.lang, mk, located=req.located,
+                                  place=(req.place or "")[:80] or None, lat=req.lat, lon=req.lon))
 
 # ---------------------------------------------------------------------------
 # Field alerts (Field Pulse → spoken alert) and the outcome log (labels for the next models)

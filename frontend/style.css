@@ -375,6 +375,10 @@ body.planning .chat-fab { display: none; }
 .pm-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 10px; }
 .pm-chips button { background: #fff; border: 1px solid var(--rule, #d9d4c7); padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; border-radius: 3px; }
 .pm-chips button:hover { border-color: var(--ink, #1b1f1a); }
+.pm-chips .pm-gps { display: inline-flex; align-items: center; gap: 6px; background: #2e6b45; border-color: #2e6b45; color: #fff; font-weight: 600; }
+.pm-chips .pm-gps:hover { background: #24553a; border-color: #24553a; }
+.pm-chips .pm-gps .pm-pin { width: 15px; height: 15px; fill: currentColor; flex: none; }
+.pm-chips .pm-mappick { border-style: dashed; }
 .pm-bar { display: flex; gap: 6px; padding: 12px; border-top: 1px solid var(--rule, #d9d4c7); background: var(--paper, #fbf9f4); margin: 0; }
 .pm-bar input { flex: 1; min-width: 0; border: 1px solid var(--rule, #d9d4c7); padding: 10px; font: inherit; font-size: 15px; background: #fff; }
 .pm-bar .mic { width: 48px; height: 44px; border: 0; background: var(--ink, #1b1f1a); color: #f7f4ec; display: grid; place-items: center; cursor: pointer; padding: 0; }

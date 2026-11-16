@@ -261,7 +261,7 @@
   "pm_title": "Plan your next three years",
   "pm_sub": "Build a crop plan from your field’s weather history, soil and water supply.",
   "pm_ph": "Answer, or ask for a change…",
-  "pm_hello": "What do you grow in winter and summer?",
+  "pm_hello": "Welcome. Where is your field? Tap “Use my location” if you are standing in it, type your governorate, or pick it on the map.",
   "pm_empty": "<h2>Let’s plan the next three years</h2><p>Tell us what you grow, your field area and how reliable your water supply is. We’ll compare crop rotations and planting dates using the weather recorded for this field.</p><p>You can change the plan as you go: “keep rice”, “use less water”, or “my field is 3 feddans”.</p>",
   "pm_plan_kick": "Your plan",
   "pm_shift": "summer sowing {d} days",

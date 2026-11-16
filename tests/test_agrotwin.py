@@ -375,9 +375,26 @@ def test_planner_suggestions_match_the_question_being_asked(monkeypatch):
     result = plan_agent.turn(None, "I grow Wheat and rice", "en", no_plan_yet)
     assert result["profile"]["winter"] == "wheat"
     assert result["profile"]["summer"] == "rice"
+    assert "Where is your field" in result["reply"]            # the field location comes first
+    assert result["next_question"] == "location"
+    result = plan_agent.turn(result["sid"], "Dakahlia", "en", no_plan_yet, located=True, place="Dakahlia", lat=31.04, lon=31.38)
+    assert "Dakahlia" in result["reply"]
     assert "How many feddans" in result["reply"]
     assert result["next_question"] == "area"
     result = plan_agent.turn(result["sid"], "3 feddans", "en", no_plan_yet)
     assert result["profile"]["area_feddan"] == 3
     assert "soil salty" in result["reply"]
     assert result["next_question"] == "salinity"
+
+
+def test_planner_never_plans_before_the_field_location(monkeypatch):
+    import plan_agent
+    session = dict(sid="test-location", profile={}, asked=[], history=[], plan=None)
+    monkeypatch.setattr(plan_agent, "load", lambda sid: session)
+    monkeypatch.setattr(plan_agent, "save", lambda s: None)
+    def no_plan(profile):
+        raise AssertionError("No plan may be built before the farmer gives the field location")
+    for text in ("hello", "I grow wheat and rice", "3 feddans", "make the plan now"):
+        result = plan_agent.turn(None, text, "en", no_plan)
+        assert result["plan"] is None
+        assert result["next_question"] == "location"
