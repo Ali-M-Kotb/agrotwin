@@ -110,13 +110,14 @@ def make_plan(site: dict, wx: dict, profile: dict, prices: dict, soil_class: str
     res = rp.run(wx, plan, prices, clay)
     ov = rp.effective_overrides(plan)
     must = set(p.get("must_include") or [])
+    skip = {tuple(x[:2]) for x in (p.get("skip_seqs") or [])}  # main crop pairs the farmer asked to replace
     pool = sorted(res["_all"][1:], key=lambda m: -m["total"])
     if must:
         pool = [m for m in pool if must <= set(m["seq"])] or pool
     cands, seen = [], set()
     for m in pool:
         k = tuple(m["seq"])
-        if k not in seen and not m.get("excluded", {}).get("is_excluded"):
+        if k not in seen and tuple(k[:2]) not in skip and not m.get("excluded", {}).get("is_excluded"):
             seen.add(k); cands.append(k)
         if len(cands) == 4:
             break
@@ -145,7 +146,8 @@ def make_plan(site: dict, wx: dict, profile: dict, prices: dict, soil_class: str
         o["score"] = round(float(100 * (pri["water"] * W[i] + pri["profit"] * P[i] + pri["risk"] * R[i] + pri["soil"] * S[i]) / ws), 1)
         o["is_current"] = tuple(o["seq"]) == existing and o["shift"] == 0 and o["strategy"] == "full"
     current = next(o for o in options if o["is_current"])
-    eligible = [o for o in options if must <= set(o["seq"])] or options
+    eligible = ([o for o in options if must <= set(o["seq"]) and tuple(o["seq"][:2]) not in skip]
+                or [o for o in options if must <= set(o["seq"])] or options)
     best = max(eligible, key=lambda o: o["score"])
     runner = max((o for o in options if tuple(o["seq"]) != tuple(best["seq"])), key=lambda o: o["score"], default=None)
     # detailed schedule for the chosen option (re-run once for slot-level numbers)

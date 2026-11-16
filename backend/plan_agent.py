@@ -77,6 +77,7 @@ def understand(text: str, s: dict) -> dict:
     """Return profile updates and flags from one utterance."""
     t = " " + ch.norm_ar(text) + " "
     up, flags = {}, set()
+    dk = _has(t, "مش عارف", "معرفش", "مش متاكد", "مش فاكر", "don't know", "dont know", "not sure", "no idea")
     crops = ch.crops_in(text)
     unknown = sorted({v for k, v in UNKNOWN_CROPS.items() if ch.norm_ar(k) in t})
     if unknown:
@@ -120,7 +121,7 @@ def understand(text: str, s: dict) -> dict:
             up["salinity_ece"] = 4.0          # "my land is salty" without a test → moderate (assumption, said back to the farmer)
             flags.add("salinity_guess")
         flags.add("salinity")
-    elif ("salinity" in s.get("asked", [])[-1:] and _has(t, " لا ", " لأ ", " مش ", " no ", " not ", "مفيش", "نضيف", "كويس", " fine", " good")) or \
+    elif ("salinity" in s.get("asked", [])[-1:] and not dk and _has(t, " لا ", " لأ ", " مش ", " no ", " not ", "مفيش", "نضيف", "كويس", " fine", " good")) or \
             _has(t, "soil is fine", "soil is good", "soil is ok", "no salt", "not salty", "الارض كويسه", "الارض نضيفه", "مفيش ملوحه"):
         up["salinity_ece"] = 0.0
         flags.add("salinity")
@@ -138,7 +139,7 @@ def understand(text: str, s: dict) -> dict:
         else:
             up["canal_short_prob"] = 0.25
         flags.add("canal")
-    pri = dict(s["profile"].get("priorities") or {"water": 1, "soil": 1, "profit": 1, "risk": 1})
+    pri = {"water": 1, "soil": 1, "profit": 1, "risk": 1}        # the latest stated priority replaces earlier ones
     stated = "priority" in s.get("asked", [])[-1:] or _has(t, "اهم حاجه", "اهم حاجة", "اولويتي", "عايز اكسب اكتر", "اكسب اكتر", "مكسب اكتر",
                                                          "عايز اوفر", "اوفر مية", "وفر مية", "more profit", "save more", "save water", "less water",
                                                          "most important", "priority", "i care about", "less risk", "safer")
@@ -159,8 +160,25 @@ def understand(text: str, s: dict) -> dict:
         flags.add("why")
     if _has(t, "امتى ازرع", "ميعاد", "when do i sow", "when to plant", "schedule", "الجدول"):
         flags.add("schedule")
-    if _has(t, "اعمل الخطة", "الخطة", "خطة", "plan", "يلا", "go ahead", "make"):
+    # "make the plan" only when said plainly; a mention of "the plan" ("change the plan") is not a go-ahead
+    if _has(t, "اعمل الخطه", "اعملي الخطه", "اعمل خطه", "طلع الخطه", "طلعلي الخطه", "make the plan", "make a plan", "make my plan", "go ahead", "يلا"):
         flags.add("plan_now")
+    if _has(t, "ايوه", "ايوا", " اه ", "تمام", "ماشي", "موافق", "اكيد", "اعمل", " yes", " yeah", " ok", "okay", "sure", " go "):
+        flags.add("yes")
+    if _has(t, "غير الخطه", "غيرلي الخطه", "خطه تانيه", "خطه غير", "خطه بديله", "بديل", "حاجه تانيه غير", "مش عاجباني", "مش عاجبني",
+           "another plan", "different plan", "change the plan", "other plan", "alternative", "something else"):
+        flags.add("alt")
+    if _has(t, "عايز اغير حاجه", "اغير حاجه", "غير حاجه", "change something", "change a detail", "edit"):
+        flags.add("edit")
+    # "I don't know" answers the question just asked with a stated default (said back to the farmer)
+    last = (s.get("asked") or [None])[-1]
+    if dk and last in ("area", "salinity", "canal", "priority") and last not in flags:
+        up.update({"area": {"area_feddan": 1.0}, "salinity": {"salinity_ece": 0.0}, "canal": {"canal_short_prob": 0.25},
+                   "priority": {"priorities": {"water": 1, "soil": 1, "profit": 1, "risk": 1}}}[last])
+        flags.update({last, "dk_" + last})
+    if last == "priority" and "priority" not in flags and _has(t, "كله", "كلهم", "زي بعض", "مش فارقه", "all of them", "everything", "all equal", "balanced"):
+        up["priorities"] = {"water": 1, "soil": 1, "profit": 1, "risk": 1}
+        flags.add("priority")
     return dict(update=up, flags=flags)
 
 # ---------------------------------------------------------------------------
@@ -324,7 +342,7 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
                 "Tell me which of these you grow, or say “use wheat and rice” as an example."), tools
     if "recall" in u["flags"] and not u["update"]:
         return pre + _profile_text(s["profile"], ar) + (" تحب أغيّر حاجة؟" if ar else " Want to change anything?"), tools
-    nxt = _missing(s["profile"], s["asked"])
+    nxt = _missing(s["profile"], [])                 # strict: every question must really be answered
     if s.get("plan") and "why" in u["flags"] and not u["update"]:
         return explain(s["plan"], ar), tools
     if s.get("plan") and "schedule" in u["flags"] and not u["update"]:
@@ -341,11 +359,41 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
         if "crops" not in s["asked"]:
             s["asked"].append("crops")
         return pre + _q("crops", ar), tools
-    if nxt and "plan_now" not in u["flags"] and not s.get("plan"):
-        s["asked"].append(nxt)
-        if "salinity_guess" in u["flags"]:
-            pre += ("هحسب الملوحة متوسطة (4 دسي سيمنز) لحد ما تعمل تحليل. " if ar else "I'll assume moderate salinity (4 dS/m) until you have a lab test. ")
-        return pre + _q(nxt, ar), tools
+    pre += _dk_notes(u["flags"], ar)
+    if "salinity_guess" in u["flags"]:
+        pre += ("هحسب الملوحة متوسطة (4 دسي سيمنز) لحد ما تعمل تحليل. " if ar else "I'll assume moderate salinity (4 dS/m) until you have a lab test. ")
+    if not s.get("plan"):
+        if nxt:
+            if s["asked"][-1:] == [nxt]:
+                if not u["update"] and not ({"greeting", "plan_now"} & u["flags"]):
+                    pre += "مفهمتش الإجابة دي قوي. " if ar else "I didn't catch that answer. "
+            else:
+                s["asked"].append(nxt)
+            if "plan_now" in u["flags"]:
+                pre += "لسه محتاج أعرف كام حاجة قبل ما أعمل الخطة. " if ar else "I still need a few details before I make the plan. "
+            return pre + _q(nxt, ar), tools
+        # every answer is in: read it back and ask before planning
+        if s["asked"][-1:] != ["confirm"] or u["update"] or not ({"yes", "plan_now"} & u["flags"]):
+            if s["asked"][-1:] != ["confirm"]:
+                s["asked"].append("confirm")
+            if "edit" in u["flags"] and not u["update"]:
+                return pre + ("تحب تغيّر إيه؟ قولّي مثلًا: «عندي 5 فدان»، «المية بتقطع دايمًا»، «أهم حاجة توفير المية»، أو «بزرع قمح وذرة»." if ar else
+                              "What would you like to change? For example: “I have 5 feddans”, “canal is often short”, “saving water matters most”, or “I grow wheat and maize”."), tools
+            return pre + _confirm_text(s["profile"], ar), tools
+    elif "alt" in u["flags"] and not u["update"]:
+        old = list(s["plan"]["chosen"]["seq"])
+        s["profile"]["skip_seqs"] = (s["profile"].get("skip_seqs") or []) + [old]
+        plan = make_plan({k: v for k, v in s["profile"].items() if k != "unknown_crops"})
+        tools.append(dict(tool="make_plan", args={k: v for k, v in s["profile"].items()}, source=plan.get("source")))
+        if tuple(plan["chosen"]["seq"][:2]) in {tuple(x[:2]) for x in s["profile"]["skip_seqs"]}:
+            s["profile"]["skip_seqs"] = []
+            return pre + ("ده أحسن اختيار لأرضك بالبيانات اللي قلتها، ومفيش بديل مختلف. قولّي تغيير معيّن: «مية أقل»، «مكسب أكتر»، «من غير رز»." if ar else
+                          "That is the best option for your field with what you told me, and there is no different alternative. Ask for something specific: “less water”, “more profit”, “no rice”."), tools
+        s["plan"] = plan
+        return pre + ("دي خطة تانية مختلفة. " if ar else "Here is a different plan. ") + summary(plan, ar), tools
+    elif "edit" in u["flags"] and not u["update"]:
+        return pre + ("تحب تغيّر إيه؟ قولّي مثلًا: «مية أقل»، «مكسب أكتر»، «أمان أكتر»، «من غير رز»، «عايز أزرع قطن»، «عندي 5 فدان»، أو «خطة تانية»." if ar else
+                      "What would you like to change? For example: “less water”, “more profit”, “safer”, “no rice”, “I want cotton”, “I have 5 feddans”, or “another plan”."), tools
     if s.get("plan") and not u["update"] and not ({"plan_now"} & u["flags"]):
         if pre:
             return pre + ("خطتك جاهزة على اليمين. تحب أغيّر حاجة؟" if ar else "Your plan is ready on the right. Want to change anything?"), tools
@@ -353,10 +401,36 @@ def rules_turn(s: dict, text: str, ar: bool, make_plan) -> tuple[str, list]:
                 "" if ar else
                 "I didn't quite get that. Try: “why this plan?”, “when do I sow?”, “save more water”, “no rice”, “I have 5 feddans”, or “what do I grow?”. "
                 ""), tools
+    if u["update"]:
+        s["profile"].pop("skip_seqs", None)          # new details: every rotation is back in play
+        if s.get("plan"):
+            pre += "تمام، عدّلت الخطة على كده. " if ar else "Done, I've updated the plan. "
     plan = make_plan({k: v for k, v in s["profile"].items() if k != "unknown_crops"})
     tools.append(dict(tool="make_plan", args={k: v for k, v in s["profile"].items()}, source=plan.get("source")))
     s["plan"] = plan
     return pre + summary(plan, ar), tools
+
+def _dk_notes(flags: set, ar: bool) -> str:
+    notes = dict(dk_area=("هحسب على فدان واحد، وتقدر تغيّره بعدين. ", "I'll use 1 feddan; you can change it later. "),
+                 dk_salinity=("هعتبر الأرض مش مالحة لحد ما تعمل تحليل. ", "I'll treat the soil as not saline until you have a lab test. "),
+                 dk_canal=("هعتبر المية بتقطع ساعات في الصيف. ", "I'll assume the canal is sometimes short in summer. "),
+                 dk_priority=("هوازن بين المكسب والمية والأرض والأمان بالتساوي. ", "I'll weigh profit, water, soil and safety equally. "))
+    return "".join(v[0 if ar else 1] for k, v in notes.items() if k in flags)
+
+def _confirm_text(p: dict, ar: bool) -> str:
+    base = _profile_text(p, ar)
+    return base + (" أعمل الخطة على كده؟ ولو عايز تغيّر حاجة قولّي." if ar else " Shall I make the plan with this? Or tell me what to change.")
+
+def _pending_prompt(s: dict, ar: bool) -> str:
+    """The question still waiting for an answer, so small talk always comes back to the interview."""
+    if s.get("plan"):
+        return ""
+    if not s.get("located"):
+        return _q("location", ar)
+    nxt = _missing(s["profile"], [])
+    if nxt:
+        return _q(nxt, ar)
+    return _confirm_text(s["profile"], ar)
 
 SYSTEM = """You are AgroTwin Plan Mode, a farm-planning assistant for smallholder farmers in Egypt. Your reply is read aloud.
 
@@ -502,7 +576,8 @@ def _llm_answer(s: dict, text: str, ar: bool) -> str | None:
         return None                                   # a number we cannot trace: do not say it
     return re.sub(r"[*#_`]", "", reply).strip()
 
-ACTION_FLAGS = {"crops", "area", "salinity", "canal", "priority", "exclude", "keep", "reset", "schedule", "plan_now", "unknown_crops", "recall"}
+ACTION_FLAGS = {"crops", "area", "salinity", "canal", "priority", "exclude", "keep", "reset", "schedule", "plan_now", "unknown_crops", "recall",
+                "alt", "edit"}
 
 def turn(sid: str | None, text: str, lang: str, make_plan, located: bool = False, place: str | None = None,
          lat: float | None = None, lon: float | None = None) -> dict:
@@ -517,12 +592,17 @@ def turn(sid: str | None, text: str, lang: str, make_plan, located: bool = False
     # Hybrid: the deterministic engine handles anything that changes the farm profile or the plan (exact, fast);
     # the language model answers open questions and conversation from the profile + computed plan (audited).
     u = understand(text, s)
-    actionable = bool(u["update"]) or bool(u["flags"] & ACTION_FLAGS) or located or not s.get("located")
+    awaiting_ok = s.get("asked", [])[-1:] == ["confirm"] and not s.get("plan")
+    actionable = (bool(u["update"]) or bool(u["flags"] & ACTION_FLAGS) or located or not s.get("located")
+                  or (awaiting_ok and "yes" in u["flags"]))
     tools, engine, reply = [], "rules", None
     if not actionable and ("greeting" not in u["flags"] or len(text.split()) > 4):
         reply = _llm_answer(s, text, ar)
         if reply:
             engine = "llm"
+            follow = _pending_prompt(s, ar)
+            if follow and follow not in reply:
+                reply = reply.rstrip() + " " + follow
     if not reply:
         reply, tools = rules_turn(s, text, ar, make_plan)
         if located and s.get("asked", [])[-1:] != ["location"]:

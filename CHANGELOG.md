@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.4 — 16 Nov 2026: a real interview before any plan, and plans the farmer can change
+- Plan Mode asks every question (location, crops, area, salinity, canal water, priority) and re-asks one it did not understand.
+- "I don't know" answers use a stated default that is said back to the farmer.
+- Before planning, the farmer hears a recap of what they said and confirms ("make the plan" or "change something").
+- "Change the plan" / "another plan" gives the next-best rotation with different main crops; each new request moves further down the list.
+- A newly stated priority replaces the earlier one, and the reply says the plan was updated.
+- Only a plain "make the plan" starts planning; mentioning "the plan" no longer repeats it.
+- Small talk answered by the language model returns to the pending question.
+
 ## 0.6.3 — 16 Nov 2026: location first in Plan Mode, fresh start on every visit
 - Plan Mode asks where the field is before anything else and never builds a plan without a confirmed location.
 - New "use my location" button (GPS, with the nearest governorate named), governorate buttons, typed governorate names and pick-on-the-map.

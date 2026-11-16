@@ -12,11 +12,12 @@ const PlanUI = (() => {
   const CHIPS = {
     location: [["كفر الشيخ", "Kafr El-Sheikh"], ["الدقهلية", "Dakahlia"], ["البحيرة", "Beheira"], ["المنيا", "Minya"]],
     crops: [["قمح ورز", "Wheat and rice"], ["قمح وذرة", "Wheat and maize"], ["برسيم وذرة", "Berseem and maize"], ["بنجر وقطن", "Sugar beet and cotton"]],
-    area: [["فدان", "1 feddan"], ["3 فدان", "3 feddans"], ["5 فدان", "5 feddans"], ["10 فدان", "10 feddans"]],
+    area: [["فدان", "1 feddan"], ["3 فدان", "3 feddans"], ["5 فدان", "5 feddans"], ["10 فدان", "10 feddans"], ["مش عارف", "I don't know"]],
     salinity: [["الأرض مش مالحة", "Soil is fine"], ["فيها ملوحة شوية", "A bit salty"], ["مش عارف", "I don't know"]],
-    canal: [["المية نادر ما تقطع", "Rarely short"], ["بتقطع ساعات", "Sometimes short"], ["بتقطع دايمًا", "Often short"]],
-    priority: [["المكسب", "Profit"], ["توفير المية", "Save water"], ["صحة الأرض", "Soil health"], ["الأمان من الخسارة", "Avoid losses"]],
-    done: [["ليه الخطة دي؟", "Why this plan?"], ["امتى أزرع؟", "When do I sow?"], ["عايز أوفّر مية أكتر", "Save more water"], ["أكسب أكتر", "More profit"], ["عايز أزرع رز", "Keep rice"]],
+    canal: [["المية نادر ما تقطع", "Rarely short"], ["بتقطع ساعات", "Sometimes short"], ["بتقطع دايمًا", "Often short"], ["مش عارف", "I don't know"]],
+    priority: [["المكسب", "Profit"], ["توفير المية", "Save water"], ["صحة الأرض", "Soil health"], ["الأمان من الخسارة", "Avoid losses"], ["كله زي بعضه", "All equally"]],
+    confirm: [["أيوه، اعمل الخطة", "Yes, make the plan"], ["عايز أغيّر حاجة", "Change something"]],
+    done: [["خطة تانية", "Another plan"], ["عايز أغيّر حاجة", "Change something"], ["ليه الخطة دي؟", "Why this plan?"], ["امتى أزرع؟", "When do I sow?"], ["عايز أوفّر مية أكتر", "Save more water"], ["أكسب أكتر", "More profit"], ["عايز أزرع رز", "Keep rice"]],
   };
 
   function build() {
@@ -77,7 +78,7 @@ const PlanUI = (() => {
 
   function chips() {
     if (!P.located && !P.plan) return locationChips();
-    const set = CHIPS[P.plan ? "done" : (P.next || "crops")] || CHIPS.done;
+    const set = CHIPS[P.plan ? "done" : (P.next || "crops")] || [];
     q("#planmode .pm-chips").innerHTML = set.map((c) => `<button type="button">${esc(c[AR() ? 0 : 1])}</button>`).join("");
     document.querySelectorAll("#planmode .pm-chips button").forEach((b) => {
       b.onclick = () => send(!P.plan && (P.next || "crops") === "crops"
@@ -159,6 +160,9 @@ const PlanUI = (() => {
     const used = (r.tools || []).length ? `<div class="used">${AR() ? "استخدمت: محرّك الخطة (٣٢ سنة طقس ناسا · نبض الأرض · صور الأقمار)" : "used: plan engine (32 years of NASA weather · Field Pulse · satellite field index)"}</div>` : "";
     msg("bot", r.reply, used);
     if (r.plan) { P.plan = r.plan; render(r.plan); }
+    else if (P.plan) {                                   // the plan was cleared (e.g. a new field): show the empty board again
+      P.plan = null; q("#planmode .pm-plan").classList.add("hidden"); q("#planmode .pm-empty").classList.remove("hidden");
+    }
     api("/api/ai/status").then((a) => { P.ai = a; aiBadge(); }).catch(() => {});
     chips();
     Chat.say(r.reply, r.lang === "ar");
